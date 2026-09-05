@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ProductComposition from "@/components/ProductComposition";
 import { formatPrice, products } from "@/lib/mock-data";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -9,7 +10,9 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
 
   return (
     <section className="section shell productDetail">
-      <div className="detailVisual"><span>{product.emoji}</span></div>
+      <div className="detailVisual">
+        <ProductComposition product={product} variant="detail" />
+      </div>
       <div className="detailInfo">
         <span className="eyebrow">{product.category}</span>
         <h1>{product.name}</h1>
