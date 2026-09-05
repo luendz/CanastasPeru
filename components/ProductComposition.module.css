@@ -1,0 +1,80 @@
+.composition {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.card {
+  min-height: 260px;
+}
+
+.detail {
+  min-height: 610px;
+}
+
+.baseLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8%;
+  pointer-events: none;
+}
+
+.baseEmoji {
+  font-size: 118px;
+  line-height: 1;
+  filter: drop-shadow(0 18px 16px rgba(0, 0, 0, .12));
+  transform: scaleX(1.08);
+}
+
+.detail .baseEmoji {
+  font-size: 220px;
+}
+
+.baseImage {
+  width: min(78%, 360px);
+  max-height: 82%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 16px rgba(0, 0, 0, .12));
+}
+
+.detail .baseImage {
+  width: min(82%, 520px);
+}
+
+.itemLayer {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  transform-origin: center;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 7px rgba(0, 0, 0, .13));
+}
+
+.itemEmoji {
+  display: block;
+  line-height: 1;
+  user-select: none;
+}
+
+.itemImage {
+  display: block;
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+}
+
+@media (max-width: 720px) {
+  .detail {
+    min-height: 430px;
+  }
+
+  .detail .baseEmoji {
+    font-size: 165px;
+  }
+}
