@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Product, formatPrice } from "@/lib/mock-data";
+import ProductComposition from "@/components/ProductComposition";
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="productCard">
       <Link className="productVisual" href={`/producto/${product.slug}`}>
         {product.badge && <span className="badge">{product.badge}</span>}
-        <span className="productEmoji">{product.emoji}</span>
+        <ProductComposition product={product} />
       </Link>
       <div className="productBody">
         <span className="eyebrow">{product.category}</span>
