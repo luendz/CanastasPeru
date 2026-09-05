@@ -52,8 +52,34 @@
   display: grid;
   place-items: center;
   transform-origin: center;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: zoom-in;
   filter: drop-shadow(0 8px 7px rgba(0, 0, 0, .13));
+}
+
+.itemLayer:hover {
+  z-index: 50 !important;
+}
+
+.itemEmoji,
+.itemImage {
+  transition: transform .2s ease, filter .2s ease;
+  transform-origin: center;
+}
+
+.itemLayer:hover .itemEmoji,
+.itemLayer:hover .itemImage {
+  transform: scale(1.16);
+  filter:
+    drop-shadow(1px 0 0 #1f5b3b)
+    drop-shadow(-1px 0 0 #1f5b3b)
+    drop-shadow(0 1px 0 #1f5b3b)
+    drop-shadow(0 -1px 0 #1f5b3b)
+    drop-shadow(1px 1px 0 #1f5b3b)
+    drop-shadow(-1px 1px 0 #1f5b3b)
+    drop-shadow(1px -1px 0 #1f5b3b)
+    drop-shadow(-1px -1px 0 #1f5b3b)
+    drop-shadow(0 10px 10px rgba(0, 0, 0, .18));
 }
 
 .itemEmoji {
@@ -67,6 +93,13 @@
   height: auto;
   max-width: none;
   object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .itemEmoji,
+  .itemImage {
+    transition: none;
+  }
 }
 
 @media (max-width: 720px) {
