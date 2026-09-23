@@ -103,4 +103,65 @@ export const products: Product[] = [
   },
 ];
 
-export const formatPrice = (value: number) => `S/ ${value.toFixed(2)}`;
+export type BasketType = {
+  id: string;
+  label: string;
+  image: string;
+  hint: string;
+  priceDelta: number;
+};
+
+export const basketTypes: BasketType[] = [
+  {
+    id: "cesta-azul",
+    label: "Cesta azul",
+    image: "/canastas/cesta.png",
+    hint: "Abierta y ligera",
+    priceDelta: 0,
+  },
+  {
+    id: "caja-navidena",
+    label: "Caja navideña",
+    image: "/canastas/caja.png",
+    hint: "Estampado festivo",
+    priceDelta: 8,
+  },
+  {
+    id: "cesta-gris",
+    label: "Cesta gris con tapa",
+    image: "/canastas/cesta-2.png",
+    hint: "Con tapa, reutilizable",
+    priceDelta: 10,
+  },
+  {
+    id: "cesta-ratan",
+    label: "Cesta símil ratán",
+    image: "/canastas/cesta-3.png",
+    hint: "Acabado tejido, con tapa",
+    priceDelta: 20,
+  },
+];
+
+export const formatPrice = (value: number) =>
+  `S/ ${value.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+export const findBasketType = (image?: string) =>
+  basketTypes.find((item) => item.image === image) ?? basketTypes[0];
+
+/** Carrito de prueba compartido por carrito y checkout mientras no haya persistencia. */
+export const mockCart = [
+  { slug: "canasta-premium", qty: 2 },
+  { slug: "box-navideno", qty: 1 },
+];
+
+/** Tarifas de delivery de prueba por distrito de Lima. */
+export const deliveryZones = [
+  { district: "Miraflores", fee: 15 },
+  { district: "San Isidro", fee: 15 },
+  { district: "Santiago de Surco", fee: 18 },
+  { district: "San Borja", fee: 15 },
+  { district: "La Molina", fee: 22 },
+  { district: "Jesús María", fee: 15 },
+  { district: "Lince", fee: 12 },
+  { district: "San Miguel", fee: 18 },
+];

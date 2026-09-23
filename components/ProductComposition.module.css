@@ -47,17 +47,43 @@
   width: min(82%, 520px);
 }
 
+/* En el catálogo la canasta es la unidad seleccionable: crece, se desplaza
+   y se eleva al pasar el puntero (regla §5.1 del documento del proyecto). */
+.card .baseLayer {
+  transition: transform .2s ease;
+}
+
+.card:hover .baseLayer {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.card .baseImage,
+.card .baseEmoji {
+  transition: filter .2s ease;
+}
+
+.card:hover .baseImage,
+.card:hover .baseEmoji {
+  filter: drop-shadow(0 24px 22px rgba(25, 45, 32, .22));
+}
+
 .itemLayer {
   position: absolute;
   display: grid;
   place-items: center;
   transform-origin: center;
-  pointer-events: auto;
-  cursor: zoom-in;
+  pointer-events: none;
   filter: drop-shadow(0 8px 7px rgba(0, 0, 0, .13));
 }
 
-.itemLayer:hover {
+/* Los productos solo son explorables en el detalle. En el catálogo la
+   unidad seleccionable es la canasta completa, no cada producto. */
+.detail .itemLayer {
+  pointer-events: auto;
+  cursor: zoom-in;
+}
+
+.detail .itemLayer:hover {
   z-index: 50 !important;
 }
 
@@ -67,18 +93,18 @@
   transform-origin: center;
 }
 
-.itemLayer:hover .itemEmoji,
-.itemLayer:hover .itemImage {
+.detail .itemLayer:hover .itemEmoji,
+.detail .itemLayer:hover .itemImage {
   transform: scale(1.16);
   filter:
-    drop-shadow(1px 0 0 #1f5b3b)
-    drop-shadow(-1px 0 0 #1f5b3b)
-    drop-shadow(0 1px 0 #1f5b3b)
-    drop-shadow(0 -1px 0 #1f5b3b)
-    drop-shadow(1px 1px 0 #1f5b3b)
-    drop-shadow(-1px 1px 0 #1f5b3b)
-    drop-shadow(1px -1px 0 #1f5b3b)
-    drop-shadow(-1px -1px 0 #1f5b3b)
+    drop-shadow(1px 0 0 #7b1e2c)
+    drop-shadow(-1px 0 0 #7b1e2c)
+    drop-shadow(0 1px 0 #7b1e2c)
+    drop-shadow(0 -1px 0 #7b1e2c)
+    drop-shadow(1px 1px 0 #7b1e2c)
+    drop-shadow(-1px 1px 0 #7b1e2c)
+    drop-shadow(1px -1px 0 #7b1e2c)
+    drop-shadow(-1px -1px 0 #7b1e2c)
     drop-shadow(0 10px 10px rgba(0, 0, 0, .18));
 }
 
@@ -97,8 +123,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .itemEmoji,
-  .itemImage {
+  .itemImage,
+  .baseLayer,
+  .baseImage,
+  .baseEmoji {
     transition: none;
+  }
+
+  .card:hover .baseLayer {
+    transform: none;
   }
 }
 

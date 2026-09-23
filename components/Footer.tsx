@@ -1,10 +1,11 @@
 export default function Footer() {
   return (
     <footer className="footer">
+      <div className="textileBand" aria-hidden="true" />
       <div className="shell footerGrid">
         <div>
-          <div className="brand footerBrand"><span className="brandMark">CP</span><span><strong>Canastas</strong>Perú</span></div>
-          <p>Canastas navideñas y regalos corporativos con atención personalizada.</p>
+          <div className="brand footerBrand"><span className="brandMark" aria-hidden="true">✦</span><span>Canastas<em>Perú</em></span></div>
+          <p>Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.</p>
         </div>
         <div>
           <h4>Compra</h4>

@@ -4,16 +4,19 @@ import styles from "./ProductComposition.module.css";
 type ProductCompositionProps = {
   product: Product;
   variant?: "card" | "detail";
+  /** Sustituye la canasta propia del producto por otro tipo elegido. */
+  baseImage?: string;
 };
 
-export default function ProductComposition({ product, variant = "card" }: ProductCompositionProps) {
+export default function ProductComposition({ product, variant = "card", baseImage }: ProductCompositionProps) {
   const sizeMultiplier = variant === "detail" ? 1.65 : 1;
+  const base = baseImage ?? product.baseImage;
 
   return (
     <div className={`${styles.composition} ${variant === "detail" ? styles.detail : styles.card}`} aria-label={`Composición de ${product.name}`}>
       <div className={styles.baseLayer}>
-        {product.baseImage ? (
-          <img className={styles.baseImage} src={product.baseImage} alt={`Base de ${product.name}`} />
+        {base ? (
+          <img className={styles.baseImage} src={base} alt={`Base de ${product.name}`} />
         ) : (
           <span className={styles.baseEmoji} aria-hidden="true">{product.emoji}</span>
         )}
@@ -23,7 +26,7 @@ export default function ProductComposition({ product, variant = "card" }: Produc
         <div
           className={styles.itemLayer}
           key={item.name}
-          title={item.name}
+          title={variant === "detail" ? item.name : undefined}
           style={{
             top: `${item.top}%`,
             left: `${item.left}%`,
