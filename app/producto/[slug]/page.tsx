@@ -1,28 +1,39 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ProductComposition from "@/components/ProductComposition";
-import { formatPrice, products } from "@/lib/mock-data";
+import ProductCard from "@/components/ProductCard";
+import ProductDetail from "@/components/ProductDetail";
+import { products } from "@/lib/mock-data";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = products.find((item) => item.slug === slug);
   if (!product) notFound();
 
+  const related = products.filter((item) => item.slug !== product.slug).slice(0, 3);
+
   return (
-    <section className="section shell productDetail">
-      <div className="detailVisual">
-        <ProductComposition product={product} variant="detail" />
-      </div>
-      <div className="detailInfo">
-        <span className="eyebrow">{product.category}</span>
-        <h1>{product.name}</h1>
-        <div className="detailPrice"><strong>{formatPrice(product.price)}</strong>{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div>
-        <p>{product.description}</p>
-        <div className="detailPanel"><h3>Incluye</h3><ul>{product.items.map((item) => <li key={item}>✓ {item}</li>)}</ul></div>
-        <div className="quantityRow"><label>Cantidad</label><input className="input qty" defaultValue="1" type="number" min="1" /></div>
-        <div className="heroActions"><Link className="btn btnPrimary" href="/carrito">Agregar al carrito</Link><Link className="btn btnGhost" href="/cotizacion">Cotizar volumen</Link></div>
-        <div className="miniNotes"><span>🚚 Delivery programado</span><span>🧾 Boleta o factura</span><span>🎁 Presentación lista para regalar</span></div>
-      </div>
-    </section>
+    <>
+      <nav className="shell breadcrumb" aria-label="Ruta">
+        <Link href="/">Inicio</Link><span aria-hidden="true">/</span>
+        <Link href="/catalogo">Catálogo</Link><span aria-hidden="true">/</span>
+        <span aria-current="page">{product.name}</span>
+      </nav>
+
+      <section className="shell productDetail">
+        <ProductDetail product={product} />
+      </section>
+
+      <section className="relatedSection">
+        <div className="shell">
+          <div className="sectionHead">
+            <div><span className="eyebrow">Sigue explorando</span><h2>También te puede <em>gustar</em></h2></div>
+            <Link className="textLink" href="/catalogo">Ver catálogo →</Link>
+          </div>
+          <div className="productGrid relatedGrid">
+            {related.map((item) => <ProductCard key={item.slug} product={item} />)}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

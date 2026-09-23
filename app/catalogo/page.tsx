@@ -1,27 +1,30 @@
-import ProductCard from "@/components/ProductCard";
-import { products } from "@/lib/mock-data";
+import Link from "next/link";
+import CatalogBrowser from "@/components/CatalogBrowser";
 
 export default function CatalogoPage() {
   return (
-    <section className="section shell">
-      <div className="pageIntro"><span className="eyebrow">Catálogo</span><h1>Canastas y regalos</h1><p>Explora nuestras opciones de prueba. Los datos son mock y luego se conectarán a Supabase.</p></div>
-      <div className="catalogLayout">
-        <aside className="filters">
-          <h3>Filtrar</h3>
-          <label><input type="checkbox" /> Económicas</label>
-          <label><input type="checkbox" /> Premium</label>
-          <label><input type="checkbox" /> Ejecutivas</label>
-          <label><input type="checkbox" /> Boxes</label>
-          <hr />
-          <label>Presupuesto máximo</label>
-          <input className="input" placeholder="S/ 250" />
-          <button className="btn btnDark full">Aplicar filtros</button>
-        </aside>
-        <div className="catalogContent">
-          <div className="catalogToolbar"><span>{products.length} productos</span><select className="select"><option>Ordenar: destacados</option><option>Menor precio</option><option>Mayor precio</option></select></div>
-          <div className="productGrid">{products.map((product) => <ProductCard key={product.slug} product={product} />)}</div>
+    <>
+      <section className="catalogHero">
+        <div className="shell catalogHeroInner">
+          <div>
+            <span className="eyebrow">Catálogo Navidad 2026</span>
+            <h1>Canastas para <em>cada</em> mesa.</h1>
+          </div>
+          <p>Desde la clásica familiar hasta la ejecutiva para tus clientes. Todas se pueden personalizar con otro tipo de canasta al elegirlas.</p>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="shell catalogBody">
+        <CatalogBrowser />
+
+        <div className="catalogCta">
+          <div>
+            <h3>¿No encuentras la <em>ideal</em>?</h3>
+            <p>Armamos canastas a medida desde 20 unidades, con tu logo y tu presupuesto.</p>
+          </div>
+          <Link className="btn btnPrimary" href="/cotizacion">Armar una a medida</Link>
+        </div>
+      </section>
+    </>
   );
 }

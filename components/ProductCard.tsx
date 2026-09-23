@@ -12,6 +12,10 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="productBody">
         <span className="eyebrow">{product.category}</span>
         <Link className="productTitle" href={`/producto/${product.slug}`}>{product.name}</Link>
+        <p className="productIncludes">
+          {product.items.slice(0, 3).join(" · ")}
+          {product.items.length > 3 && <span> +{product.items.length - 3}</span>}
+        </p>
         <div className="priceRow">
           <strong>{formatPrice(product.price)}</strong>
           {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}
