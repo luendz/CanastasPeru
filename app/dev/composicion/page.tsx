@@ -1,7 +1,7 @@
 import CompositionEditor from "@/components/CompositionEditor";
 
 export const metadata = {
-  title: "Editor de composición · CanastasPerú",
+  title: "Editor de composición",
 };
 
 export default function EditorComposicionPage() {

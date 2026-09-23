@@ -77,13 +77,14 @@
 }
 
 /* Los productos solo son explorables en el detalle. En el catálogo la
-   unidad seleccionable es la canasta completa, no cada producto. */
-.detail .itemLayer {
-  pointer-events: auto;
+   unidad seleccionable es la canasta completa, no cada producto.
+   El hover no usa :hover sino .itemActive, que ProductComposition asigna
+   comprobando el píxel real bajo el cursor (ignora el margen transparente). */
+.detail.hasActive {
   cursor: zoom-in;
 }
 
-.detail .itemLayer:hover {
+.detail .itemActive {
   z-index: 50 !important;
 }
 
@@ -93,8 +94,8 @@
   transform-origin: center;
 }
 
-.detail .itemLayer:hover .itemEmoji,
-.detail .itemLayer:hover .itemImage {
+.detail .itemActive .itemEmoji,
+.detail .itemActive .itemImage {
   transform: scale(1.16);
   filter:
     drop-shadow(1px 0 0 #7b1e2c)

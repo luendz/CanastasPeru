@@ -1,11 +1,16 @@
+import Brand, { BRAND_NAME, BRAND_TAGLINE } from "@/components/Brand";
+
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="textileBand" aria-hidden="true" />
       <div className="shell footerGrid">
-        <div>
-          <div className="brand footerBrand"><span className="brandMark" aria-hidden="true">✦</span><span>Canastas<em>Perú</em></span></div>
-          <p>Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.</p>
+        <div className="footerAbout">
+          <img className="footerLogo" src="/marca/mka-logo.webp" alt={`Logo de ${BRAND_NAME} · ${BRAND_TAGLINE}`} width={900} height={900} />
+          <div>
+            <Brand tone="light" />
+            <p>Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.</p>
+          </div>
         </div>
         <div>
           <h4>Compra</h4>
@@ -20,7 +25,7 @@ export default function Footer() {
           <p>Lima, Perú</p><p>ventas@canastasperu.pe</p><p>+51 999 999 999</p>
         </div>
       </div>
-      <div className="shell footerBottom">© 2026 CanastasPerú · Prototipo visual</div>
+      <div className="shell footerBottom">© 2026 {BRAND_NAME} · {BRAND_TAGLINE} · Prototipo visual</div>
     </footer>
   );
 }

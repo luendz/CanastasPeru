@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Brand from "@/components/Brand";
 
 export default function Header() {
   return (
@@ -10,10 +11,7 @@ export default function Header() {
       </div>
       <div className="headerWrap">
         <header className="header shell">
-          <Link className="brand" href="/">
-            <span className="brandMark" aria-hidden="true">✦</span>
-            <span>Canastas<em>Perú</em></span>
-          </Link>
+          <Brand />
           <nav className="nav">
             <Link href="/">Inicio</Link>
             <Link href="/catalogo">Catálogo</Link>

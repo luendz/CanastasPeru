@@ -17,8 +17,8 @@ const sans = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "CanastasPerú",
-  description: "Canastas navideñas y regalos corporativos",
+  title: { default: "MKA · Canastas Navideñas & Regalos", template: "%s · MKA" },
+  description: "MKA: canastas navideñas y regalos corporativos armados a mano en Lima.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
