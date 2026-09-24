@@ -1,0 +1,218 @@
+/* ==========================================================================
+   Animaciones sobre el diseño de main (vino, dorado y crema).
+   Las entradas solo se activan con html[data-motion], que layout.tsx pone
+   cuando hay JS y el usuario no pidió reducir movimiento.
+   ========================================================================== */
+
+:root {
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --stick: 0px;
+}
+
+@keyframes fadeUp { from { opacity: 0; translate: 0 26px; } }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes wordUp { from { translate: 0 108%; } }
+@keyframes popIn { from { opacity: 0; scale: .4; } }
+@keyframes riseArch { from { opacity: 0; translate: 0 70px; scale: .96; } }
+@keyframes swingIn { from { opacity: 0; translate: 40px -30px; rotate: 18deg; } }
+@keyframes stampIn { from { opacity: 0; scale: 1.8; rotate: -40deg; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes floaty { 50% { translate: 0 -9px; } }
+@keyframes growY { from { scale: 1 0; } }
+@keyframes shine { to { translate: 220% 0; } }
+@keyframes cartBumpA { 30% { scale: 1.16; rotate: -6deg; } 60% { scale: .96; rotate: 2deg; } }
+@keyframes cartBumpB { 30% { scale: 1.16; rotate: -6deg; } 60% { scale: .96; rotate: 2deg; } }
+@keyframes confettiFall {
+  0% { opacity: 1; translate: 0 0; rotate: 0deg; }
+  100% { opacity: 0; translate: var(--dx, 0) 420px; rotate: var(--r, 180deg); }
+}
+@keyframes textileSlide { to { background-position: 48px 0; } }
+
+/* ---------- Aparición al hacer scroll (Reveal) ---------- */
+html[data-motion] [data-reveal] {
+  opacity: 0;
+  translate: 0 30px;
+  transition: opacity .9s var(--ease-out), translate 1.1s var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html[data-motion] [data-reveal][data-inview] { opacity: 1; translate: 0 0; }
+html[data-motion] [data-reveal] [data-reveal-item] {
+  opacity: 0;
+  translate: 0 24px;
+  transition: opacity .8s var(--ease-out), translate 1s var(--ease-out);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--i, 0) * 100ms + 150ms);
+}
+html[data-motion] [data-reveal][data-inview] [data-reveal-item] { opacity: 1; translate: 0 0; }
+/* Contenedores cuyo contenido ya se anima por dentro: no se desplazan enteros. */
+html[data-motion] [data-reveal]:is(.productGrid, .featureGrid, .footerGrid),
+html[data-motion] [data-reveal]:has(> .quoteForm) { opacity: 1; translate: none; }
+
+/* ---------- Títulos palabra por palabra ---------- */
+.splitMask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .12em; margin-bottom: -.12em; }
+.splitWord { display: inline-block; }
+html[data-motion] .splitWord { translate: 0 108%; transition: translate 1.1s var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms + var(--reveal-delay, 0ms)); }
+html[data-motion] [data-inview] .splitWord { translate: 0 0; }
+html[data-motion] .splitNow .splitWord { translate: 0 0; transition: none; animation: wordUp 1.1s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 80ms + 150ms); }
+
+/* ---------- Header ---------- */
+.headerSticky { position: sticky; top: 0; z-index: 100; transition: translate .55s var(--ease-out), box-shadow .35s ease; }
+.headerSticky[data-scrolled] { box-shadow: 0 10px 30px -18px rgba(74, 15, 25, .45); }
+.headerSticky[data-hidden] { translate: 0 -100%; }
+.headerSticky .header { transition: min-height .4s var(--ease-out); }
+.headerSticky[data-scrolled] .header { min-height: 66px; }
+.textileBand { animation: textileSlide 3s linear infinite paused; }
+.headerSticky:hover .textileBand { animation-play-state: running; }
+.nav a { position: relative; }
+.nav a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--gold); scale: 0 1; transition: scale .4s var(--ease-out); }
+.nav a:hover::after, .nav a[aria-current]::after { scale: 1 1; }
+.nav a[aria-current] { color: var(--wine); }
+.cartBtn { transition: scale .3s var(--ease-spring), background-color .3s ease; }
+.cartBtn:hover { scale: 1.05; background: var(--wine); }
+.cartBtn[data-bump="a"] { animation: cartBumpA .7s var(--ease-spring); }
+.cartBtn[data-bump="b"] { animation: cartBumpB .7s var(--ease-spring); }
+html[data-motion] .cartBtn span { animation: popIn .45s var(--ease-spring) both; }
+html[data-motion] .topbar span { animation: fadeUp .7s var(--ease-out) both; }
+html[data-motion] .topbar span:nth-child(2) { animation-delay: .1s; }
+html[data-motion] .topbar span:nth-child(3) { animation-delay: .2s; }
+
+/* Los elementos pegajosos bajan cuando el header está visible. */
+body:has(.headerSticky[data-scrolled]:not([data-hidden])) { --stick: 84px; }
+.detailMedia, .sticky, .quoteIntro { top: calc(var(--stick) + 20px); transition: top .5s var(--ease-out); }
+.catalogBar { top: var(--stick); transition: top .5s var(--ease-out); }
+
+/* ---------- Botones ---------- */
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn::after { content: ""; position: absolute; inset: 0 auto 0 -60%; z-index: -1; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .28), transparent); translate: 0 0; pointer-events: none; }
+.btn:hover::after { animation: shine .8s var(--ease-out); }
+.btn:active { scale: .97; }
+.textLink { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat; transition: background-size .45s var(--ease-out); }
+.textLink:hover { background-size: 100% 2px; }
+
+/* ---------- Hero ---------- */
+html[data-motion] .hero .pill { animation: fadeUp .8s var(--ease-out) .05s both; }
+html[data-motion] .heroCopy > p { animation: fadeUp .9s var(--ease-out) .75s both; }
+html[data-motion] .heroActions { animation: fadeUp .9s var(--ease-out) .9s both; }
+html[data-motion] .heroStats > div { animation: fadeUp .8s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 120ms + 1.05s); }
+.heroStats dt { font-variant-numeric: tabular-nums; }
+.heroArt { perspective: 1100px; }
+.heroStage { transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .7s var(--ease-out); }
+.heroStamp { translate: calc(var(--px, 0px) * -1.2) calc(var(--py, 0px) * -1.2); transition: translate .7s var(--ease-out); }
+.heroTag { translate: calc(var(--px, 0px) * 1.4) calc(var(--py, 0px) * 1.4); transition: translate .7s var(--ease-out); }
+html[data-motion] .heroArch { animation: riseArch 1.1s var(--ease-out) .1s both; }
+html[data-motion] .heroStamp { animation: stampIn .8s var(--ease-spring) 1.6s both; }
+html[data-motion] .heroTag { animation: swingIn .9s var(--ease-spring) 1.9s both; }
+html[data-motion] .heroStage > * { animation: floaty 6s ease-in-out 3s infinite; }
+
+/* ---------- Tarjetas ---------- */
+.productCard { transition: translate .4s var(--ease-out), box-shadow .4s ease; }
+.productCard:hover { transform: none; translate: 0 -8px; }
+.productVisual { overflow: hidden; }
+.productVisual::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 80%, rgba(201, 151, 63, .35), transparent 60%); opacity: 0; transition: opacity .5s ease; }
+.productCard:hover .productVisual::before { opacity: 1; }
+.cardBasket { position: relative; width: 100%; }
+.badge { transition: scale .35s var(--ease-spring), rotate .35s var(--ease-spring); }
+.productCard:hover .badge { scale: 1.08; rotate: -4deg; }
+.gridItem { min-width: 0; }
+.gridItem > .productCard { height: 100%; }
+
+/* Transición de la canasta entre tarjeta y detalle, y reacomodo al filtrar. */
+::view-transition-group(.basketMorph) { animation-duration: .6s; animation-timing-function: var(--ease-out); }
+::view-transition-image-pair(.basketMorph) { animation-name: morphBlur; }
+@keyframes morphBlur { 35% { filter: blur(2px); } }
+::view-transition-group(.gridMove) { animation-duration: .55s; animation-timing-function: var(--ease-out); }
+::view-transition-new(.cardIn) { animation: vtCardIn .55s var(--ease-out) both; }
+::view-transition-old(.cardOut) { animation: vtCardOut .28s ease-in both; }
+@keyframes vtCardIn { from { opacity: 0; transform: translateY(26px) scale(.96); } }
+@keyframes vtCardOut { to { opacity: 0; transform: scale(.92); } }
+
+/* ---------- Pasos y banner de la portada ---------- */
+.feature { transition: translate .4s var(--ease-out), box-shadow .4s ease, border-color .3s ease; }
+.feature:hover { translate: 0 -6px; border-color: var(--gold); box-shadow: var(--shadow); }
+.feature > span { display: inline-block; transition: scale .4s var(--ease-spring), rotate .4s var(--ease-spring); }
+.feature:hover > span { scale: 1.12; rotate: -6deg; }
+.businessBanner::before { animation: textileSlide 2.5s linear infinite; }
+
+/* ---------- Encabezados de páginas interiores ---------- */
+html[data-motion] :is(.catalogHero, .cartIntro) .eyebrow { animation: fadeUp .8s var(--ease-out) both; }
+html[data-motion] .catalogHeroInner > p { animation: fadeUp .9s var(--ease-out) .6s both; }
+html[data-motion] .checkoutSteps li { animation: popIn .5s var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 110ms + 200ms); }
+
+/* ---------- Catálogo ---------- */
+.chip { transition: background-color .3s ease, color .3s ease, border-color .3s ease, scale .3s var(--ease-spring); }
+.chip:active { scale: .94; }
+html[data-motion] .catalogBar { animation: fadeUp .8s var(--ease-out) .35s both; }
+html[data-motion] .catalogGrid { animation: fadeUp 1s var(--ease-out) .5s both; }
+
+/* ---------- Detalle ---------- */
+.detailBasket { width: 100%; }
+html[data-motion] .detailVisual { animation: fadeUp 1s var(--ease-out) both; }
+html[data-motion] .detailInfo > * { animation: fadeUp .9s var(--ease-out) both; animation-delay: calc(var(--i, 1) * 80ms + 150ms); }
+html[data-motion] .detailInfo > h1 { animation: none; }
+html[data-motion] .includesPanel li { animation: fadeUp .6s var(--ease-out) both; animation-delay: calc(var(--j, 0) * 55ms + 550ms); }
+.includesPanel li { transition: translate .3s var(--ease-out), border-color .3s ease; }
+.includesPanel li:hover { translate: 0 -3px; border-color: var(--gold); }
+.basketOption:has(input:checked) .basketThumb { animation: popIn .45s var(--ease-spring); }
+.detailPrice strong, .buyTotal strong, .summaryTotal strong, .cartLineTotal { font-variant-numeric: tabular-nums; }
+.stepper button { transition: background-color .2s ease, scale .25s var(--ease-spring); }
+.stepper button:active:not(:disabled) { scale: .85; }
+.addBtn b { font-weight: 800; transition: translate .5s var(--ease-out), opacity .3s ease; }
+.addDone { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; translate: 0 100%; }
+.addBtn[data-added] { background: var(--pine); }
+.addBtn[data-added] .addLabel { opacity: 0; translate: 0 -130%; }
+.addBtn[data-added] .addDone { opacity: 1; translate: 0 0; }
+.addFollow { max-height: 0; margin: -8px 0 0; overflow: hidden; opacity: 0; text-align: center; font-size: 14px; font-weight: 800; transition: max-height .45s var(--ease-out), opacity .3s ease, margin .45s var(--ease-out); }
+.addFollow a { color: var(--wine); }
+.addFollow[data-show] { max-height: 40px; margin-top: 0; opacity: 1; }
+.relatedGrid .gridItem { min-width: 0; }
+
+/* ---------- Carrito ---------- */
+.cartList { gap: 0; }
+.cartRow { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .42s var(--ease-out), opacity .3s ease, translate .42s var(--ease-out), margin .42s var(--ease-out); }
+.cartRow + .cartRow { margin-top: 14px; }
+.cartRow > .cartItem { min-height: 0; overflow: hidden; transition: padding .42s var(--ease-out), border-width .42s ease; }
+.cartRow[data-leaving] { grid-template-rows: 0fr; opacity: 0; translate: -40px 0; margin-top: 0; }
+.cartRow[data-leaving] > .cartItem { padding-block: 0; border-width: 0; }
+html[data-motion] .cartRow { animation: fadeUp .7s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 100ms + 250ms); }
+html[data-motion] .giftNote { animation: fadeUp .8s var(--ease-out) .5s both; }
+html[data-motion] .summaryCard { animation: fadeUp .9s var(--ease-out) .4s both; }
+
+/* ---------- Checkout ---------- */
+html[data-motion] .checkoutCard { animation: fadeUp .8s var(--ease-out) both; animation-delay: calc(var(--i, 1) * 110ms + 150ms); }
+.choice { transition: border-color .25s ease, background-color .25s ease, translate .3s var(--ease-out); }
+.choice:hover { translate: 0 -2px; }
+.payBtn { font-variant-numeric: tabular-nums; }
+
+/* ---------- Confirmación ---------- */
+.successSeal { position: relative; z-index: 1; font-size: 0; }
+.successSeal svg { width: 56%; height: 56%; fill: none; stroke: var(--wine-dark); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+html[data-motion] .successSeal path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .55s var(--ease-out) .55s forwards; }
+.successHero > div:not(.confetti), .successMeta { position: relative; z-index: 1; }
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti i { position: absolute; top: -24px; left: var(--x); width: var(--w); height: calc(var(--w) * 1.7); border-radius: 2px; background: var(--c); opacity: 0; }
+html[data-motion] .confetti i { animation: confettiFall 2.9s cubic-bezier(.2, .6, .4, 1) var(--d) forwards; }
+html[data-motion] .successMeta > div { animation: fadeUp .8s var(--ease-out) both; }
+html[data-motion] .successMeta > div:nth-child(1) { animation-delay: .8s; }
+html[data-motion] .successMeta > div:nth-child(2) { animation-delay: .95s; }
+html[data-motion] .timeline li { animation: fadeUp .6s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 170ms + 650ms); }
+html[data-motion] .timeline li[data-state="done"]:not(:last-child)::before { transform-origin: 50% 0; animation: growY .5s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 170ms + 850ms); }
+
+/* ---------- Cotización ---------- */
+html[data-motion] .quoteHero .pill { animation: fadeUp .8s var(--ease-out) both; }
+html[data-motion] .quoteHeroGrid > div > p { animation: fadeUp .9s var(--ease-out) .7s both; }
+html[data-motion] .quoteSteps li { animation: fadeUp .8s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 130ms + 800ms); }
+.quoteSteps li { transition: background-color .3s ease, translate .35s var(--ease-out); }
+.quoteSteps li:hover { background: rgba(255, 255, 255, .12); translate: 6px 0; }
+html[data-motion] [data-reveal] .quoteSection { opacity: 0; translate: 0 26px; transition: opacity .8s var(--ease-out), translate 1s var(--ease-out); transition-delay: calc(var(--i, 1) * 120ms + 100ms); }
+html[data-motion] [data-reveal][data-inview] .quoteSection { opacity: 1; translate: 0 0; }
+.quoteEstimate strong { font-variant-numeric: tabular-nums; }
+
+/* ---------- Footer ---------- */
+.footerLogo { transition: rotate .8s var(--ease-spring), scale .5s var(--ease-spring); }
+.footerAbout:hover .footerLogo { rotate: -8deg; scale: 1.05; }
+
+@media (prefers-reduced-motion: reduce) {
+  .headerSticky, .heroStage, .heroStamp, .heroTag, .productCard, .feature, .cartRow, .cartRow > .cartItem, .addBtn b, .addFollow, .choice, .chip { transition: none; }
+  .businessBanner::before, .btn:hover::after, .cartBtn[data-bump] { animation: none; }
+  ::view-transition-group(*), ::view-transition-new(*), ::view-transition-old(*) { animation: none; }
+}

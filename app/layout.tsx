@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
+import "./animaciones.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -23,8 +24,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${display.variable} ${sans.variable}`}>
-      <body>
+    <html lang="es" className={`${display.variable} ${sans.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        {/* Activa las animaciones de entrada solo con JS y sin "reducir movimiento". */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.motion="";`,
+          }}
+        />
         <Header />
         <main>{children}</main>
         <Footer />

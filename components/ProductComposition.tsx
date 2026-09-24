@@ -9,6 +9,8 @@ type ProductCompositionProps = {
   variant?: "card" | "detail";
   /** Sustituye la canasta propia del producto por otro tipo elegido. */
   baseImage?: string;
+  /** Los productos caen uno a uno dentro de la canasta al montarse. */
+  assemble?: boolean;
 };
 
 // Máscara de transparencia de cada imagen, calculada una sola vez por archivo.
@@ -66,7 +68,7 @@ function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, c
   return mask.data[(y * mask.width + x) * 4 + 3] > ALPHA_THRESHOLD;
 }
 
-export default function ProductComposition({ product, variant = "card", baseImage }: ProductCompositionProps) {
+export default function ProductComposition({ product, variant = "card", baseImage, assemble = false }: ProductCompositionProps) {
   const isDetail = variant === "detail";
   const sizeMultiplier = isDetail ? 1.65 : 1;
   const base = baseImage ?? product.baseImage;
@@ -89,10 +91,12 @@ export default function ProductComposition({ product, variant = "card", baseImag
   }
 
   const activeItem = active !== null ? product.visualItems[active] : undefined;
+  // Orden de caída: primero lo que va al fondo, al final lo que queda delante.
+  const dropOrder = [...stacking].reverse().map(({ index }) => index);
 
   return (
     <div
-      className={`${styles.composition} ${isDetail ? styles.detail : styles.card} ${activeItem ? styles.hasActive : ""}`}
+      className={`${styles.composition} ${isDetail ? styles.detail : styles.card} ${activeItem ? styles.hasActive : ""} ${assemble ? styles.assemble : ""}`}
       aria-label={`Composición de ${product.name}`}
       title={activeItem?.name}
       onPointerMove={isDetail ? onPointerMove : undefined}
@@ -100,7 +104,7 @@ export default function ProductComposition({ product, variant = "card", baseImag
     >
       <div className={styles.baseLayer}>
         {base ? (
-          <img className={styles.baseImage} src={base} alt={`Base de ${product.name}`} />
+          <img key={base} className={styles.baseImage} src={base} alt={`Base de ${product.name}`} />
         ) : (
           <span className={styles.baseEmoji} aria-hidden="true">{product.emoji}</span>
         )}
@@ -116,7 +120,11 @@ export default function ProductComposition({ product, variant = "card", baseImag
             left: `${item.left}%`,
             zIndex: item.zIndex ?? 5,
             transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
-          }}
+            // Hacia dónde se abre cada producto al pasar el mouse por la tarjeta.
+            "--ex": `${(item.left - 50) * 2.4}px`,
+            "--ey": `${(item.top - 70) * 2 - 14}px`,
+            "--order": dropOrder.indexOf(index),
+          } as React.CSSProperties}
         >
           {item.image ? (
             <img

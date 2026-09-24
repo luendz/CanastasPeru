@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CheckoutSteps from "@/components/CheckoutSteps";
+import SplitWords from "@/components/motion/SplitWords";
 import ProductComposition from "@/components/ProductComposition";
 import { deliveryZones, formatPrice, mockCart, products } from "@/lib/mock-data";
 
@@ -14,6 +15,16 @@ const order = {
   payment: "Tarjeta Visa",
   document: "Boleta electrónica",
 };
+
+// Papel picado: posiciones y colores fijos para que el servidor y el navegador coincidan.
+const confetti = Array.from({ length: 26 }, (_, i) => ({
+  x: (i * 37) % 100,
+  delay: (i * 53) % 700,
+  drift: ((i * 29) % 60) - 30,
+  spin: ((i * 71) % 540) - 270,
+  color: ["var(--gold)", "var(--gold-soft)", "var(--cream)", "#c0392b"][i % 4],
+  w: 6 + (i % 3) * 3,
+}));
 
 // Flujo del documento del proyecto (§7.6): el PDF/XML no existe inmediatamente tras el pago.
 const timeline = [
@@ -37,10 +48,17 @@ export default function ConfirmacionPage() {
       <CheckoutSteps current={3} />
 
       <div className="successHero">
-        <div className="successSeal" aria-hidden="true">✓</div>
+        <div className="confetti" aria-hidden="true">
+          {confetti.map((c, i) => (
+            <i key={i} style={{ "--x": `${c.x}%`, "--d": `${c.delay}ms`, "--dx": `${c.drift}px`, "--r": `${c.spin}deg`, "--c": c.color, "--w": `${c.w}px` } as React.CSSProperties} />
+          ))}
+        </div>
+        <div className="successSeal" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><path d="m15 27 7.5 7.5L38 18.5" /></svg>
+        </div>
         <div>
           <span className="pill">Pedido registrado</span>
-          <h1>¡Gracias por tu <em>compra</em>!</h1>
+          <h1><SplitWords text="¡Gracias por tu *compra*!" immediate offset={3} /></h1>
           <p>Enviamos el detalle a <strong>{order.email}</strong>. Te avisaremos por correo y WhatsApp en cada paso.</p>
         </div>
         <dl className="successMeta">
@@ -54,8 +72,8 @@ export default function ConfirmacionPage() {
           <section className="formCard">
             <h3 className="confirmTitle">Estado del pedido</h3>
             <ol className="timeline">
-              {timeline.map((step) => (
-                <li key={step.label} data-state={step.state} aria-current={step.state === "current" ? "step" : undefined}>
+              {timeline.map((step, i) => (
+                <li key={step.label} style={{ "--i": i } as React.CSSProperties} data-state={step.state} aria-current={step.state === "current" ? "step" : undefined}>
                   <span className="timelineDot" aria-hidden="true">{step.state === "done" ? "✓" : ""}</span>
                   <div><strong>{step.label}</strong><small>{step.hint}</small></div>
                 </li>
