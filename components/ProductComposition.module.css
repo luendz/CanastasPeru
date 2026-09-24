@@ -145,3 +145,54 @@
     font-size: 165px;
   }
 }
+
+/* Tarjeta: al pasar el mouse los productos se abren hacia afuera y se
+   levantan, para mostrar qué trae la canasta. Usa `translate` y `rotate`
+   (propiedades independientes) para no pisar el transform en línea. */
+.card .itemLayer {
+  transition: translate .55s var(--ease-spring, ease), rotate .55s var(--ease-spring, ease);
+}
+
+.card:hover .itemLayer {
+  translate: var(--ex) var(--ey);
+}
+
+/* Armado: los productos caen dentro de la canasta uno tras otro. */
+.assemble .baseLayer {
+  animation: basketIn .9s var(--ease-out, ease-out) both;
+}
+
+.assemble .itemLayer {
+  animation: dropIn .95s var(--ease-spring, ease-out) both;
+  animation-delay: calc(var(--order, 0) * 140ms + 450ms);
+}
+
+@keyframes basketIn {
+  from { opacity: 0; translate: 0 40px; scale: .92; }
+}
+
+@keyframes dropIn {
+  0% { opacity: 0; translate: 0 -320px; rotate: -18deg; }
+  45% { opacity: 1; }
+  70% { translate: 0 6px; rotate: 3deg; }
+  100% { translate: 0 0; rotate: 0deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover .itemLayer { translate: none; }
+  .assemble .baseLayer,
+  .assemble .itemLayer { animation: none; }
+}
+
+/* Al cambiar el tipo de canasta en el detalle, la nueva entra con un pequeño rebote. */
+.detail .baseImage {
+  animation: basketSwap .6s var(--ease-spring, ease-out) both;
+}
+
+@keyframes basketSwap {
+  from { opacity: 0; translate: 0 18px; scale: .94; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail .baseImage { animation: none; }
+}

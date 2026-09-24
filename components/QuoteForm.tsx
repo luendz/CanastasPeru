@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { formatPrice, products } from "@/lib/mock-data";
+import AnimatedPrice from "@/components/motion/AnimatedPrice";
+import { products } from "@/lib/mock-data";
 
 const quantities = [20, 50, 100, 200];
 
@@ -16,7 +17,7 @@ const extras = ["Tarjeta con tu logo", "Cinta con colores de marca", "Entrega a 
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="quoteSection">
+    <fieldset className="quoteSection" style={{ "--i": n } as React.CSSProperties}>
       <legend><span className="stepNum">{n}</span> {title}</legend>
       {children}
     </fieldset>
@@ -35,7 +36,9 @@ export default function QuoteForm() {
   if (sent) {
     return (
       <div className="formCard quoteForm quoteSent">
-        <div className="successSeal" aria-hidden="true">✓</div>
+        <div className="successSeal" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><path d="m15 27 7.5 7.5L38 18.5" /></svg>
+        </div>
         <h2>¡Solicitud <em>lista</em>!</h2>
         <p>En la versión final, nuestro equipo te enviará una propuesta con precios, muestras y fechas de entrega. Por ahora este formulario no envía información.</p>
         <button type="button" className="btn btnGhost" onClick={() => setSent(false)}>Volver al formulario</button>
@@ -85,7 +88,10 @@ export default function QuoteForm() {
           </div>
           {range && qty > 0 && (
             <p className="quoteEstimate">
-              Inversión referencial: <strong>{range.max ? `${formatPrice(range.min * qty)} – ${formatPrice(range.max * qty)}` : `desde ${formatPrice(range.min * qty)}`}</strong>
+              Inversión referencial:{" "}
+              <strong>
+                {range.max ? <><AnimatedPrice value={range.min * qty} /> – <AnimatedPrice value={range.max * qty} /></> : <AnimatedPrice prefix="desde " value={range.min * qty} />}
+              </strong>
               <small>{qty} canastas · el precio final depende de la propuesta.</small>
             </p>
           )}
