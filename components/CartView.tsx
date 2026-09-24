@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import ProductComposition from "@/components/ProductComposition";
+import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { findBasketType, formatPrice, mockCart, products } from "@/lib/mock-data";
 
 export default function CartView() {
   const [cart, setCart] = useState(mockCart);
+  const [leaving, setLeaving] = useState<string[]>([]);
 
   const lines = cart.flatMap(({ slug, qty }) => {
     const product = products.find((p) => p.slug === slug);
@@ -18,15 +20,22 @@ export default function CartView() {
 
   const setQty = (slug: string, qty: number) =>
     setCart((items) => items.map((item) => (item.slug === slug ? { ...item, qty: Math.max(1, qty) } : item)));
-  const remove = (slug: string) => setCart((items) => items.filter((item) => item.slug !== slug));
+  // Primero la fila se pliega y recién después sale del carrito.
+  const remove = (slug: string) => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setLeaving((l) => [...l, slug]);
+    window.setTimeout(() => {
+      setCart((items) => items.filter((item) => item.slug !== slug));
+      setLeaving((l) => l.filter((s) => s !== slug));
+    }, reduce ? 0 : 420);
+  };
 
   if (lines.length === 0) {
     return (
       <div className="emptyState cartEmpty">
-        <span aria-hidden="true">✦</span>
         <h3>Tu carrito está vacío</h3>
         <p>Todavía hay tiempo de sorprender a alguien esta Navidad.</p>
-        <Link className="btn btnPrimary" href="/catalogo">Explorar canastas</Link>
+        <Link className="btnV2 btnV2Solid" href="/catalogo">Ver las canastas <span aria-hidden="true">→</span></Link>
       </div>
     );
   }
@@ -39,13 +48,14 @@ export default function CartView() {
           <Link className="textLink" href="/catalogo">+ Agregar otra</Link>
         </div>
         <ul className="cartList">
-          {lines.map(({ product, qty }) => (
-            <li className="cartItem" key={product.slug}>
+          {lines.map(({ product, qty }, i) => (
+            <li className="cartRow" key={product.slug} data-leaving={leaving.includes(product.slug) || undefined} style={{ "--i": i } as React.CSSProperties}>
+             <div className="cartItem">
               <Link className="cartThumb" href={`/producto/${product.slug}`} aria-label={`Ver ${product.name}`}>
                 <span className="cartThumbStage"><ProductComposition product={product} /></span>
               </Link>
               <div className="cartInfo">
-                <span className="eyebrow">{product.category}</span>
+                <span className="cartCat">{product.category}</span>
                 <Link className="cartName" href={`/producto/${product.slug}`}>{product.name}</Link>
                 <span className="cartMeta">{findBasketType(product.baseImage).label} · {product.items.length} productos</span>
                 <span className="cartUnit">{formatPrice(product.price)} c/u</span>
@@ -56,15 +66,16 @@ export default function CartView() {
                   <input aria-label={`Cantidad de ${product.name}`} inputMode="numeric" value={qty} onChange={(e) => setQty(product.slug, Number(e.target.value.replace(/\D/g, "")) || 1)} />
                   <button type="button" aria-label={`Agregar una ${product.name}`} onClick={() => setQty(product.slug, qty + 1)}>+</button>
                 </div>
-                <strong className="cartLineTotal">{formatPrice(product.price * qty)}</strong>
+                <strong className="cartLineTotal"><AnimatedPrice value={product.price * qty} duration={450} /></strong>
                 <button type="button" className="linkButton" onClick={() => remove(product.slug)}>Eliminar</button>
               </div>
+             </div>
             </li>
           ))}
         </ul>
 
         <div className="giftNote">
-          <span aria-hidden="true">✦</span>
+          <svg className="giftIcon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 13h22v5H5zM7 18h18v10H7zM16 13v15M16 13c-2-5-9-6-8-1 1 3 8 1 8 1Zm0 0c2-5 9-6 8-1-1 3-8 1-8 1Z" /></svg>
           <div>
             <strong>¿Es un regalo?</strong>
             <p>En el siguiente paso podrás escribir una dedicatoria y programar la entrega para cada destinatario.</p>
@@ -74,7 +85,7 @@ export default function CartView() {
 
       <aside className="summaryCard sticky">
         <h3>Resumen del pedido</h3>
-        <div><span>Subtotal ({units} {units === 1 ? "canasta" : "canastas"})</span><strong>{formatPrice(subtotal)}</strong></div>
+        <div><span>Subtotal ({units} {units === 1 ? "canasta" : "canastas"})</span><strong><AnimatedPrice value={subtotal} /></strong></div>
         <div><span>Delivery</span><span className="muted">Se calcula en el siguiente paso</span></div>
         <form className="couponRow" onSubmit={(e) => e.preventDefault()}>
           <label className="srOnly" htmlFor="cupon">Código de descuento</label>
@@ -82,13 +93,13 @@ export default function CartView() {
           <button type="submit" className="btn btnGhost">Aplicar</button>
         </form>
         <hr />
-        <div className="summaryTotal"><span>Total</span><strong>{formatPrice(subtotal)}</strong></div>
+        <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={subtotal} /></strong></div>
         <p className="muted summaryTax">Precios incluyen IGV.</p>
         {savings > 0 && <p className="saveTag summarySave">Estás ahorrando {formatPrice(savings)} en promociones</p>}
-        <Link className="btn btnPrimary full" href="/checkout">Continuar compra →</Link>
+        <Link className="btnV2 btnV2Solid full" href="/checkout">Continuar compra <span aria-hidden="true">→</span></Link>
         <ul className="summaryPerks">
-          <li>✦ Boleta o factura electrónica</li>
-          <li>✦ Entrega programada en Lima</li>
+          <li>Boleta o factura electrónica</li>
+          <li>Entrega programada en Lima</li>
         </ul>
         <Link className="summaryB2B" href="/cotizacion">¿Más de 20 canastas? <strong>Cotiza para empresa →</strong></Link>
       </aside>

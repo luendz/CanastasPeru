@@ -1,15 +1,16 @@
 import CartView from "@/components/CartView";
 import CheckoutSteps from "@/components/CheckoutSteps";
+import PageHead from "@/components/PageHead";
+
+export const metadata = { title: "Carrito" };
 
 export default function CarritoPage() {
   return (
-    <section className="shell cartPage">
-      <CheckoutSteps current={0} />
-      <div className="cartIntro">
-        <span className="eyebrow">Tu compra</span>
-        <h1>Tu <em>carrito</em></h1>
-      </div>
-      <CartView />
-    </section>
+    <>
+      <PageHead kicker="Tu compra" title="Tu carrito" aside={<CheckoutSteps current={0} />} />
+      <section className="shell cartPage">
+        <CartView />
+      </section>
+    </>
   );
 }

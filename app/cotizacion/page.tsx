@@ -1,4 +1,8 @@
 import QuoteForm from "@/components/QuoteForm";
+import Reveal from "@/components/motion/Reveal";
+import SplitWords from "@/components/motion/SplitWords";
+
+export const metadata = { title: "Empresas" };
 
 const steps = [
   { title: "Nos cuentas qué necesitas", text: "Cantidad, presupuesto, fecha y el estilo de tu marca." },
@@ -14,13 +18,13 @@ export default function CotizacionPage() {
       <section className="quoteHero">
         <div className="shell quoteHeroGrid">
           <div>
-            <span className="pill">Ventas corporativas</span>
-            <h1>Regalos que <em>tu equipo</em> va a recordar.</h1>
+            <p className="quoteKicker">Ventas corporativas</p>
+            <h1><SplitWords text="Regalos que tu equipo va a recordar." immediate /></h1>
             <p>Canastas navideñas para colaboradores, clientes y aliados, armadas con tu marca y entregadas donde las necesites.</p>
           </div>
           <ol className="quoteSteps">
             {steps.map((s, i) => (
-              <li key={s.title}><span>{String(i + 1).padStart(2, "0")}</span><div><strong>{s.title}</strong><small>{s.text}</small></div></li>
+              <li key={s.title} style={{ "--i": i } as React.CSSProperties}><span>{String(i + 1).padStart(2, "0")}</span><div><strong>{s.title}</strong><small>{s.text}</small></div></li>
             ))}
           </ol>
         </div>
@@ -28,19 +32,20 @@ export default function CotizacionPage() {
       </section>
 
       <section className="shell quotePage">
-        <aside className="quoteIntro">
-          <span className="eyebrow">Por qué con nosotros</span>
-          <h2>Todo lo que tu campaña <em>necesita</em></h2>
+        <Reveal as="div" className="quoteIntro">
+          <h2><SplitWords text="Lo que incluye un pedido corporativo" /></h2>
           <ul className="quotePerks">
-            {perks.map((p) => <li key={p}><span aria-hidden="true">✦</span>{p}</li>)}
+            {perks.map((p, i) => <li key={p} data-reveal-item style={{ "--i": i + 3 } as React.CSSProperties}>{p}</li>)}
           </ul>
           <div className="quoteContact">
             <small>¿Prefieres hablar con alguien?</small>
             <strong>+51 999 999 999</strong>
             <span>ventas@canastasperu.pe</span>
           </div>
-        </aside>
-        <QuoteForm />
+        </Reveal>
+        <Reveal threshold={0.05}>
+          <QuoteForm />
+        </Reveal>
       </section>
     </>
   );

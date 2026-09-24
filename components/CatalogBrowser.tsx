@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { startTransition, useMemo, useState, ViewTransition } from "react";
 import ProductCard from "@/components/ProductCard";
 import { products } from "@/lib/mock-data";
 
@@ -29,25 +29,27 @@ export default function CatalogBrowser() {
     .filter((p) => (category === "Todas" || p.category === category) && p.price <= max)
     .sort((a, b) => (sort === "price-asc" ? a.price - b.price : sort === "price-desc" ? b.price - a.price : 0));
 
-  const reset = () => { setCategory("Todas"); setBudget("all"); setSort("featured"); };
+  // Dentro de una transición, React anima las tarjetas que entran, salen o cambian de lugar.
+  const update = (fn: () => void) => startTransition(fn);
+  const reset = () => update(() => { setCategory("Todas"); setBudget("all"); setSort("featured"); });
 
   return (
     <>
       <div className="catalogBar">
         <div className="chipRow" role="group" aria-label="Categoría">
           {categories.map(([name, count]) => (
-            <button key={name} type="button" className="chip" aria-pressed={category === name} onClick={() => setCategory(name)}>
+            <button key={name} type="button" className="chip" aria-pressed={category === name} onClick={() => update(() => setCategory(name))}>
               {name} <small>{count}</small>
             </button>
           ))}
         </div>
         <div className="catalogBarEnd">
           <label className="srOnly" htmlFor="budget">Presupuesto</label>
-          <select id="budget" className="select selectPill" value={budget} onChange={(e) => setBudget(e.target.value)}>
+          <select id="budget" className="select selectPill" value={budget} onChange={(e) => { const v = e.target.value; update(() => setBudget(v)); }}>
             {budgets.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
           </select>
           <label className="srOnly" htmlFor="sort">Ordenar</label>
-          <select id="sort" className="select selectPill" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+          <select id="sort" className="select selectPill" value={sort} onChange={(e) => { const v = e.target.value as Sort; update(() => setSort(v)); }}>
             <option value="featured">Destacados</option>
             <option value="price-asc">Menor precio</option>
             <option value="price-desc">Mayor precio</option>
@@ -57,20 +59,27 @@ export default function CatalogBrowser() {
 
       <p className="catalogCount" aria-live="polite">
         <strong>{visible.length}</strong> {visible.length === 1 ? "canasta" : "canastas"}
-        {category !== "Todas" && <> en <em>{category}</em></>}
+        {category !== "Todas" && <> en {category}</>}
       </p>
 
       {visible.length > 0 ? (
         <div className="productGrid catalogGrid">
-          {visible.map((product) => <ProductCard key={product.slug} product={product} />)}
+          {visible.map((product, i) => (
+            <ViewTransition key={product.slug} name={`grid-${product.slug}`} enter="cardIn" exit="cardOut" default="gridMove">
+              <div className="catalogItem" style={{ "--i": i } as React.CSSProperties}>
+                <ProductCard product={product} />
+              </div>
+            </ViewTransition>
+          ))}
         </div>
       ) : (
-        <div className="emptyState">
-          <span aria-hidden="true">✦</span>
-          <h3>No encontramos canastas con esos filtros</h3>
-          <p>Prueba con otro presupuesto o arma una a medida con nuestro equipo.</p>
-          <button type="button" className="btn btnPrimary" onClick={reset}>Quitar filtros</button>
-        </div>
+        <ViewTransition enter="cardIn" default="none">
+          <div className="emptyState">
+            <h3>No hay canastas con esos filtros</h3>
+            <p>Prueba con otro presupuesto, o cuéntanos qué buscas y la armamos a medida.</p>
+            <button type="button" className="btnV2 btnV2Solid" onClick={reset}>Quitar filtros</button>
+          </div>
+        </ViewTransition>
       )}
     </>
   );

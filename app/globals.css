@@ -1,47 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta: vino navideño, dorado y papel cálido, con verde pino como acento. */
-  --ink: #2b1b17;
-  --muted: #75655a;
-  --paper: #fbf6ee;
-  --cream: #f3e8d6;
-  --cream-2: #e9dac1;
-  --wine: #7b1e2c;
-  --wine-dark: #4a0f19;
-  --pine: #1d4a37;
-  --gold: #c9973f;
-  --gold-soft: #e8c98a;
-  --gold-deep: #a0701f;
+  /* Paleta tomada del logo MKA: verde acebo, rojo vino, dorado y papel crema. */
+  --ink: #1f1a14;
+  --muted: #6f6454;
+  --paper: #f4ede0;
+  --cream: #ebe0cc;
+  --cream-2: #e0d2b8;
+  --holly: #1d4030;
+  --holly-dark: #112a1f;
+  --wine: #8c1d24;
+  --wine-dark: #5a1117;
+  --pine: #1d4030;
+  --gold: #c69a3e;
+  --gold-soft: #e6c886;
+  --gold-deep: #9a6f1e;
   --red: #b2402f;
-  --line: #eadfcd;
-  --white: #ffffff;
+  --line: #ddd0b8;
+  --white: #fffdf8;
   /* Alias heredados: el resto de páginas usa --green como color de marca. */
   --green: var(--wine);
   --green-dark: var(--wine-dark);
-  --shadow: 0 22px 60px rgba(74, 15, 25, .13);
-  --radius: 22px;
+  --shadow: 0 24px 50px -18px rgba(31, 26, 20, .28);
+  --radius: 14px;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
   --font-display-stack: var(--font-display), Georgia, "Times New Roman", serif;
   --font-sans-stack: var(--font-sans), system-ui, sans-serif;
-  --textile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16'%3E%3Crect width='48' height='16' fill='%234a0f19'/%3E%3Cpath d='M0 8 6 2l6 6-6 6zM24 8l6-6 6 6-6 6z' fill='%23c9973f'/%3E%3Cpath d='m12 8 6-4 6 4-6 4zM36 8l6-4 6 4-6 4z' fill='%23e8d8bd'/%3E%3Cpath d='M5 7h2v2H5zM29 7h2v2h-2z' fill='%234a0f19'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .12 0 0 0 0 .1 0 0 0 0 .08 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --textile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16'%3E%3Crect width='48' height='16' fill='%23112a1f'/%3E%3Cpath d='M0 8 6 2l6 6-6 6zM24 8l6-6 6 6-6 6z' fill='%23c69a3e'/%3E%3Cpath d='m12 8 6-4 6 4-6 4zM36 8l6-4 6 4-6 4z' fill='%238c1d24'/%3E%3Cpath d='M5 7h2v2H5zM29 7h2v2h-2z' fill='%23112a1f'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--font-sans-stack); -webkit-font-smoothing: antialiased; }
+body { margin: 0; color: var(--ink); background: var(--paper) var(--grain); font-family: var(--font-sans-stack); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--gold-soft); color: var(--ink); }
 a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 main { min-height: 70vh; }
-h1, h2, h3, h4 { font-family: var(--font-display-stack); font-weight: 600; font-variation-settings: "SOFT" 50; }
-h1 em, h2 em { font-style: italic; font-weight: 500; color: var(--wine); }
+h1, h2, h3, h4 { font-family: var(--font-display-stack); font-weight: 400; letter-spacing: -.01em; }
+h1 em, h2 em { font-style: normal; color: var(--wine); }
 
 .shell { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .textileBand { height: 16px; background: var(--textile) repeat-x; }
 
-.topbar { padding: 9px 20px; display: flex; justify-content: center; gap: 34px; background: var(--wine-dark); color: var(--gold-soft); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.headerWrap { background: var(--paper); }
-.header { min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 /* Marca MKA: ícono del logo oficial sobre disco blanco con aro dorado, como el emblema. */
 .brand { display: inline-flex; align-items: center; gap: 12px; }
 .brandMark { flex: 0 0 auto; width: 54px; height: 54px; overflow: hidden; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--gold), 0 6px 16px rgba(74, 15, 25, .14); }
@@ -51,55 +54,15 @@ h1 em, h2 em { font-style: italic; font-weight: 500; color: var(--wine); }
 .brandText small { color: var(--wine); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .brandLight .brandText strong { color: var(--gold-soft); }
 .brandLight .brandText small { color: var(--cream); }
-.nav { display: flex; gap: 6px; font-size: 14px; font-weight: 700; }
-.nav a { padding: 9px 14px; border-radius: 99px; transition: .2s ease; }
-.nav a:hover { background: var(--cream); color: var(--wine); }
-.headerActions { display: flex; align-items: center; gap: 8px; }
-.iconBtn, .cartBtn { min-width: 44px; height: 44px; border: 1px solid var(--line); background: var(--white); border-radius: 99px; display: inline-grid; place-items: center; font-weight: 700; font-size: 14px; }
-.cartBtn { position: relative; padding: 0 18px; background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.cartBtn span { position: absolute; top: -6px; right: -6px; width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: var(--wine-dark); font-size: 11px; font-weight: 800; }
 
-/* Hero */
-.hero { position: relative; overflow: hidden; color: var(--paper); background:
-  radial-gradient(circle at 78% 40%, rgba(201, 151, 63, .22), transparent 42%),
-  radial-gradient(circle at 10% 110%, rgba(123, 30, 44, .9), transparent 50%),
-  var(--wine-dark); }
-.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; background-image: radial-gradient(rgba(232, 201, 138, .5) 1px, transparent 1.5px); background-size: 34px 34px; mask-image: linear-gradient(90deg, transparent 40%, #000); }
-.heroGrid { position: relative; z-index: 1; min-height: 640px; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 50px; }
-.heroCopy h1, .pageIntro h1, .detailInfo h1, .successWrap h1, .quoteIntro h1 { margin: 16px 0 20px; font-family: var(--font-display-stack); font-size: clamp(44px, 6.2vw, 84px); font-weight: 600; line-height: .96; letter-spacing: -.035em; }
-.heroCopy h1 em { color: var(--gold-soft); }
-.heroCopy p { max-width: 540px; color: rgba(251, 246, 238, .78); font-size: 18px; line-height: 1.65; }
+.pageIntro h1, .detailInfo h1, .successWrap h1, .quoteIntro h1 { margin: 16px 0 20px; font-family: var(--font-display-stack); font-size: clamp(44px, 6.2vw, 84px); font-weight: 400; line-height: .96; letter-spacing: -.035em; }
 .pageIntro p, .quoteIntro p { max-width: 660px; color: var(--muted); font-size: 17px; line-height: 1.7; }
 .pill, .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--wine); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--gold); }
 .pill { padding: 9px 15px; border: 1px solid rgba(232, 201, 138, .45); border-radius: 99px; color: var(--gold-soft); background: rgba(255, 255, 255, .06); }
 .heroActions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.hero .btnPrimary { background: var(--gold); color: var(--wine-dark); }
-.hero .btnPrimary:hover { background: var(--gold-soft); }
-.hero .btnGhost { background: transparent; border-color: rgba(251, 246, 238, .35); color: var(--paper); }
-.hero .btnGhost:hover { border-color: var(--paper); }
-.heroStats { margin: 44px 0 0; display: flex; flex-wrap: wrap; gap: 34px; }
-.heroStats div { padding-left: 16px; border-left: 1px solid rgba(232, 201, 138, .35); }
-.heroStats dt { font-family: var(--font-display-stack); font-size: 30px; font-weight: 600; color: var(--paper); }
-.heroStats dd { margin: 2px 0 0; color: rgba(251, 246, 238, .62); font-size: 13px; }
 
-.heroArt { min-height: 540px; position: relative; display: grid; place-items: center; }
-.heroArch { position: absolute; width: min(440px, 92%); height: 500px; bottom: 10px; border-radius: 999px 999px 28px 28px; background: linear-gradient(180deg, var(--paper), var(--cream)); box-shadow: 0 40px 80px rgba(0, 0, 0, .35), inset 0 0 0 10px rgba(201, 151, 63, .25); }
-.heroStage { position: relative; z-index: 2; width: 280px; margin-top: 60px; zoom: 1.5; }
-.heroStamp { position: absolute; z-index: 3; top: 26px; left: 2%; width: 124px; height: 124px; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: var(--wine-dark); box-shadow: 0 14px 30px rgba(0, 0, 0, .25); }
-.heroStamp svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 18s linear infinite; }
-.heroStamp text { fill: var(--wine-dark); font-size: 11.5px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
-.heroStamp span { font-size: 26px; }
-.heroTag { position: absolute; z-index: 3; right: 0; bottom: 70px; padding: 14px 20px; border-radius: 18px; background: var(--ink); color: var(--paper); box-shadow: 0 18px 40px rgba(0, 0, 0, .3); transform: rotate(3deg); }
-.heroTag small { display: block; color: var(--gold-soft); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.heroTag strong { font-family: var(--font-display-stack); font-size: 28px; font-weight: 600; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-.marquee { overflow: hidden; padding: 16px 0; background: var(--gold); color: var(--wine-dark); border-block: 2px solid var(--wine-dark); }
-.marqueeTrack { display: flex; width: max-content; animation: marquee 38s linear infinite; }
-.marqueeTrack span { display: inline-flex; align-items: center; gap: 26px; padding-right: 26px; font-family: var(--font-display-stack); font-size: 24px; font-style: italic; font-weight: 500; white-space: nowrap; }
-.marqueeTrack i { font-style: normal; font-size: 15px; }
-@keyframes marquee { to { transform: translateX(-50%); } }
 
 /* Secciones */
 .section { padding-top: 96px; padding-bottom: 96px; }
@@ -108,31 +71,9 @@ h2 { margin: 10px 0 0; font-size: clamp(34px, 4.4vw, 56px); line-height: 1.02; l
 .textLink { color: var(--wine); font-weight: 800; font-size: 14px; border-bottom: 2px solid var(--gold); padding-bottom: 3px; }
 .centered { display: block; text-align: center; margin-top: 18px; }
 .productGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-.productCard { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--white); transition: transform .25s ease, box-shadow .25s ease; }
-.productCard:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
-.productVisual { position: relative; min-height: 270px; display: grid; place-items: center; background:
-  radial-gradient(circle at 50% 75%, rgba(201, 151, 63, .22), transparent 60%),
-  linear-gradient(180deg, var(--cream), #f8efe1); }
-.productEmoji { font-size: 92px; filter: drop-shadow(0 16px 15px rgba(0,0,0,.08)); }
-.badge { position: absolute; z-index: 30; top: 14px; left: 14px; background: var(--wine); color: var(--gold-soft); border-radius: 99px; padding: 7px 11px; font-size: 11px; font-weight: 800; letter-spacing: .04em; }
-.productBody { padding: 20px 22px 22px; }
-.productTitle { display: block; font-family: var(--font-display-stack); font-size: 24px; font-weight: 600; letter-spacing: -.01em; margin: 8px 0 12px; }
-.priceRow { display: flex; gap: 10px; align-items: baseline; margin-bottom: 18px; }
-.priceRow strong, .detailPrice strong { color: var(--wine); font-family: var(--font-display-stack); font-size: 24px; font-weight: 600; }
 del { color: #a99a8e; font-size: 13px; }
 
-.softSection, .stepsSection { background: var(--cream); }
-.featureGrid { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.feature { position: relative; overflow: hidden; padding: 34px 30px 30px; background: var(--paper); border-radius: var(--radius); border: 1px solid var(--line); }
-.feature > span { display: block; font-family: var(--font-display-stack); font-size: 64px; font-style: italic; font-weight: 500; line-height: 1; color: var(--gold); }
-.feature h3 { margin: 18px 0 8px; font-size: 26px; }
-.feature p { margin: 0; color: var(--muted); line-height: 1.6; }
 
-.businessBanner { position: relative; overflow: hidden; margin: 96px 0; padding: 56px 52px; border-radius: 30px; background: var(--pine); color: var(--paper); display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-.businessBanner::before { content: ""; position: absolute; inset: 0 0 auto; height: 16px; background: var(--textile) repeat-x; }
-.businessBanner h2 em { color: var(--gold-soft); }
-.businessBanner .eyebrow { color: var(--gold-soft); }
-.businessBanner p { max-width: 520px; color: rgba(251, 246, 238, .75); line-height: 1.6; }
 
 .btn { min-height: 50px; padding: 0 24px; border: 1px solid transparent; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; transition: .2s ease; }
 .btn:hover { transform: translateY(-2px); }
@@ -147,8 +88,6 @@ del { color: #a99a8e; font-size: 13px; }
 .full { width: 100%; }
 
 /* Catálogo */
-.productIncludes { margin: -4px 0 14px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-.productIncludes span { color: var(--wine); font-weight: 800; }
 .catalogHero { position: relative; padding: 76px 0 64px; background:
   radial-gradient(circle at 85% 20%, rgba(201, 151, 63, .25), transparent 45%), var(--cream); }
 .catalogHeroInner { display: grid; grid-template-columns: 1.2fr .8fr; gap: 50px; align-items: end; }
@@ -365,7 +304,7 @@ del { color: #a99a8e; font-size: 13px; }
 .quoteIntro ul { margin-top: 30px; padding: 0; list-style: none; display: grid; gap: 12px; color: var(--muted); }
 .quoteForm { box-shadow: var(--shadow); }
 
-.footer { background: var(--wine-dark); color: var(--cream); }
+.footer { background: var(--holly-dark) var(--grain); color: var(--cream); }
 .footerGrid { padding-top: 64px; display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 50px; }
 .footerAbout { display: grid; grid-template-columns: 132px 1fr; gap: 22px; align-items: center; }
 .footerLogo { width: 132px; height: 132px; border-radius: 50%; background: #fff; object-fit: cover; box-shadow: 0 0 0 3px var(--gold), 0 14px 30px rgba(0, 0, 0, .3); }
@@ -375,10 +314,7 @@ del { color: #a99a8e; font-size: 13px; }
 .footerBottom { margin-top: 45px; padding: 22px 0; border-top: 1px solid rgba(232, 201, 138, .15); color: rgba(243, 232, 214, .45); font-size: 12px; }
 
 @media (max-width: 980px) {
-  .nav, .topbarHide { display: none; }
-  .heroGrid, .productDetail, .quotePage { grid-template-columns: 1fr; }
-  .heroGrid { padding: 64px 0 40px; gap: 20px; }
-  .heroArt { min-height: 480px; }
+  .productDetail, .quotePage { grid-template-columns: 1fr; }
   .productGrid, .catalogContent .productGrid { grid-template-columns: repeat(2, 1fr); }
   .catalogLayout { grid-template-columns: 1fr; }
   .filters { grid-template-columns: repeat(2, 1fr); }
@@ -389,31 +325,17 @@ del { color: #a99a8e; font-size: 13px; }
 
 @media (max-width: 640px) {
   .shell { width: min(100% - 32px, 1180px); }
-  .header { min-height: 68px; }
   .brand { font-size: 21px; }
   .brandMark { width: 44px; height: 44px; }
   .brandText strong { font-size: 25px; }
   .brandText small { font-size: 8.5px; letter-spacing: .08em; }
   .footerAbout { grid-template-columns: 96px 1fr; }
   .footerLogo { width: 96px; height: 96px; }
-  .cartBtn { padding: 0 14px; }
-  .heroCopy h1 { font-size: 46px; }
-  .heroCopy p { font-size: 16px; }
-  .heroStats { gap: 18px; }
-  .heroStats dt { font-size: 24px; }
-  .heroArt { min-height: 400px; }
-  .heroArch { height: 380px; width: 88%; }
-  .heroStage { zoom: 1.12; margin-top: 50px; }
-  .heroStamp { width: 96px; height: 96px; top: 6px; }
-  .heroTag { bottom: 30px; padding: 11px 15px; }
-  .heroTag strong { font-size: 22px; }
-  .marqueeTrack span { font-size: 19px; }
-  .productGrid, .catalogContent .productGrid, .featureGrid, .formGrid, .choiceGrid { grid-template-columns: 1fr; }
+  .productGrid, .catalogContent .productGrid, .formGrid, .choiceGrid { grid-template-columns: 1fr; }
   .wide { grid-column: auto; }
   .filters { grid-template-columns: 1fr; }
   .section { padding-top: 64px; padding-bottom: 64px; }
-  .sectionHead, .businessBanner { align-items: flex-start; flex-direction: column; }
-  .businessBanner { margin: 64px 0; padding: 48px 26px 32px; }
+  .sectionHead { align-items: flex-start; flex-direction: column; }
   .cartItem { grid-template-columns: 92px 1fr; gap: 14px; padding: 12px; }
   .cartThumb { width: 92px; height: 92px; }
   .cartThumbStage { zoom: .34; }
@@ -431,9 +353,6 @@ del { color: #a99a8e; font-size: 13px; }
   .footerGrid { grid-template-columns: 1fr; gap: 20px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .heroStamp svg, .marqueeTrack { animation: none; }
-}
 
 /* Selector de tipo de canasta */
 .basketPicker { margin: 26px 0; padding: 0; border: 0; }
