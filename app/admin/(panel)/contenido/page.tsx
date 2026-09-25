@@ -87,6 +87,10 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "lineas", clave: "beneficios", etiqueta: "Beneficios" },
       { tipo: "filas", clave: "presupuestos", etiqueta: "Rangos de presupuesto por canasta", ayuda: "Máximo 0 = sin tope.", columnas: [{ clave: "etiqueta", etiqueta: "Etiqueta", largo: true }, { clave: "min", etiqueta: "Mín. S/", tipo: "numero" }, { clave: "max", etiqueta: "Máx. S/", tipo: "numero" }] },
       { tipo: "lineas", clave: "personalizacion", etiqueta: "Opciones de personalización" },
+      { tipo: "texto", clave: "pdfSubtitulo", etiqueta: "PDF: subtítulo del encabezado", ayuda: "Ej. Navidad 2026." },
+      { tipo: "texto", clave: "pdfFormaPago", etiqueta: "PDF: forma de pago por defecto" },
+      { tipo: "texto", clave: "pdfHorarioEntrega", etiqueta: "PDF: horario de entrega por defecto" },
+      { tipo: "lineas", clave: "pdfCondiciones", etiqueta: "PDF: condiciones y observaciones", ayuda: "Incluye aquí la cuenta bancaria." },
     ],
   },
   {

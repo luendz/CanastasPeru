@@ -12,7 +12,7 @@ type ProductoFila = {
   insignia: string | null; tipo_canasta_base: string; orden: number; activo: boolean; composicion: unknown[];
 };
 type TipoFila = TipoCanasta & { imagen: string | null; descripcion: string | null; orden: number };
-type InsumoFila = { id: string; nombre: string; tipo: string; imagen: string | null; emoji: string };
+type InsumoFila = { id: string; nombre: string; tipo: string; imagen: string | null; emoji: string; presentacion: string | null };
 type ZonaFila = { distrito: string; tarifa: number; activo: boolean; orden: number };
 
 export default async function CatalogoAdminPage() {
@@ -22,7 +22,7 @@ export default async function CatalogoAdminPage() {
     supabase.from("tipos_canasta").select("*").order("orden").order("recargo"),
     supabase.from("zonas_delivery").select("*").order("orden").order("distrito"),
     supabase.from("v_costeo_canastas").select("producto_id,costo,margen_pct"),
-    supabase.from("insumos").select("id,nombre,tipo,imagen,emoji").order("tipo").order("nombre"),
+    supabase.from("insumos").select("id,nombre,tipo,imagen,emoji,presentacion").order("tipo").order("nombre"),
   ]);
   const listaInsumos = (insumos ?? []) as InsumoFila[];
   const lista = (productos ?? []) as ProductoFila[];
@@ -84,7 +84,7 @@ export default async function CatalogoAdminPage() {
       </section>
 
       <section className="admCard" id="productos">
-        <div className="admCardHead"><h2>Fotos de productos</h2><span className="admMuted">La foto de cada producto se usa en todas las canastas que lo llevan. Sin foto, se muestra el emoji.</span></div>
+        <div className="admCardHead"><h2>Fotos de productos</h2><span className="admMuted">La foto de cada producto se usa en todas las canastas que lo llevan (sin foto, se muestra el emoji). La presentación —marca y tamaño, p. ej. “Milano Sayon 750 g”— sale en el PDF de cotización.</span></div>
         <ul className="admInsumos">
           {listaInsumos.map((i) => (
             <li key={i.id}>
@@ -93,7 +93,8 @@ export default async function CatalogoAdminPage() {
                 <SelectorImagen name="imagen" defaultValue={i.imagen} label={`Foto de ${i.nombre}`} compacto />
                 <div>
                   <strong>{i.nombre}</strong>
-                  <small className="admMuted admBlock">{i.tipo === "producto" ? "Producto" : i.tipo === "empaque" ? "Empaque" : "Otro"}</small>
+                  <input className="admInput admInputSm admPresentacion" name="presentacion" defaultValue={i.presentacion ?? ""} maxLength={80}
+                    placeholder={i.tipo === "producto" ? "Presentación: marca y tamaño" : i.tipo === "empaque" ? "Empaque" : "Otro"} aria-label={`Presentación de ${i.nombre}`} />
                 </div>
                 <input className="admInput admInputEmoji" name="emoji" defaultValue={i.emoji} maxLength={8} aria-label={`Emoji de ${i.nombre}`} />
                 <button className="admLinkMuted" type="submit">Guardar</button>

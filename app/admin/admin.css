@@ -332,3 +332,4 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 @media (max-width: 860px) {
   .admLineaCampos { grid-template-columns: 1fr 1fr; }
 }
+.admPresentacion { width: 100% !important; margin-top: 4px; font-size: 12px; }

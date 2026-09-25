@@ -60,6 +60,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               {dato("Presupuesto por unidad", c.presupuesto)}
               {dato("Fecha requerida", fecha(c.fecha_requerida))}
               {dato("Dirección de entrega", c.lugar_entrega)}
+              {dato("Ciudad / Distrito", c.distrito)}
               {dato("Canastas de referencia", c.canastas_base.join(", "))}
               {dato("Personalización", c.personalizacion.join(", "))}
             </dl>
@@ -78,7 +79,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                     <tr key={it.id}>
                       <td>
                         {it.producto_nombre}
-                        <small className="admMuted admBlock">{(it.contenido ? it.contenido.map(etiquetaProducto) : trae.get(it.producto_id ?? "") ?? []).join(" · ")}</small>
+                        <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.producto_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
                       </td>
                       <td>{(tipos as TipoCanasta[] | null)?.find((t) => t.id === it.tipo_canasta)?.nombre ?? it.tipo_canasta ?? "—"}</td>
                       <td className="num">{numero(it.cantidad)}</td>
@@ -106,7 +107,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               <AgregarLinea
                 cotizacionId={c.id}
                 cantidadInicial={c.cantidad_estimada ?? 20}
-                productos={((productos ?? []) as Producto[]).map((p) => ({ id: p.id, nombre: p.nombre, precio: Number(p.precio), productos: trae.get(p.id) ?? [] }))}
+                productos={((productos ?? []) as Producto[]).map((p) => ({ id: p.id, nombre: p.nombre, precio: Number(p.precio), productos: (trae.get(p.id) ?? []).map(etiquetaProducto) }))}
                 envases={((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre }))}
                 insumos={(insumos ?? []) as { id: string; nombre: string }[]}
               />
@@ -125,6 +126,8 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                 canal={c.canal}
                 validaHasta={c.valida_hasta}
                 notas={c.notas}
+                extra={{ asesor: c.asesor, forma_pago: c.forma_pago, horario_entrega: c.horario_entrega, distrito: c.distrito }}
+                porDefecto={{ formaPago: contenido.cotizacion.pdfFormaPago, horarioEntrega: contenido.cotizacion.pdfHorarioEntrega }}
                 cliente={{ contacto: c.contacto, telefono: c.telefono, email: c.email }}
                 resumen={{ unidades, total }}
                 marca={contenido.marca.nombre}
