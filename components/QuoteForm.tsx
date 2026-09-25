@@ -3,18 +3,8 @@
 import { useActionState, useState } from "react";
 import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
+import type { Contenido } from "@/lib/contenido";
 import type { Product } from "@/lib/mock-data";
-
-const quantities = [20, 50, 100, 200];
-
-const budgets = [
-  { id: "100", label: "Hasta S/ 100", min: 60, max: 100 },
-  { id: "180", label: "S/ 100 – 180", min: 100, max: 180 },
-  { id: "250", label: "S/ 180 – 250", min: 180, max: 250 },
-  { id: "plus", label: "Más de S/ 250", min: 250, max: 0 },
-];
-
-const extras = ["Tarjeta con tu logo", "Cinta con colores de marca", "Entrega a cada colaborador", "Producto propio de tu empresa"];
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -25,9 +15,12 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
-export default function QuoteForm({ products }: { products: Product[] }) {
-  const [qty, setQty] = useState(50);
-  const [budget, setBudget] = useState("180");
+export default function QuoteForm({ products, opciones }: { products: Product[]; opciones: Pick<Contenido["cotizacion"], "cantidades" | "presupuestos" | "personalizacion"> }) {
+  const quantities = opciones.cantidades;
+  const budgets = opciones.presupuestos.map((b, i) => ({ id: String(i), label: b.etiqueta, min: b.min, max: b.max }));
+  const extras = opciones.personalizacion;
+  const [qty, setQty] = useState(opciones.cantidades[1] ?? opciones.cantidades[0] ?? 50);
+  const [budget, setBudget] = useState(String(Math.min(1, Math.max(0, opciones.presupuestos.length - 1))));
   const [base, setBase] = useState<string[]>([]);
   const [state, action, pending] = useActionState<CotizacionState, FormData>(solicitarCotizacion, {});
   // Estado ya mostrado y cerrado; sirve para volver al formulario y enviar otra solicitud.
@@ -74,7 +67,7 @@ export default function QuoteForm({ products }: { products: Product[] }) {
           <div className="qtyPicker">
             <div className="chipRow" role="group" aria-label="Cantidades frecuentes">
               {quantities.map((q) => (
-                <button key={q} type="button" className="chip" aria-pressed={qty === q} onClick={() => setQty(q)}>{q}{q === 200 ? "+" : ""}</button>
+                <button key={q} type="button" className="chip" aria-pressed={qty === q} onClick={() => setQty(q)}>{q}{q === quantities[quantities.length - 1] ? "+" : ""}</button>
               ))}
             </div>
             <label className="qtyInput">

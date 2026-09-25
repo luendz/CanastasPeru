@@ -6,7 +6,7 @@ import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { findBasketType, formatPrice, mockCart, type BasketType, type Product } from "@/lib/mock-data";
 
-export default function CartView({ products, basketTypes }: { products: Product[]; basketTypes: BasketType[] }) {
+export default function CartView({ products, basketTypes, notaImpuestos }: { products: Product[]; basketTypes: BasketType[]; notaImpuestos: string }) {
   const [cart, setCart] = useState(mockCart);
   const [leaving, setLeaving] = useState<string[]>([]);
 
@@ -95,7 +95,7 @@ export default function CartView({ products, basketTypes }: { products: Product[
         </form>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={subtotal} /></strong></div>
-        <p className="muted summaryTax">Precios incluyen IGV.</p>
+        <p className="muted summaryTax">{notaImpuestos}</p>
         {savings > 0 && <p className="saveTag summarySave">Estás ahorrando <AnimatedPrice value={savings} /> en promociones</p>}
         <Link className="btn btnPrimary full" href="/checkout">Continuar compra →</Link>
         <ul className="summaryPerks">

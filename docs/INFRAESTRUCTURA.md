@@ -65,7 +65,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 
 ## Panel de gestión (`/admin`)
 
-**Módulos:** inicio, órdenes, cotizaciones (al aprobar se crea la orden), compras y costos (producción y marketing), costeo por canasta, producción e inventario, y reportes en Excel.
+**Módulos:** inicio, órdenes, cotizaciones (al aprobar se crea la orden), **catálogo** (canastas, tipos de canasta y delivery), compras y costos (producción y marketing), costeo por canasta, producción e inventario, y reportes en Excel.
 
 **Cómo protege el acceso:**
 - `proxy.ts` refresca la sesión y manda al login a quien no la tiene.
@@ -76,11 +76,17 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 ### Reglas
 
 1. **No mergear el panel a `main` sin confirmarlo con el usuario.** `main` se publica sola y es pública.
-2. **Antes de publicar el panel:** definir en Cloudflare (Settings → Variables) `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, y revisar qué rutas internas quedan expuestas (por ejemplo `/dev/composicion`).
-3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Para cambiar un precio o una descripción se edita la tabla `productos` y se ve al instante, sin redeploy.
+2. **Antes de publicar el panel:** definir en Cloudflare (Settings → Variables) `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Ya no hay rutas internas públicas: el editor de composición vive dentro del panel.
+3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Precios, descripciones, insignias, visibilidad, tipos de canasta y tarifas se editan en **Panel → Catálogo** y se ven al instante, sin redeploy. Las canastas nuevas se crean ocultas: primero se arma su receta (Costeo) y su composición (editor), y después se activan.
    - "Lo que trae" cada canasta sale de su **receta** (insumos de tipo producto), la misma del costeo.
-   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en `/dev/composicion` y se guarda con **"Guardar en la base"**, con la sesión del panel iniciada.
+   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Composición visual** (`/admin/catalogo/[id]/composicion`).
+   - La **foto y el emoji** de cada producto son del insumo (`insumos.imagen`, `insumos.emoji`), en **Catálogo → Fotos de productos**: `catalogo_web()` los aplica a todas las canastas que lo llevan.
    - `lib/mock-data.ts` solo se usa como **modo demostración** si faltan las variables de Supabase; ya no es la fuente de verdad.
+
+4. **Todo el contenido se administra desde el panel.**
+   - **Imágenes** (`/admin/medios`): bucket público `media` de Supabase Storage (5 MB, PNG/JPG/WebP/GIF, sin SVG). Se sube directo desde el navegador con la sesión del admin (`lib/supabase/client.ts`); las políticas de Storage solo dejan subir/borrar a admins. No se puede borrar una imagen en uso. Las imágenes de `public/` aparecen como "De la web" (solo lectura).
+   - **Textos** (`/admin/contenido`): tabla `contenido`, una fila por sección (marca, anuncios, portada, catálogo, producto, contacto, checkout, cotización, pie). `lib/contenido.ts` tiene los textos por defecto y los combina campo a campo con lo guardado; `sanearSeccion()` valida lo que llega del panel. "Restaurar textos originales" deja la fila en `{}`.
+   - La marca (logo e ícono de pestaña) también es contenido: `app/layout.tsx` arma el título y el favicon desde `contenido.marca`.
 
 ## Otras ramas
 

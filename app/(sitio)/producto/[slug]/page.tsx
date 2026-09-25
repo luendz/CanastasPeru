@@ -5,10 +5,11 @@ import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
+import { getContenido } from "@/lib/contenido";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { products, basketTypes } = await getCatalogo();
+  const [{ products, basketTypes }, { producto: textos }] = await Promise.all([getCatalogo(), getContenido()]);
   const product = products.find((item) => item.slug === slug);
   if (!product) notFound();
 
@@ -23,7 +24,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
       </nav>
 
       <section className="shell productDetail">
-        <ProductDetail product={product} basketTypes={basketTypes} />
+        <ProductDetail product={product} basketTypes={basketTypes} beneficios={textos.beneficios} />
       </section>
 
       <section className="relatedSection">

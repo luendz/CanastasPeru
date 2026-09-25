@@ -1,20 +1,22 @@
 import Link from "next/link";
 import CatalogBrowser from "@/components/CatalogBrowser";
+import Enfasis from "@/components/Enfasis";
+import { getContenido } from "@/lib/contenido";
 import { getCatalogo } from "@/lib/catalogo";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 
 export default async function CatalogoPage() {
-  const { products } = await getCatalogo();
+  const [{ products }, { catalogo: t }] = await Promise.all([getCatalogo(), getContenido()]);
   return (
     <>
       <section className="catalogHero">
         <div className="shell catalogHeroInner">
           <div>
-            <span className="eyebrow">Catálogo Navidad 2026</span>
-            <h1><SplitWords text="Canastas para *cada* mesa." immediate /></h1>
+            <span className="eyebrow">{t.etiqueta}</span>
+            <h1><SplitWords text={t.titulo} immediate /></h1>
           </div>
-          <p>Desde la clásica familiar hasta la ejecutiva para tus clientes. Todas se pueden personalizar con otro tipo de canasta al elegirlas.</p>
+          <p>{t.texto}</p>
         </div>
       </section>
 
@@ -23,10 +25,10 @@ export default async function CatalogoPage() {
 
         <Reveal className="catalogCta">
           <div>
-            <h3 data-reveal-item style={{ "--i": 0 } as React.CSSProperties}>¿No encuentras la <em>ideal</em>?</h3>
-            <p>Armamos canastas a medida desde 20 unidades, con tu logo y tu presupuesto.</p>
+            <h3 data-reveal-item style={{ "--i": 0 } as React.CSSProperties}><Enfasis text={t.ctaTitulo} /></h3>
+            <p>{t.ctaTexto}</p>
           </div>
-          <Link className="btn btnPrimary" href="/cotizacion">Armar una a medida</Link>
+          <Link className="btn btnPrimary" href="/cotizacion">{t.ctaBoton}</Link>
         </Reveal>
       </section>
     </>

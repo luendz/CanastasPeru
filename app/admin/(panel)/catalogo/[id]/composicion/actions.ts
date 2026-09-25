@@ -1,8 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/admin/auth";
 import type { ProductVisualItem } from "@/lib/mock-data";
-import { supabaseConfigurado } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
 
 export type GuardarState = { ok?: boolean; error?: string };
 
@@ -11,15 +11,12 @@ const numero = (v: unknown, min: number, max: number) => {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n * 10) / 10)) : null;
 };
 
-/** Guarda la composición de una canasta en la base. Solo para administradores con sesión iniciada. */
-export async function guardarComposicion(slug: string, items: ProductVisualItem[]): Promise<GuardarState> {
-  if (!supabaseConfigurado) return { error: "Supabase no está configurado." };
-
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (!data?.claims) return { error: "Inicia sesión en el panel (/admin) y vuelve a intentarlo." };
-  const { data: esAdmin } = await supabase.rpc("es_admin");
-  if (!esAdmin) return { error: "Tu cuenta no tiene permisos de administrador." };
+/**
+ * Guarda la composición visual de una canasta. La foto no se guarda aquí:
+ * la web la toma del insumo con el mismo nombre (Catálogo → Fotos de productos).
+ */
+export async function guardarComposicion(id: string, items: ProductVisualItem[]): Promise<GuardarState> {
+  const { supabase } = await requireAdmin();
 
   if (!Array.isArray(items) || items.length > 20) return { error: "Composición inválida." };
   const limpio: ProductVisualItem[] = [];
@@ -31,7 +28,6 @@ export async function guardarComposicion(slug: string, items: ProductVisualItem[
     limpio.push({
       name: it.name.slice(0, 80),
       emoji: String(it.emoji ?? "").slice(0, 8),
-      ...(it.image ? { image: String(it.image).slice(0, 200) } : {}),
       top,
       left,
       size,
@@ -40,8 +36,10 @@ export async function guardarComposicion(slug: string, items: ProductVisualItem[
     });
   }
 
-  const { error, count } = await supabase.from("productos").update({ composicion: limpio }, { count: "exact" }).eq("slug", slug);
+  const { error, count } = await supabase.from("productos").update({ composicion: limpio }, { count: "exact" }).eq("id", id);
   if (error) return { error: error.message };
   if (!count) return { error: "No se encontró la canasta." };
+  revalidatePath(`/admin/catalogo/${id}`);
+  revalidatePath("/admin/catalogo");
   return { ok: true };
 }

@@ -6,19 +6,8 @@ import { crearPedido, type CheckoutState } from "@/app/(sitio)/checkout/actions"
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import type { DeliveryZone } from "@/lib/catalogo";
+import type { Contenido } from "@/lib/contenido";
 import { formatPrice, mockCart, type Product } from "@/lib/mock-data";
-
-const timeSlots = [
-  { id: "manana", label: "Mañana", hint: "9:00 – 13:00" },
-  { id: "tarde", label: "Tarde", hint: "14:00 – 18:00" },
-  { id: "noche", label: "Noche", hint: "18:00 – 21:00" },
-];
-
-const payMethods = [
-  { id: "tarjeta", label: "Tarjeta", hint: "Visa, Mastercard, Amex", note: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta." },
-  { id: "yape", label: "Yape / Plin", hint: "Pago con QR", note: "Te mostraremos el QR y el monto exacto en el siguiente paso." },
-  { id: "transferencia", label: "Transferencia", hint: "BCP, Interbank, BBVA", note: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono." },
-];
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -29,12 +18,15 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-export default function CheckoutForm({ products, deliveryZones }: { products: Product[]; deliveryZones: DeliveryZone[] }) {
+export default function CheckoutForm({ products, deliveryZones, opciones }: { products: Product[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"] }) {
+  // Horarios y métodos de pago se editan en Panel → Contenido → Checkout.
+  const timeSlots = opciones.horarios.map((h, i) => ({ id: String(i), label: h.nombre, hint: h.rango }));
+  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota }));
   const [district, setDistrict] = useState("");
-  const [slot, setSlot] = useState("manana");
+  const [slot, setSlot] = useState("0");
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
-  const [pay, setPay] = useState("tarjeta");
+  const [pay, setPay] = useState("0");
 
   const lines = mockCart.flatMap(({ slug, qty }) => {
     const product = products.find((p) => p.slug === slug);
@@ -166,7 +158,7 @@ export default function CheckoutForm({ products, deliveryZones }: { products: Pr
         <div><span>Delivery{district && ` · ${district}`}</span>{fee !== undefined ? <strong><AnimatedPrice value={fee} duration={400} /></strong> : <span className="muted">Elige un distrito</span>}</div>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={total} /></strong></div>
-        <p className="muted summaryTax">Precios incluyen IGV.</p>
+        <p className="muted summaryTax">{opciones.notaImpuestos}</p>
         <label className="termsRow">
           <input type="checkbox" name="terminos" form="checkout" defaultChecked />
           <span>Acepto los términos y la política de privacidad.</span>
