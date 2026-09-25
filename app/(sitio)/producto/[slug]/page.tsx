@@ -4,10 +4,11 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
-import { products } from "@/lib/mock-data";
+import { getCatalogo } from "@/lib/catalogo";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const { products, basketTypes } = await getCatalogo();
   const product = products.find((item) => item.slug === slug);
   if (!product) notFound();
 
@@ -22,7 +23,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
       </nav>
 
       <section className="shell productDetail">
-        <ProductDetail product={product} />
+        <ProductDetail product={product} basketTypes={basketTypes} />
       </section>
 
       <section className="relatedSection">

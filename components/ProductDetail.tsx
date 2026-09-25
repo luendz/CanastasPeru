@@ -5,15 +5,15 @@ import { useState, ViewTransition } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
-import { BasketType, Product, basketTypes, findBasketType, formatPrice } from "@/lib/mock-data";
+import { BasketType, Product, findBasketType, formatPrice } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
   if (delta === 0) return "Incluida";
   return delta > 0 ? `+ ${formatPrice(delta)}` : `− ${formatPrice(Math.abs(delta))}`;
 }
 
-export default function ProductDetail({ product }: { product: Product }) {
-  const ownBasket = findBasketType(product.baseImage);
+export default function ProductDetail({ product, basketTypes }: { product: Product; basketTypes: BasketType[] }) {
+  const ownBasket = findBasketType(basketTypes, product);
   const [selected, setSelected] = useState<BasketType>(ownBasket);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);

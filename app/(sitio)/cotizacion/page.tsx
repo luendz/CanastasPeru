@@ -1,3 +1,4 @@
+import { getCatalogo } from "@/lib/catalogo";
 import QuoteForm from "@/components/QuoteForm";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
@@ -10,7 +11,8 @@ const steps = [
 
 const perks = ["Precios por volumen", "Tarjeta y cinta con tu marca", "Factura electrónica", "Un asesor dedicado", "Entregas en varias sedes", "Canastas sin alcohol"];
 
-export default function CotizacionPage() {
+export default async function CotizacionPage() {
+  const { products } = await getCatalogo();
   return (
     <>
       <section className="quoteHero">
@@ -43,7 +45,7 @@ export default function CotizacionPage() {
           </div>
         </Reveal>
         <Reveal threshold={0.05}>
-          <QuoteForm />
+          <QuoteForm products={products} />
         </Reveal>
       </section>
     </>

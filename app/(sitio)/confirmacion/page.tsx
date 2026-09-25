@@ -2,14 +2,14 @@ import Link from "next/link";
 import CheckoutSteps from "@/components/CheckoutSteps";
 import SplitWords from "@/components/motion/SplitWords";
 import ProductComposition from "@/components/ProductComposition";
-import { deliveryZones, formatPrice, mockCart, products } from "@/lib/mock-data";
+import { getCatalogo } from "@/lib/catalogo";
+import { formatPrice, mockCart } from "@/lib/mock-data";
 
 // Pedido de prueba: mientras no haya persistencia se reconstruye desde el carrito mock.
 const order = {
   number: "CP-000123",
   email: "correo@ejemplo.com",
-  district: deliveryZones[0].district,
-  fee: deliveryZones[0].fee,
+  district: "Miraflores",
   date: "Martes 22 de diciembre",
   slot: "Mañana · 9:00 – 13:00",
   payment: "Tarjeta Visa",
@@ -38,13 +38,16 @@ const timeline = [
 export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; total?: string }> }) {
   // Número y total reales cuando el pedido se registró en la base; si no, los de demostración.
   const { pedido, total: totalReal } = await searchParams;
+  const { products, deliveryZones } = await getCatalogo();
+  const zona = deliveryZones.find((z) => z.district === order.district) ?? deliveryZones[0];
+  const fee = zona?.fee ?? 0;
   const numeroPedido = pedido && /^OP-\d+$/.test(pedido) ? pedido : order.number;
   const lines = mockCart.flatMap(({ slug, qty }) => {
     const product = products.find((p) => p.slug === slug);
     return product ? [{ product, qty }] : [];
   });
   const subtotal = lines.reduce((sum, l) => sum + l.product.price * l.qty, 0);
-  const total = totalReal && Number.isFinite(Number(totalReal)) ? Number(totalReal) : subtotal + order.fee;
+  const total = totalReal && Number.isFinite(Number(totalReal)) ? Number(totalReal) : subtotal + fee;
 
   return (
     <section className="shell cartPage">
@@ -121,7 +124,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
           </ul>
           <hr />
           <div><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></div>
-          <div><span>Delivery · {order.district}</span><strong>{formatPrice(order.fee)}</strong></div>
+          <div><span>Delivery · {zona?.district ?? order.district}</span><strong>{formatPrice(fee)}</strong></div>
           <hr />
           <div className="summaryTotal"><span>Total</span><strong>{formatPrice(total)}</strong></div>
           <dl className="orderFacts">

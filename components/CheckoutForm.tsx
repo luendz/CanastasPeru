@@ -5,7 +5,8 @@ import { useActionState, useState } from "react";
 import { crearPedido, type CheckoutState } from "@/app/(sitio)/checkout/actions";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
-import { deliveryZones, formatPrice, mockCart, products } from "@/lib/mock-data";
+import type { DeliveryZone } from "@/lib/catalogo";
+import { formatPrice, mockCart, type Product } from "@/lib/mock-data";
 
 const timeSlots = [
   { id: "manana", label: "Mañana", hint: "9:00 – 13:00" },
@@ -28,7 +29,7 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-export default function CheckoutForm() {
+export default function CheckoutForm({ products, deliveryZones }: { products: Product[]; deliveryZones: DeliveryZone[] }) {
   const [district, setDistrict] = useState("");
   const [slot, setSlot] = useState("manana");
   const [otherReceiver, setOtherReceiver] = useState(false);

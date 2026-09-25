@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
-import { products } from "@/lib/mock-data";
+import type { Product } from "@/lib/mock-data";
 
 const quantities = [20, 50, 100, 200];
 
@@ -25,7 +25,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
-export default function QuoteForm() {
+export default function QuoteForm({ products }: { products: Product[] }) {
   const [qty, setQty] = useState(50);
   const [budget, setBudget] = useState("180");
   const [base, setBase] = useState<string[]>([]);

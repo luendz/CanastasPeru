@@ -18,11 +18,14 @@ export type Product = {
   badge?: string;
   emoji: string;
   baseImage?: string;
+  /** Tipo de canasta con el que se vende por defecto (id de tipos_canasta). */
+  baseType?: string;
   description: string;
   items: string[];
   visualItems: ProductVisualItem[];
 };
 
+// Catálogo de demostración: se usa solo si Supabase no está configurado (ver lib/catalogo.ts).
 export const products: Product[] = [
   {
     slug: "box-navideno",
@@ -145,8 +148,9 @@ export const basketTypes: BasketType[] = [
 export const formatPrice = (value: number) =>
   `S/ ${value.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export const findBasketType = (image?: string) =>
-  basketTypes.find((item) => item.image === image) ?? basketTypes[0];
+/** Tipo de canasta propio de un producto, dentro de la lista recibida. */
+export const findBasketType = (types: BasketType[], product: Pick<Product, "baseType" | "baseImage">) =>
+  types.find((t) => t.id === product.baseType) ?? types.find((t) => t.image === product.baseImage) ?? types[0];
 
 /** Carrito de prueba compartido por carrito y checkout mientras no haya persistencia. */
 export const mockCart = [

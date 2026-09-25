@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
-import { findBasketType, formatPrice, mockCart, products } from "@/lib/mock-data";
+import { findBasketType, formatPrice, mockCart, type BasketType, type Product } from "@/lib/mock-data";
 
-export default function CartView() {
+export default function CartView({ products, basketTypes }: { products: Product[]; basketTypes: BasketType[] }) {
   const [cart, setCart] = useState(mockCart);
   const [leaving, setLeaving] = useState<string[]>([]);
 
@@ -58,7 +58,7 @@ export default function CartView() {
               <div className="cartInfo">
                 <span className="eyebrow">{product.category}</span>
                 <Link className="cartName" href={`/producto/${product.slug}`}>{product.name}</Link>
-                <span className="cartMeta">{findBasketType(product.baseImage).label} · {product.items.length} productos</span>
+                <span className="cartMeta">{findBasketType(basketTypes, product).label} · {product.items.length} productos</span>
                 <span className="cartUnit">{formatPrice(product.price)} c/u</span>
               </div>
               <div className="cartControls">

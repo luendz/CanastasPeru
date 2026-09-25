@@ -1,9 +1,11 @@
 import Link from "next/link";
 import CatalogBrowser from "@/components/CatalogBrowser";
+import { getCatalogo } from "@/lib/catalogo";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 
-export default function CatalogoPage() {
+export default async function CatalogoPage() {
+  const { products } = await getCatalogo();
   return (
     <>
       <section className="catalogHero">
@@ -17,7 +19,7 @@ export default function CatalogoPage() {
       </section>
 
       <section className="shell catalogBody">
-        <CatalogBrowser />
+        <CatalogBrowser products={products} />
 
         <Reveal className="catalogCta">
           <div>

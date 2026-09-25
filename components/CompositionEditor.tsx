@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
+import { guardarComposicion } from "@/app/(sitio)/dev/composicion/actions";
 import ProductComposition from "@/components/ProductComposition";
-import { ProductVisualItem, basketTypes, products } from "@/lib/mock-data";
+import type { BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
 
 type Variant = "card" | "detail";
 
@@ -21,12 +22,14 @@ function formatItem(item: ProductVisualItem) {
   return `      { ${parts.join(", ")} },`;
 }
 
-export default function CompositionEditor() {
+export default function CompositionEditor({ products, basketTypes }: { products: Product[]; basketTypes: BasketType[] }) {
   const [slug, setSlug] = useState(products[0].slug);
   const [variant, setVariant] = useState<Variant>("detail");
   const [items, setItems] = useState<ProductVisualItem[]>(products[0].visualItems);
   const [selected, setSelected] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [guardado, setGuardado] = useState<{ ok?: boolean; error?: string } | null>(null);
+  const [guardando, startGuardar] = useTransition();
 
   const product = products.find((item) => item.slug === slug) ?? products[0];
   const [basketImage, setBasketImage] = useState(product.baseImage ?? basketTypes[0].image);
@@ -45,11 +48,13 @@ export default function CompositionEditor() {
     setBasketImage(next.baseImage ?? basketTypes[0].image);
     setSelected(0);
     setCopied(false);
+    setGuardado(null);
   }
 
   function patch(index: number, changes: Partial<ProductVisualItem>) {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...changes } : item)));
     setCopied(false);
+    setGuardado(null);
   }
 
   function onPointerDown(event: React.PointerEvent<HTMLButtonElement>, index: number) {
@@ -89,6 +94,11 @@ export default function CompositionEditor() {
   }
 
   const output = `    visualItems: [\n${items.map(formatItem).join("\n")}\n    ],`;
+
+  function guardar() {
+    setGuardado(null);
+    startGuardar(async () => setGuardado(await guardarComposicion(slug, items)));
+  }
 
   async function copy() {
     try {
@@ -191,8 +201,13 @@ export default function CompositionEditor() {
 
       <div className="devOutputWrap">
         <div className="devOutputHead">
-          <h3>Pega esto en <code>lib/mock-data.ts</code>, en <code>{product.slug}</code></h3>
-          <button className="btn btnDark" onClick={copy} type="button">{copied ? "Copiado ✓" : "Copiar"}</button>
+          <h3>Composición de <code>{product.slug}</code></h3>
+          <div className="devOutputActions">
+            {guardado?.ok && <span className="devSaved" role="status">Guardado en la base ✓</span>}
+            {guardado?.error && <span className="devSaveError" role="alert">{guardado.error}</span>}
+            <button className="btn btnGhost" onClick={copy} type="button">{copied ? "Copiado ✓" : "Copiar código"}</button>
+            <button className="btn btnDark" onClick={guardar} type="button" disabled={guardando}>{guardando ? "Guardando…" : "Guardar en la base"}</button>
+          </div>
         </div>
         <pre className="devOutput">{output}</pre>
       </div>

@@ -2,7 +2,7 @@
 
 import { startTransition, useMemo, useState, ViewTransition } from "react";
 import ProductCard from "@/components/ProductCard";
-import { products } from "@/lib/mock-data";
+import type { Product } from "@/lib/mock-data";
 
 const budgets = [
   { id: "all", label: "Cualquier precio", max: Infinity },
@@ -13,7 +13,7 @@ const budgets = [
 
 type Sort = "featured" | "price-asc" | "price-desc";
 
-export default function CatalogBrowser() {
+export default function CatalogBrowser({ products }: { products: Product[] }) {
   const [category, setCategory] = useState("Todas");
   const [budget, setBudget] = useState("all");
   const [sort, setSort] = useState<Sort>("featured");

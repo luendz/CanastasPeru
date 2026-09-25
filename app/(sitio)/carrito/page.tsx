@@ -1,8 +1,10 @@
+import { getCatalogo } from "@/lib/catalogo";
 import CartView from "@/components/CartView";
 import CheckoutSteps from "@/components/CheckoutSteps";
 import SplitWords from "@/components/motion/SplitWords";
 
-export default function CarritoPage() {
+export default async function CarritoPage() {
+  const { products, basketTypes } = await getCatalogo();
   return (
     <section className="shell cartPage">
       <CheckoutSteps current={0} />
@@ -10,7 +12,7 @@ export default function CarritoPage() {
         <span className="eyebrow">Tu compra</span>
         <h1><SplitWords text="Tu *carrito*" immediate /></h1>
       </div>
-      <CartView />
+      <CartView products={products} basketTypes={basketTypes} />
     </section>
   );
 }

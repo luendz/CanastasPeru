@@ -42,6 +42,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 - **Migraciones:** en `supabase/migrations/`, aplicadas en orden.
   - `20260924000001_panel_admin.sql`: tablas, RLS, funciones, vistas y catálogo inicial.
   - `20260924000002_endurecer_funciones.sql`: `es_admin` y `precio_canasta` pasan a `SECURITY INVOKER`.
+  - `20260925000003_catalogo_web.sql`: el catálogo de la web (descripción, precio tachado, insignia, composición, imágenes de tipos de canasta, orden) y la función pública `catalogo_web()`.
 - **Administradores:** tabla `public.admins`. Para dar acceso a alguien:
   1. Crear el usuario en Supabase → Authentication → Add user, con "Auto Confirm".
   2. Insertarlo en `admins`:
@@ -76,7 +77,10 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 
 1. **No mergear el panel a `main` sin confirmarlo con el usuario.** `main` se publica sola y es pública.
 2. **Antes de publicar el panel:** definir en Cloudflare (Settings → Variables) `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, y revisar qué rutas internas quedan expuestas (por ejemplo `/dev/composicion`).
-3. **Precios duplicados:** el catálogo que muestra la web sale de `lib/mock-data.ts` y los pedidos se cobran con la tabla `productos`. Si cambias un precio, cámbialo **en ambos** hasta que la web lea el catálogo desde la base.
+3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Para cambiar un precio o una descripción se edita la tabla `productos` y se ve al instante, sin redeploy.
+   - "Lo que trae" cada canasta sale de su **receta** (insumos de tipo producto), la misma del costeo.
+   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en `/dev/composicion` y se guarda con **"Guardar en la base"**, con la sesión del panel iniciada.
+   - `lib/mock-data.ts` solo se usa como **modo demostración** si faltan las variables de Supabase; ya no es la fuente de verdad.
 
 ## Otras ramas
 

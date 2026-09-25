@@ -4,7 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import CountUp from "@/components/motion/CountUp";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
-import { products } from "@/lib/mock-data";
+import { getCatalogo } from "@/lib/catalogo";
 
 const marquee = ["Panetón", "Champagne", "Chocolates", "Galletas navideñas", "Duraznos", "Canastas de mimbre", "Boxes corporativos", "Tarjeta personalizada"];
 const stats = [
@@ -14,7 +14,8 @@ const stats = [
 ];
 const i = (n: number) => ({ "--i": n }) as React.CSSProperties;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { products } = await getCatalogo();
   const hero = products.find((p) => p.slug === "canasta-ejecutiva") ?? products[0];
   const fromPrice = Math.min(...products.map((p) => p.price));
 
