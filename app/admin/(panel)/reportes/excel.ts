@@ -1,5 +1,5 @@
 import type { Workbook, Worksheet } from "exceljs";
-import { labelEstado } from "@/lib/admin/types";
+import { labelCanal, labelEstado } from "@/lib/admin/types";
 import type { DatosReporte } from "./actions";
 
 export type TipoReporte = "canastas" | "ordenes" | "compras" | "resumen" | "completo";
@@ -69,7 +69,7 @@ function hojaOrdenes(wb: Workbook, d: DatosReporte, periodo: string) {
   const h = prepararHoja(ws, "Órdenes de pedido", periodo, [
     { header: "N.º", key: "numero", width: 10 },
     { header: "Fecha", key: "fecha", width: 12 },
-    { header: "Origen", key: "origen", width: 12 },
+    { header: "Origen", key: "origen", width: 20 },
     { header: "Cliente", key: "cliente", width: 30 },
     { header: "Canastas", key: "canastas", width: 42 },
     { header: "Distrito", key: "distrito", width: 18 },
@@ -85,7 +85,7 @@ function hojaOrdenes(wb: Workbook, d: DatosReporte, periodo: string) {
     ws.addRow([
       o.numero,
       new Date(o.created_at).toLocaleDateString("es-PE", { timeZone: "America/Lima" }),
-      o.origen === "web" ? "Web" : o.origen === "cotizacion" ? "Cotización" : "Manual",
+      labelCanal(o.canal) + (o.origen === "cotizacion" ? " (cotización)" : ""),
       o.cliente_nombre,
       o.items.map((it) => `${it.cantidad} × ${it.producto_nombre}`).join(", "),
       o.distrito ?? "",

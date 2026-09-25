@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fecha, fechaHora, numero, soles } from "@/lib/admin/format";
-import { labelEstado, type Cotizacion, type CotizacionItem, type Producto, type TipoCanasta } from "@/lib/admin/types";
+import { fecha, fechaCorta, numero, soles } from "@/lib/admin/format";
+import { etiquetaProducto, productosPorCanasta } from "@/lib/admin/recetas";
+import { labelCanal, labelEstado, type Cotizacion, type CotizacionItem, type Producto, type TipoCanasta } from "@/lib/admin/types";
+import { getContenido } from "@/lib/contenido";
 import ConfirmButton from "../../ConfirmButton";
-import { actualizarCotizacion, agregarItemCotizacion, aprobarCotizacion, quitarItemCotizacion } from "../actions";
+import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
+import AgregarLinea from "./AgregarLinea";
+import GestionarCotizacion from "./GestionarCotizacion";
 
 export const metadata = { title: "Cotización" };
 
@@ -12,12 +16,15 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const { supabase } = await requireAdmin();
   const { id } = await params;
 
-  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }] = await Promise.all([
+  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
     supabase.from("productos").select("*").order("precio"),
     supabase.from("tipos_canasta").select("*").order("recargo"),
     supabase.from("ordenes").select("id,numero").eq("cotizacion_id", id).maybeSingle(),
+    supabase.from("insumos").select("id,nombre").eq("tipo", "producto").order("nombre"),
+    productosPorCanasta(supabase),
+    getContenido(),
   ]);
   if (!cot) notFound();
   const c = cot as Cotizacion;
@@ -34,7 +41,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
         <div>
           <Link href="/admin/cotizaciones" className="admLinkMuted">← Cotizaciones</Link>
           <h1>{c.numero} <span className="admBadge" data-estado={c.estado}>{labelEstado(c.estado)}</span></h1>
-          <p className="admMuted">{c.empresa} · recibida el {fechaHora(c.created_at)}</p>
+          <p className="admMuted">{c.empresa} · creada el {fechaCorta(c.created_at)} · {labelCanal(c.canal)}</p>
         </div>
         {orden && <Link className="admBtn" href={`/admin/ordenes/${orden.id}`}>Ver orden {orden.numero} →</Link>}
       </header>
@@ -42,9 +49,9 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
       <div className="admGrid2 admGridDetail">
         <div className="admStack">
           <section className="admCard">
-            <h2>Lo que pidió el cliente</h2>
+            <h2>Detalle de la cotización</h2>
             <dl className="admDl">
-              {dato("Empresa", c.empresa)}
+              {dato("Cliente / Empresa", c.empresa)}
               {dato("RUC", c.ruc)}
               {dato("Contacto", `${c.contacto}${c.cargo ? ` · ${c.cargo}` : ""}`)}
               {dato("Correo", c.email)}
@@ -52,7 +59,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               {dato("Cantidad estimada", c.cantidad_estimada ? `${numero(c.cantidad_estimada)} canastas` : null)}
               {dato("Presupuesto por unidad", c.presupuesto)}
               {dato("Fecha requerida", fecha(c.fecha_requerida))}
-              {dato("Lugar de entrega", c.lugar_entrega)}
+              {dato("Dirección de entrega", c.lugar_entrega)}
               {dato("Canastas de referencia", c.canastas_base.join(", "))}
               {dato("Personalización", c.personalizacion.join(", "))}
             </dl>
@@ -65,11 +72,14 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               <p className="admEmpty">Agrega las canastas y el precio por volumen que vas a ofrecer.</p>
             ) : (
               <table className="admTable">
-                <thead><tr><th>Canasta</th><th>Tipo</th><th className="num">Cant.</th><th className="num">P. unit.</th><th className="num">Subtotal</th>{editable && <th />}</tr></thead>
+                <thead><tr><th>Tipo de canasta</th><th>Envase</th><th className="num">Cantidad</th><th className="num">Precio unid.</th><th className="num">Sub total</th>{editable && <th />}</tr></thead>
                 <tbody>
                   {lineas.map((it) => (
                     <tr key={it.id}>
-                      <td>{it.producto_nombre}</td>
+                      <td>
+                        {it.producto_nombre}
+                        <small className="admMuted admBlock">{(it.contenido ? it.contenido.map(etiquetaProducto) : trae.get(it.producto_id ?? "") ?? []).join(" · ")}</small>
+                      </td>
                       <td>{(tipos as TipoCanasta[] | null)?.find((t) => t.id === it.tipo_canasta)?.nombre ?? it.tipo_canasta ?? "—"}</td>
                       <td className="num">{numero(it.cantidad)}</td>
                       <td className="num">{soles(it.precio_unitario)}</td>
@@ -93,27 +103,13 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
             )}
 
             {editable && (
-              <form action={agregarItemCotizacion} className="admInlineForm">
-                <input type="hidden" name="cotizacion_id" value={c.id} />
-                <label>Canasta
-                  <select className="admInput" name="producto_id" required>
-                    {((productos ?? []) as Producto[]).map((p) => <option key={p.id} value={p.id}>{p.nombre} · {soles(p.precio)}</option>)}
-                  </select>
-                </label>
-                <label>Tipo
-                  <select className="admInput" name="tipo_canasta" defaultValue="">
-                    <option value="">La de la canasta</option>
-                    {((tipos ?? []) as TipoCanasta[]).map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                  </select>
-                </label>
-                <label>Cantidad
-                  <input className="admInput" name="cantidad" type="number" min={1} defaultValue={c.cantidad_estimada ?? 20} required />
-                </label>
-                <label>Precio unitario
-                  <input className="admInput" name="precio_unitario" type="number" min={0} step="0.01" placeholder="Precio de catálogo" />
-                </label>
-                <button className="admBtn" type="submit">Agregar</button>
-              </form>
+              <AgregarLinea
+                cotizacionId={c.id}
+                cantidadInicial={c.cantidad_estimada ?? 20}
+                productos={((productos ?? []) as Producto[]).map((p) => ({ id: p.id, nombre: p.nombre, precio: Number(p.precio), productos: trae.get(p.id) ?? [] }))}
+                envases={((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre }))}
+                insumos={(insumos ?? []) as { id: string; nombre: string }[]}
+              />
             )}
           </section>
         </div>
@@ -122,23 +118,17 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
           <h2>Gestionar</h2>
           {editable ? (
             <>
-              <form action={actualizarCotizacion} className="admForm">
-                <input type="hidden" name="id" value={c.id} />
-                <label>Estado
-                  <select className="admInput" name="estado" defaultValue={c.estado}>
-                    <option value="pendiente">Pendiente</option>
-                    <option value="enviada">Enviada al cliente</option>
-                    <option value="rechazada">Rechazada</option>
-                  </select>
-                </label>
-                <label>Válida hasta
-                  <input className="admInput" type="date" name="valida_hasta" defaultValue={c.valida_hasta ?? ""} />
-                </label>
-                <label>Notas internas
-                  <textarea className="admInput" name="notas" rows={3} defaultValue={c.notas ?? ""} />
-                </label>
-                <button className="admBtn" type="submit">Guardar</button>
-              </form>
+              <GestionarCotizacion
+                id={c.id}
+                numero={c.numero}
+                estado={c.estado}
+                canal={c.canal}
+                validaHasta={c.valida_hasta}
+                notas={c.notas}
+                cliente={{ contacto: c.contacto, telefono: c.telefono, email: c.email }}
+                resumen={{ unidades, total }}
+                marca={contenido.marca.nombre}
+              />
 
               <form action={aprobarCotizacion} className="admApprove">
                 <input type="hidden" name="id" value={c.id} />
