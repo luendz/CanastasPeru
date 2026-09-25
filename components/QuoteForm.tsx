@@ -52,7 +52,7 @@ export default function QuoteForm({ products, opciones }: { products: Product[];
       {base.map((slug) => <input key={slug} type="hidden" name="canastas_base" value={products.find((p) => p.slug === slug)?.name ?? slug} />)}
       <Section n={1} title="Tu empresa">
         <div className="formGrid">
-          <label>Empresa<input className="input" name="empresa" autoComplete="organization" placeholder="Nombre de la empresa" required maxLength={200} /></label>
+          <label>Cliente / Empresa<input className="input" name="empresa" autoComplete="organization" placeholder="Nombre de la empresa o persona" required maxLength={200} /></label>
           <label>RUC<input className="input" name="ruc" inputMode="numeric" maxLength={11} placeholder="20XXXXXXXXX" /></label>
           <label>Nombre de contacto<input className="input" name="contacto" autoComplete="name" placeholder="Nombre completo" required maxLength={160} /></label>
           <label>Cargo (opcional)<input className="input" name="cargo" autoComplete="organization-title" placeholder="Ej. Jefa de RR. HH." maxLength={120} /></label>
@@ -101,7 +101,7 @@ export default function QuoteForm({ products, opciones }: { products: Product[];
 
         <div className="formGrid">
           <label>Fecha requerida<input className="input" name="fecha_requerida" type="date" /></label>
-          <label>Lugar de entrega<select className="select" name="lugar_entrega" defaultValue=""><option value="" disabled>Selecciona</option><option>Una sola dirección</option><option>Varias sedes</option><option>Domicilio de cada colaborador</option></select></label>
+          <label>Dirección de entrega<input className="input" name="lugar_entrega" autoComplete="street-address" placeholder="Av., calle, número y distrito" maxLength={120} /></label>
         </div>
       </Section>
 

@@ -7,6 +7,10 @@ export const soles = (n: number | string | null | undefined) => formatPrice(Numb
 export const fecha = (iso: string | null | undefined) =>
   iso ? new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("es-PE", { timeZone: LIMA, day: "2-digit", month: "short", year: "numeric" }) : "—";
 
+/** Fecha simple: 24/09/2026. */
+export const fechaCorta = (iso: string | null | undefined) =>
+  iso ? new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString("es-PE", { timeZone: LIMA, day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+
 export const fechaHora = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleString("es-PE", { timeZone: LIMA, day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 

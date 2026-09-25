@@ -1,7 +1,16 @@
 // Tipos de las filas de la base usadas por el panel (ver supabase/migrations).
 
-export type EstadoOrden = "nueva" | "pagada" | "preparacion" | "en_ruta" | "entregada" | "anulada";
+export type EstadoOrden = "nueva" | "pendiente" | "preparacion" | "entregada" | "anulada";
 export type EstadoPago = "pendiente" | "pagado";
+export type Canal = "web" | "whatsapp" | "correo";
+
+/** Por dónde llegó el pedido o la cotización. */
+export const CANALES: { id: Canal; label: string }[] = [
+  { id: "web", label: "Web" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "correo", label: "Correo" },
+];
+export const labelCanal = (id: string) => CANALES.find((c) => c.id === id)?.label ?? id;
 export type EstadoCotizacion = "pendiente" | "enviada" | "aprobada" | "rechazada";
 export type CategoriaCompra = "produccion" | "marketing";
 
@@ -9,6 +18,7 @@ export type Orden = {
   id: string;
   numero: string;
   origen: "web" | "cotizacion" | "manual";
+  canal: Canal;
   cotizacion_id: string | null;
   estado: EstadoOrden;
   estado_pago: EstadoPago;
@@ -35,6 +45,9 @@ export type Orden = {
   created_at: string;
 };
 
+/** Producto dentro de una canasta personalizada. */
+export type ContenidoLinea = { insumo_id: string; nombre: string; cantidad: number };
+
 export type OrdenItem = {
   id: string;
   orden_id: string;
@@ -44,12 +57,15 @@ export type OrdenItem = {
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
+  /** Solo en canastas personalizadas: sus productos. */
+  contenido: ContenidoLinea[] | null;
 };
 
 export type Cotizacion = {
   id: string;
   numero: string;
   estado: EstadoCotizacion;
+  canal: Canal;
   empresa: string;
   ruc: string | null;
   contacto: string;
@@ -95,12 +111,12 @@ export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; t
 export type InventarioFila = { insumo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };
 
 export const ESTADOS_ORDEN: { id: EstadoOrden; label: string }[] = [
-  { id: "nueva", label: "Nueva" },
-  { id: "pagada", label: "Pagada" },
+  // Una orden "nueva" pasa sola a "pendiente" a las 24 horas (tarea programada en la base).
+  { id: "nueva", label: "Nuevo" },
+  { id: "pendiente", label: "Pendiente" },
   { id: "preparacion", label: "En preparación" },
-  { id: "en_ruta", label: "En ruta" },
-  { id: "entregada", label: "Entregada" },
-  { id: "anulada", label: "Anulada" },
+  { id: "entregada", label: "Entregado" },
+  { id: "anulada", label: "Anulado" },
 ];
 
 export const ESTADOS_COTIZACION: { id: EstadoCotizacion; label: string }[] = [

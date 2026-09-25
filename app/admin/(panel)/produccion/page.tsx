@@ -10,7 +10,7 @@ export default async function ProduccionPage() {
   const { supabase } = await requireAdmin();
   const [{ data: inv }, { data: pendientes }] = await Promise.all([
     supabase.from("v_inventario").select("*").order("tipo").order("nombre"),
-    supabase.from("orden_items").select("producto_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pagada", "preparacion"]),
+    supabase.from("orden_items").select("producto_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]),
   ]);
   const inventario = (inv ?? []) as InventarioFila[];
 
@@ -34,8 +34,8 @@ export default async function ProduccionPage() {
         <div>
           <h1>Producción e inventario</h1>
           <p className="admMuted">
-            El stock suma las compras de producción ligadas a cada insumo y descuenta las canastas en preparación, en ruta o entregadas.
-            Lo “requerido” sale de los pedidos nuevos y pagados.
+            El stock suma las compras de producción ligadas a cada insumo y descuenta las canastas en preparación o entregadas.
+            Lo “requerido” sale de los pedidos nuevos y pendientes.
           </p>
         </div>
       </header>
@@ -54,7 +54,7 @@ export default async function ProduccionPage() {
               </tbody>
             </table>
           )}
-          <p className="admMuted admSmall">Incluye órdenes nuevas, pagadas y en preparación. <Link href="/admin/ordenes">Ver órdenes</Link></p>
+          <p className="admMuted admSmall">Incluye órdenes nuevas, pendientes y en preparación. <Link href="/admin/ordenes">Ver órdenes</Link></p>
         </section>
 
         <section className="admCard">

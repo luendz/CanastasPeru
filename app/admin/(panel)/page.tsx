@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fecha, inicioMesLima, numero, soles } from "@/lib/admin/format";
+import { fecha, fechaCorta, inicioMesLima, numero, soles } from "@/lib/admin/format";
 import { ESTADOS_ORDEN, labelEstado, type Compra, type InventarioFila, type Orden, type OrdenItem } from "@/lib/admin/types";
 
 export const metadata = { title: "Inicio" };
@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const [ordenesMes, compras, abiertas, items, cotPend, inventario, entregas] = await Promise.all([
     supabase.from("ordenes").select("id,total,estado").gte("created_at", `${desde}T00:00:00-05:00`).neq("estado", "anulada"),
     supabase.from("compras").select("categoria,total").gte("fecha", desde),
-    supabase.from("ordenes").select("estado").not("estado", "in", "(entregada,anulada)"),
+    supabase.from("ordenes").select("estado").neq("estado", "anulada"),
     supabase.from("orden_items").select("producto_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
     supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]),
     supabase.from("v_inventario").select("*"),
@@ -59,9 +59,9 @@ export default async function DashboardPage() {
 
       <div className="admGrid2">
         <section className="admCard">
-          <div className="admCardHead"><h2>Pedidos abiertos</h2><Link href="/admin/ordenes">Ver órdenes →</Link></div>
+          <div className="admCardHead"><h2>Estados de pedidos</h2><Link href="/admin/ordenes">Ver órdenes →</Link></div>
           <ul className="admStatusList">
-            {ESTADOS_ORDEN.filter((e) => e.id !== "entregada" && e.id !== "anulada").map((e) => (
+            {ESTADOS_ORDEN.filter((e) => e.id !== "anulada").map((e) => (
               <li key={e.id}>
                 <Link href={`/admin/ordenes?estado=${e.id}`}><span className="admBadge" data-estado={e.id}>{e.label}</span><strong>{porEstado.get(e.id) ?? 0}</strong></Link>
               </li>
@@ -94,11 +94,13 @@ export default async function DashboardPage() {
             <p className="admEmpty">No hay entregas programadas.</p>
           ) : (
             <table className="admTable admTableCompact">
+              <thead><tr><th>N.º OP</th><th>Fecha de entrega</th><th>Horario de entrega</th><th>Distrito</th><th>Estado</th></tr></thead>
               <tbody>
                 {(entregas.data as Orden[]).map((o) => (
                   <tr key={o.id}>
                     <td><Link href={`/admin/ordenes/${o.id}`}>{o.numero}</Link></td>
-                    <td>{fecha(o.fecha_entrega)}<small className="admMuted"> · {o.horario ?? "—"}</small></td>
+                    <td>{fechaCorta(o.fecha_entrega)}</td>
+                    <td>{o.horario ?? "—"}</td>
                     <td>{o.distrito ?? "—"}</td>
                     <td><span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span></td>
                   </tr>
