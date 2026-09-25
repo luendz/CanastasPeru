@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import "./animaciones.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -32,9 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             __html: `if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.motion="";`,
           }}
         />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

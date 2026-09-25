@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { products } from "@/lib/mock-data";
 
@@ -28,34 +29,42 @@ export default function QuoteForm() {
   const [qty, setQty] = useState(50);
   const [budget, setBudget] = useState("180");
   const [base, setBase] = useState<string[]>([]);
-  const [sent, setSent] = useState(false);
+  const [state, action, pending] = useActionState<CotizacionState, FormData>(solicitarCotizacion, {});
+  // Estado ya mostrado y cerrado; sirve para volver al formulario y enviar otra solicitud.
+  const [cerrado, setCerrado] = useState<CotizacionState | null>(null);
 
   const range = budgets.find((b) => b.id === budget);
   const toggleBase = (slug: string) => setBase((list) => (list.includes(slug) ? list.filter((s) => s !== slug) : [...list, slug]));
 
-  if (sent) {
+  if (state.enviada && state !== cerrado) {
     return (
       <div className="formCard quoteForm quoteSent">
         <div className="successSeal" aria-hidden="true">
           <svg viewBox="0 0 52 52"><path d="m15 27 7.5 7.5L38 18.5" /></svg>
         </div>
         <h2>¡Solicitud <em>lista</em>!</h2>
-        <p>En la versión final, nuestro equipo te enviará una propuesta con precios, muestras y fechas de entrega. Por ahora este formulario no envía información.</p>
-        <button type="button" className="btn btnGhost" onClick={() => setSent(false)}>Volver al formulario</button>
+        <p>
+          {state.numero ? <>Registramos tu solicitud <strong>{state.numero}</strong>. </> : null}
+          Nuestro equipo te enviará una propuesta con precios, muestras y fechas de entrega.
+        </p>
+        <button type="button" className="btn btnGhost" onClick={() => setCerrado(state)}>Enviar otra solicitud</button>
       </div>
     );
   }
 
   return (
-    <form className="formCard quoteForm" onSubmit={(e) => { e.preventDefault(); setSent(true); }}>
+    <form className="formCard quoteForm" action={action} key={cerrado ? cerrado.numero ?? "demo" : "nuevo"}>
+      <input type="hidden" name="cantidad_estimada" value={qty || ""} />
+      <input type="hidden" name="presupuesto" value={range?.label ?? ""} />
+      {base.map((slug) => <input key={slug} type="hidden" name="canastas_base" value={products.find((p) => p.slug === slug)?.name ?? slug} />)}
       <Section n={1} title="Tu empresa">
         <div className="formGrid">
-          <label>Empresa<input className="input" autoComplete="organization" placeholder="Nombre de la empresa" /></label>
-          <label>RUC<input className="input" inputMode="numeric" maxLength={11} placeholder="20XXXXXXXXX" /></label>
-          <label>Nombre de contacto<input className="input" autoComplete="name" placeholder="Nombre completo" /></label>
-          <label>Cargo (opcional)<input className="input" autoComplete="organization-title" placeholder="Ej. Jefa de RR. HH." /></label>
-          <label>Correo<input className="input" type="email" autoComplete="email" placeholder="correo@empresa.com" /></label>
-          <label>Celular<input className="input" type="tel" autoComplete="tel" placeholder="999 999 999" /></label>
+          <label>Empresa<input className="input" name="empresa" autoComplete="organization" placeholder="Nombre de la empresa" required maxLength={200} /></label>
+          <label>RUC<input className="input" name="ruc" inputMode="numeric" maxLength={11} placeholder="20XXXXXXXXX" /></label>
+          <label>Nombre de contacto<input className="input" name="contacto" autoComplete="name" placeholder="Nombre completo" required maxLength={160} /></label>
+          <label>Cargo (opcional)<input className="input" name="cargo" autoComplete="organization-title" placeholder="Ej. Jefa de RR. HH." maxLength={120} /></label>
+          <label>Correo<input className="input" name="email" type="email" autoComplete="email" placeholder="correo@empresa.com" maxLength={160} /></label>
+          <label>Celular<input className="input" name="telefono" type="tel" autoComplete="tel" placeholder="999 999 999" maxLength={40} /></label>
         </div>
       </Section>
 
@@ -98,8 +107,8 @@ export default function QuoteForm() {
         </div>
 
         <div className="formGrid">
-          <label>Fecha requerida<input className="input" type="date" /></label>
-          <label>Lugar de entrega<select className="select" defaultValue=""><option value="" disabled>Selecciona</option><option>Una sola dirección</option><option>Varias sedes</option><option>Domicilio de cada colaborador</option></select></label>
+          <label>Fecha requerida<input className="input" name="fecha_requerida" type="date" /></label>
+          <label>Lugar de entrega<select className="select" name="lugar_entrega" defaultValue=""><option value="" disabled>Selecciona</option><option>Una sola dirección</option><option>Varias sedes</option><option>Domicilio de cada colaborador</option></select></label>
         </div>
       </Section>
 
@@ -116,18 +125,19 @@ export default function QuoteForm() {
           <span className="quoteLabel">Personalización <small>opcional</small></span>
           <div className="extrasGrid">
             {extras.map((x) => (
-              <label className="toggleRow" key={x}><input type="checkbox" /><span>{x}</span></label>
+              <label className="toggleRow" key={x}><input type="checkbox" name="personalizacion" value={x} /><span>{x}</span></label>
             ))}
           </div>
         </div>
         <label className="giftField">
           <span><strong>Requerimientos</strong> <small>productos, restricciones, colores, lo que necesites</small></span>
-          <textarea className="textarea" placeholder="Ej.: 80 canastas sin alcohol, con panetón y tarjeta con logo, entrega el 18 de diciembre en dos sedes." />
+          <textarea className="textarea" name="requerimientos" maxLength={2000} placeholder="Ej.: 80 canastas sin alcohol, con panetón y tarjeta con logo, entrega el 18 de diciembre en dos sedes." />
         </label>
       </Section>
 
-      <button className="btn btnPrimary full quoteSubmit" type="submit">Solicitar cotización</button>
-      <p className="muted summaryFoot">Prototipo: el formulario todavía no envía información.</p>
+      {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
+      <button className="btn btnPrimary full quoteSubmit" type="submit" disabled={pending}>{pending ? "Enviando…" : "Solicitar cotización"}</button>
+      <p className="muted summaryFoot">Te respondemos con una propuesta por correo o WhatsApp.</p>
     </form>
   );
 }

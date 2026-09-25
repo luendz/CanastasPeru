@@ -35,13 +35,16 @@ const timeline = [
   { label: "Entrega", hint: order.date, state: "todo" },
 ] as const;
 
-export default function ConfirmacionPage() {
+export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; total?: string }> }) {
+  // Número y total reales cuando el pedido se registró en la base; si no, los de demostración.
+  const { pedido, total: totalReal } = await searchParams;
+  const numeroPedido = pedido && /^OP-\d+$/.test(pedido) ? pedido : order.number;
   const lines = mockCart.flatMap(({ slug, qty }) => {
     const product = products.find((p) => p.slug === slug);
     return product ? [{ product, qty }] : [];
   });
   const subtotal = lines.reduce((sum, l) => sum + l.product.price * l.qty, 0);
-  const total = subtotal + order.fee;
+  const total = totalReal && Number.isFinite(Number(totalReal)) ? Number(totalReal) : subtotal + order.fee;
 
   return (
     <section className="shell cartPage">
@@ -62,7 +65,7 @@ export default function ConfirmacionPage() {
           <p>Enviamos el detalle a <strong>{order.email}</strong>. Te avisaremos por correo y WhatsApp en cada paso.</p>
         </div>
         <dl className="successMeta">
-          <div><dt>Pedido</dt><dd>#{order.number}</dd></div>
+          <div><dt>Pedido</dt><dd>#{numeroPedido}</dd></div>
           <div><dt>Total pagado</dt><dd>{formatPrice(total)}</dd></div>
         </dl>
       </div>
@@ -75,7 +78,7 @@ export default function ConfirmacionPage() {
               {timeline.map((step, i) => (
                 <li key={step.label} style={{ "--i": i } as React.CSSProperties} data-state={step.state} aria-current={step.state === "current" ? "step" : undefined}>
                   <span className="timelineDot" aria-hidden="true">{step.state === "done" ? "✓" : ""}</span>
-                  <div><strong>{step.label}</strong><small>{step.hint}</small></div>
+                  <div><strong>{step.label}</strong><small>{step.label === "Pedido registrado" ? `N.º ${numeroPedido}` : step.hint}</small></div>
                 </li>
               ))}
             </ol>
