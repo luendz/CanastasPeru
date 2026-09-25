@@ -594,3 +594,11 @@ del { color: #a99a8e; font-size: 13px; }
   .extrasGrid { grid-template-columns: 1fr; }
   .qtyPicker .chipRow { flex-wrap: wrap; }
 }
+
+/* Editor de composición: guardar en la base. */
+.devOutputActions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.devSaved { color: var(--pine); font-size: 13px; font-weight: 700; }
+.devSaveError { color: var(--red); font-size: 13px; font-weight: 700; }
+.devAdd { display: flex; gap: 8px; }
+.devAdd .select { flex: 1; min-height: 38px; }
+.devRemove { float: right; padding: 0; border: 0; background: none; color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer; }

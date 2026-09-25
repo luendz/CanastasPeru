@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
+import { getContenido } from "@/lib/contenido";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 import "./animaciones.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -17,10 +16,15 @@ const sans = Manrope({
   variable: "--font-sans",
 });
 
-export const metadata: Metadata = {
-  title: { default: "MKA · Canastas Navideñas & Regalos", template: "%s · MKA" },
-  description: "MKA: canastas navideñas y regalos corporativos armados a mano en Lima.",
-};
+// Título e ícono salen de Panel → Contenido → Marca.
+export async function generateMetadata(): Promise<Metadata> {
+  const { marca } = await getContenido();
+  return {
+    title: { default: `${marca.nombre} · ${marca.lema}`, template: `%s · ${marca.nombre}` },
+    description: `${marca.nombre}: canastas navideñas y regalos corporativos armados a mano en Lima.`,
+    icons: { icon: marca.icono, apple: marca.icono },
+  };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -32,9 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             __html: `if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.dataset.motion="";`,
           }}
         />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

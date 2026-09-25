@@ -1,22 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { crearPedido, type CheckoutState } from "@/app/(sitio)/checkout/actions";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
-import { deliveryZones, formatPrice, mockCart, products } from "@/lib/mock-data";
-
-const timeSlots = [
-  { id: "manana", label: "Mañana", hint: "9:00 – 13:00" },
-  { id: "tarde", label: "Tarde", hint: "14:00 – 18:00" },
-  { id: "noche", label: "Noche", hint: "18:00 – 21:00" },
-];
-
-const payMethods = [
-  { id: "tarjeta", label: "Tarjeta", hint: "Visa, Mastercard, Amex", note: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta." },
-  { id: "yape", label: "Yape / Plin", hint: "Pago con QR", note: "Te mostraremos el QR y el monto exacto en el siguiente paso." },
-  { id: "transferencia", label: "Transferencia", hint: "BCP, Interbank, BBVA", note: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono." },
-];
+import type { DeliveryZone } from "@/lib/catalogo";
+import type { Contenido } from "@/lib/contenido";
+import { formatPrice, mockCart, type Product } from "@/lib/mock-data";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -27,12 +18,15 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-export default function CheckoutForm() {
+export default function CheckoutForm({ products, deliveryZones, opciones }: { products: Product[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"] }) {
+  // Horarios y métodos de pago se editan en Panel → Contenido → Checkout.
+  const timeSlots = opciones.horarios.map((h, i) => ({ id: String(i), label: h.nombre, hint: h.rango }));
+  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota }));
   const [district, setDistrict] = useState("");
-  const [slot, setSlot] = useState("manana");
+  const [slot, setSlot] = useState("0");
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
-  const [pay, setPay] = useState("tarjeta");
+  const [pay, setPay] = useState("0");
 
   const lines = mockCart.flatMap(({ slug, qty }) => {
     const product = products.find((p) => p.slug === slug);
@@ -43,30 +37,36 @@ export default function CheckoutForm() {
   const fee = deliveryZones.find((z) => z.district === district)?.fee;
   const total = subtotal + (fee ?? 0);
   const payNote = payMethods.find((m) => m.id === pay)?.note;
+  const slotInfo = timeSlots.find((s) => s.id === slot);
+  const [state, action, pending] = useActionState<CheckoutState, FormData>(crearPedido, {});
 
   return (
     <div className="checkoutLayout">
-      <form className="checkoutForm" onSubmit={(e) => e.preventDefault()}>
+      <form id="checkout" className="checkoutForm" action={action}>
+        <input type="hidden" name="items" value={JSON.stringify(mockCart.map((c) => ({ slug: c.slug, cantidad: c.qty })))} />
+        <input type="hidden" name="horario" value={slotInfo ? `${slotInfo.label} · ${slotInfo.hint}` : ""} />
+        <input type="hidden" name="metodo_pago" value={payMethods.find((m) => m.id === pay)?.label ?? ""} />
+        <input type="hidden" name="comprobante" value={doc} />
         <Section n={1} title="Datos de contacto" hint="Te enviaremos la confirmación y el seguimiento del pedido.">
           <div className="formGrid">
-            <label>Nombres<input className="input" autoComplete="given-name" placeholder="Luis" /></label>
-            <label>Apellidos<input className="input" autoComplete="family-name" placeholder="Díaz" /></label>
-            <label>Correo<input className="input" type="email" autoComplete="email" placeholder="correo@ejemplo.com" /></label>
-            <label>Celular<input className="input" type="tel" autoComplete="tel" placeholder="999 999 999" /></label>
+            <label>Nombres<input className="input" name="nombres" autoComplete="given-name" placeholder="Luis" required maxLength={80} /></label>
+            <label>Apellidos<input className="input" name="apellidos" autoComplete="family-name" placeholder="Díaz" maxLength={80} /></label>
+            <label>Correo<input className="input" name="email" type="email" autoComplete="email" placeholder="correo@ejemplo.com" maxLength={160} /></label>
+            <label>Celular<input className="input" name="telefono" type="tel" autoComplete="tel" placeholder="999 999 999" maxLength={40} /></label>
           </div>
         </Section>
 
         <Section n={2} title="Entrega" hint="¿Dónde y cuándo llevamos las canastas?">
           <div className="formGrid">
             <label>Distrito
-              <select className="select" value={district} onChange={(e) => setDistrict(e.target.value)}>
+              <select className="select" name="distrito" value={district} onChange={(e) => setDistrict(e.target.value)} required>
                 <option value="">Selecciona distrito</option>
                 {deliveryZones.map((z) => <option key={z.district} value={z.district}>{z.district} · {formatPrice(z.fee)}</option>)}
               </select>
             </label>
-            <label>Fecha de entrega<input className="input" type="date" /></label>
-            <label className="wide">Dirección<input className="input" autoComplete="street-address" placeholder="Av. / Jr. / Calle, número, dpto." /></label>
-            <label className="wide">Referencia<input className="input" placeholder="Frente al parque, portón negro…" /></label>
+            <label>Fecha de entrega<input className="input" name="fecha_entrega" type="date" /></label>
+            <label className="wide">Dirección<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Jr. / Calle, número, dpto." maxLength={300} /></label>
+            <label className="wide">Referencia<input className="input" name="referencia" placeholder="Frente al parque, portón negro…" maxLength={300} /></label>
           </div>
 
           <fieldset className="fieldGroup">
@@ -87,14 +87,14 @@ export default function CheckoutForm() {
           </label>
           {otherReceiver && (
             <div className="formGrid topSpace">
-              <label>Nombre de quien recibe<input className="input" placeholder="María Torres" /></label>
-              <label>Celular de quien recibe<input className="input" type="tel" placeholder="999 999 999" /></label>
+              <label>Nombre de quien recibe<input className="input" name="recibe_nombre" placeholder="María Torres" maxLength={160} /></label>
+              <label>Celular de quien recibe<input className="input" name="recibe_telefono" type="tel" placeholder="999 999 999" maxLength={40} /></label>
             </div>
           )}
 
           <label className="giftField">
             <span><strong>✦ Dedicatoria</strong> <small>opcional · va en una tarjeta impresa</small></span>
-            <textarea className="textarea" maxLength={240} placeholder="¡Feliz Navidad! Gracias por un año increíble…" />
+            <textarea className="textarea" name="dedicatoria" maxLength={240} placeholder="¡Feliz Navidad! Gracias por un año increíble…" />
           </label>
         </Section>
 
@@ -111,14 +111,14 @@ export default function CheckoutForm() {
           </div>
           {doc === "boleta" ? (
             <div className="formGrid topSpace">
-              <label>DNI<input className="input" inputMode="numeric" maxLength={8} placeholder="12345678" /></label>
-              <label>Nombres completos<input className="input" placeholder="Como figura en el DNI" /></label>
+              <label>DNI<input className="input" name="dni" inputMode="numeric" maxLength={8} placeholder="12345678" /></label>
+              <label>Nombres completos<input className="input" name="nombre_comprobante" placeholder="Como figura en el DNI" maxLength={200} /></label>
             </div>
           ) : (
             <div className="formGrid topSpace">
-              <label>RUC<input className="input" inputMode="numeric" maxLength={11} placeholder="20123456789" /></label>
-              <label>Razón social<input className="input" placeholder="Empresa S.A.C." /></label>
-              <label className="wide">Dirección fiscal<input className="input" placeholder="Dirección registrada en SUNAT" /></label>
+              <label>RUC<input className="input" name="ruc" inputMode="numeric" maxLength={11} placeholder="20123456789" /></label>
+              <label>Razón social<input className="input" name="razon_social" placeholder="Empresa S.A.C." maxLength={200} /></label>
+              <label className="wide">Dirección fiscal<input className="input" name="direccion_fiscal" placeholder="Dirección registrada en SUNAT" maxLength={300} /></label>
             </div>
           )}
         </Section>
@@ -158,13 +158,16 @@ export default function CheckoutForm() {
         <div><span>Delivery{district && ` · ${district}`}</span>{fee !== undefined ? <strong><AnimatedPrice value={fee} duration={400} /></strong> : <span className="muted">Elige un distrito</span>}</div>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={total} /></strong></div>
-        <p className="muted summaryTax">Precios incluyen IGV.</p>
+        <p className="muted summaryTax">{opciones.notaImpuestos}</p>
         <label className="termsRow">
-          <input type="checkbox" defaultChecked />
+          <input type="checkbox" name="terminos" form="checkout" defaultChecked />
           <span>Acepto los términos y la política de privacidad.</span>
         </label>
-        <Link className="btn btnPrimary full payBtn" href="/confirmacion">Pagar&nbsp;<AnimatedPrice value={total} /></Link>
-        <p className="muted summaryFoot">Prototipo: el botón simula un pago aprobado.</p>
+        {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
+        <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending}>
+          {pending ? "Registrando pedido…" : <>Pagar&nbsp;<AnimatedPrice value={total} /></>}
+        </button>
+        <p className="muted summaryFoot">Prototipo: se registra el pedido pero todavía no se cobra.</p>
       </aside>
     </div>
   );

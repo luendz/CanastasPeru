@@ -216,3 +216,6 @@ html[data-motion] [data-reveal][data-inview] .quoteSection { opacity: 1; transla
   .businessBanner::before, .btn:hover::after, .cartBtn[data-bump] { animation: none; }
   ::view-transition-group(*), ::view-transition-new(*), ::view-transition-old(*) { animation: none; }
 }
+
+/* Mensajes de error de formularios de la tienda (checkout y cotización). */
+.checkoutError { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: #f8e1df; color: #a12c2c; font-size: 14px; font-weight: 700; }

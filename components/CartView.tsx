@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
-import { findBasketType, formatPrice, mockCart, products } from "@/lib/mock-data";
+import { findBasketType, formatPrice, mockCart, type BasketType, type Product } from "@/lib/mock-data";
 
-export default function CartView() {
+export default function CartView({ products, basketTypes, notaImpuestos }: { products: Product[]; basketTypes: BasketType[]; notaImpuestos: string }) {
   const [cart, setCart] = useState(mockCart);
   const [leaving, setLeaving] = useState<string[]>([]);
 
@@ -58,7 +58,7 @@ export default function CartView() {
               <div className="cartInfo">
                 <span className="eyebrow">{product.category}</span>
                 <Link className="cartName" href={`/producto/${product.slug}`}>{product.name}</Link>
-                <span className="cartMeta">{findBasketType(product.baseImage).label} · {product.items.length} productos</span>
+                <span className="cartMeta">{findBasketType(basketTypes, product).label} · {product.items.length} productos</span>
                 <span className="cartUnit">{formatPrice(product.price)} c/u</span>
               </div>
               <div className="cartControls">
@@ -95,7 +95,7 @@ export default function CartView() {
         </form>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={subtotal} /></strong></div>
-        <p className="muted summaryTax">Precios incluyen IGV.</p>
+        <p className="muted summaryTax">{notaImpuestos}</p>
         {savings > 0 && <p className="saveTag summarySave">Estás ahorrando <AnimatedPrice value={savings} /> en promociones</p>}
         <Link className="btn btnPrimary full" href="/checkout">Continuar compra →</Link>
         <ul className="summaryPerks">

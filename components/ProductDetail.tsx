@@ -5,15 +5,15 @@ import { useState, ViewTransition } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
-import { BasketType, Product, basketTypes, findBasketType, formatPrice } from "@/lib/mock-data";
+import { BasketType, Product, findBasketType, formatPrice } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
   if (delta === 0) return "Incluida";
   return delta > 0 ? `+ ${formatPrice(delta)}` : `− ${formatPrice(Math.abs(delta))}`;
 }
 
-export default function ProductDetail({ product }: { product: Product }) {
-  const ownBasket = findBasketType(product.baseImage);
+export default function ProductDetail({ product, basketTypes, beneficios }: { product: Product; basketTypes: BasketType[]; beneficios: { titulo: string; texto: string }[] }) {
+  const ownBasket = findBasketType(basketTypes, product);
   const [selected, setSelected] = useState<BasketType>(ownBasket);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -115,9 +115,9 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
 
         <ul className="perks" style={{ "--i": 7 } as React.CSSProperties}>
-          <li><span aria-hidden="true">✦</span><div><strong>Delivery programado</strong><small>Eliges fecha y hora en Lima</small></div></li>
-          <li><span aria-hidden="true">✦</span><div><strong>Boleta o factura</strong><small>Comprobante electrónico</small></div></li>
-          <li><span aria-hidden="true">✦</span><div><strong>Lista para regalar</strong><small>Con lazo y tarjeta</small></div></li>
+          {beneficios.map((b, i) => (
+            <li key={`${b.titulo}-${i}`}><span aria-hidden="true">✦</span><div><strong>{b.titulo}</strong><small>{b.texto}</small></div></li>
+          ))}
         </ul>
       </div>
     </>

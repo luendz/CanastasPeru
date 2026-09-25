@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Brand from "@/components/Brand";
+import type { Contenido } from "@/lib/contenido";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -12,7 +13,7 @@ const links = [
   { href: "/checkout", label: "Checkout" },
 ];
 
-export default function Header() {
+export default function Header({ marca, anuncios }: { marca: Contenido["marca"]; anuncios: Contenido["anuncios"] }) {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -54,14 +55,12 @@ export default function Header() {
   return (
     <>
       <div className="topbar">
-        <span>✦ Envíos programados en Lima</span>
-        <span className="topbarHide">✦ Atención a empresas</span>
-        <span className="topbarHide">✦ Cotizaciones en 24 h</span>
+        {anuncios.mensajes.map((m, i) => <span key={i} className={i > 0 ? "topbarHide" : undefined}>✦ {m}</span>)}
       </div>
       <div className="headerSticky" data-hidden={hidden || undefined} data-scrolled={scrolled || undefined}>
         <div className="headerWrap">
           <header className="header shell">
-            <Brand />
+            <Brand marca={marca} />
             <nav className="nav">
               {links.map((l) => {
                 const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
