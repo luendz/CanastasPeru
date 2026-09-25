@@ -657,7 +657,7 @@ El PDF/XML no necesita ser devuelto dentro de la misma operación de pago. Puede
 
 Antes de programar:
 
-1. Leer este archivo completo.
+1. Leer este archivo completo y `docs/INFRAESTRUCTURA.md` (publicación en Cloudflare, proyecto de Supabase y reglas del panel).
 2. Revisar el estado actual del repositorio.
 3. Ejecutar/compilar el proyecto.
 4. No asumir que una fase futura ya fue autorizada.
