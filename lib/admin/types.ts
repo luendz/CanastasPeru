@@ -66,6 +66,10 @@ export type Cotizacion = {
   numero: string;
   estado: EstadoCotizacion;
   canal: Canal;
+  asesor: string | null;
+  forma_pago: string | null;
+  horario_entrega: string | null;
+  distrito: string | null;
   empresa: string;
   ruc: string | null;
   contacto: string;

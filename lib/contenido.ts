@@ -51,6 +51,11 @@ export type Contenido = {
     cantidades: number[];
     presupuestos: Presupuesto[];
     personalizacion: string[];
+    /** PDF de cotización comercial. */
+    pdfSubtitulo: string;
+    pdfFormaPago: string;
+    pdfHorarioEntrega: string;
+    pdfCondiciones: string[];
   };
   pie: { texto: string; derechos: string };
 };
@@ -140,6 +145,16 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { etiqueta: "Más de S/ 250", min: 250, max: 0 },
     ],
     personalizacion: ["Tarjeta con tu logo", "Cinta con colores de marca", "Entrega a cada colaborador", "Producto propio de tu empresa"],
+    pdfSubtitulo: "Navidad 2026",
+    pdfFormaPago: "50 % adelantado, 50 % un día antes de la entrega",
+    pdfHorarioEntrega: "Lunes a sábado de 1:00 p. m. a 7:30 p. m.",
+    pdfCondiciones: [
+      "Forma de pago: 50 % adelantado, 50 % un día antes de la entrega.",
+      "Cuenta corriente MN: Banco — N.º de cuenta.",
+      "Horario de entrega: lunes a sábado de 1:00 p. m. a 7:30 p. m.",
+      "Tiempo de entrega: mínimo de 5 a 7 días hábiles luego de recibida la orden de pedido.",
+      "Los productos pueden reemplazarse por otros de igual o mayor valor según disponibilidad.",
+    ],
   },
   pie: {
     texto: "Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.",

@@ -157,7 +157,7 @@ export async function guardarInsumoVisual(fd: FormData) {
   const { supabase } = await requireAdmin();
   const { error } = await supabase
     .from("insumos")
-    .update({ imagen: imagen(fd, "imagen"), emoji: txt(fd, "emoji", 8) || "📦" })
+    .update({ imagen: imagen(fd, "imagen"), emoji: txt(fd, "emoji", 8) || "📦", presentacion: txt(fd, "presentacion", 80) || null })
     .eq("id", txt(fd, "id", 40));
   if (error) throw new Error(error.message);
   refrescar();

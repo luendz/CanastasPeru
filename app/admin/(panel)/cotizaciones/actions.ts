@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { DatosPdfCotizacion } from "@/lib/admin/pdf";
-import { etiquetaProducto, productosPorCanasta } from "@/lib/admin/recetas";
+import { productosPersonalizados, productosPorCanasta } from "@/lib/admin/recetas";
 import { CANALES, type ContenidoLinea, type Cotizacion, type CotizacionItem } from "@/lib/admin/types";
 import { getContenido } from "@/lib/contenido";
 
@@ -43,6 +43,7 @@ export async function crearCotizacion(_prev: EstadoForm, fd: FormData): Promise<
       presupuesto: txt(fd, "presupuesto", 60) || null,
       fecha_requerida: txt(fd, "fecha_requerida", 10) || null,
       lugar_entrega: txt(fd, "lugar_entrega", 300) || null,
+      distrito: txt(fd, "distrito", 120) || null,
       requerimientos: txt(fd, "requerimientos", 2000) || null,
     })
     .select("id")
@@ -141,6 +142,10 @@ export async function actualizarCotizacion(_prev: EstadoForm, formData: FormData
       estado,
       canal,
       valida_hasta: String(formData.get("valida_hasta") ?? "") || null,
+      asesor: txt(formData, "asesor", 120) || null,
+      forma_pago: txt(formData, "forma_pago", 200) || null,
+      horario_entrega: txt(formData, "horario_entrega", 120) || null,
+      distrito: txt(formData, "distrito", 120) || null,
       notas: String(formData.get("notas") ?? "").slice(0, 2000) || null,
     })
     .eq("id", id)
@@ -163,11 +168,12 @@ export async function aprobarCotizacion(formData: FormData) {
 /** Todo lo que lleva el PDF de una cotización (se arma en el navegador). */
 export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion> {
   const { supabase } = await requireAdmin();
-  const [{ data: cot }, { data: items }, { data: tipos }, productos, contenido] = await Promise.all([
+  const [{ data: cot }, { data: items }, { data: tipos }, productos, personalizados, contenido] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
     supabase.from("tipos_canasta").select("id,nombre"),
     productosPorCanasta(supabase),
+    productosPersonalizados(supabase),
     getContenido(),
   ]);
   if (!cot) throw new Error("No se encontró la cotización");
@@ -177,9 +183,15 @@ export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion
     items: ((items ?? []) as CotizacionItem[]).map((it) => ({
       ...it,
       envase: it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—",
-      productos: it.contenido ? it.contenido.map(etiquetaProducto) : productos.get(it.producto_id ?? "") ?? [],
+      productos: it.contenido ? personalizados(it.contenido) : productos.get(it.producto_id ?? "") ?? [],
     })),
-    marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema },
-    contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo },
+    marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema, logo: contenido.marca.logo },
+    contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo, ciudad: contenido.contacto.ciudad },
+    textos: {
+      subtitulo: contenido.cotizacion.pdfSubtitulo,
+      formaPago: contenido.cotizacion.pdfFormaPago,
+      horarioEntrega: contenido.cotizacion.pdfHorarioEntrega,
+      condiciones: contenido.cotizacion.pdfCondiciones,
+    },
   };
 }

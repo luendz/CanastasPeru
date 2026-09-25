@@ -79,7 +79,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
                   <tr key={it.id}>
                     <td>
                       {it.producto_nombre}
-                      <small className="admMuted admBlock">{(it.contenido ? it.contenido.map(etiquetaProducto) : trae.get(it.producto_id ?? "") ?? []).join(" · ")}</small>
+                      <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.producto_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
                     </td>
                     <td>{it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—"}</td>
                     <td className="num">{it.cantidad}</td>

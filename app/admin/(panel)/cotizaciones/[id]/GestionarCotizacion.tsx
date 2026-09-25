@@ -13,6 +13,8 @@ type Props = {
   canal: Canal;
   validaHasta: string | null;
   notas: string | null;
+  extra: { asesor: string | null; forma_pago: string | null; horario_entrega: string | null; distrito: string | null };
+  porDefecto: { formaPago: string; horarioEntrega: string };
   cliente: { contacto: string; telefono: string | null; email: string | null };
   resumen: { unidades: number; total: number };
   marca: string;
@@ -25,10 +27,19 @@ const numeroWhatsApp = (tel: string | null) => {
   return d.length >= 10 ? d : "";
 };
 
-export default function GestionarCotizacion({ id, numero, estado, canal, validaHasta, notas, cliente, resumen, marca }: Props) {
+export default function GestionarCotizacion({ id, numero, estado, canal, validaHasta, notas, extra, porDefecto, cliente, resumen, marca }: Props) {
   const [resultado, guardar, guardando] = useActionState<EstadoForm, FormData>(actualizarCotizacion, {});
   // Campos controlados: así no vuelven a su valor inicial después de guardar.
-  const [valores, setValores] = useState({ estado, canal: canal as string, valida: validaHasta ?? "", notas: notas ?? "" });
+  const [valores, setValores] = useState({
+    estado,
+    canal: canal as string,
+    valida: validaHasta ?? "",
+    notas: notas ?? "",
+    asesor: extra.asesor ?? "",
+    forma_pago: extra.forma_pago ?? "",
+    horario_entrega: extra.horario_entrega ?? "",
+    distrito: extra.distrito ?? "",
+  });
   const [modal, setModal] = useState(false);
   const [pdf, setPdf] = useState<"" | "generando" | "error">("");
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -105,6 +116,18 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
         </label>
         <label>Válida hasta
           <input className="admInput" type="date" name="valida_hasta" value={valores.valida} onChange={(e) => setValores({ ...valores, valida: e.target.value })} />
+        </label>
+        <label>Asesor comercial
+          <input className="admInput" name="asesor" maxLength={120} value={valores.asesor} onChange={(e) => setValores({ ...valores, asesor: e.target.value })} placeholder="Quién atiende al cliente" />
+        </label>
+        <label>Ciudad / Distrito
+          <input className="admInput" name="distrito" maxLength={120} value={valores.distrito} onChange={(e) => setValores({ ...valores, distrito: e.target.value })} placeholder="Ej. Lima / Miraflores" />
+        </label>
+        <label>Forma de pago
+          <input className="admInput" name="forma_pago" maxLength={200} value={valores.forma_pago} onChange={(e) => setValores({ ...valores, forma_pago: e.target.value })} placeholder={porDefecto.formaPago} />
+        </label>
+        <label>Horario de entrega
+          <input className="admInput" name="horario_entrega" maxLength={120} value={valores.horario_entrega} onChange={(e) => setValores({ ...valores, horario_entrega: e.target.value })} placeholder={porDefecto.horarioEntrega} />
         </label>
         <label>Notas internas
           <textarea className="admInput" name="notas" rows={3} value={valores.notas} onChange={(e) => setValores({ ...valores, notas: e.target.value })} />

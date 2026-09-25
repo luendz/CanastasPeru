@@ -43,8 +43,11 @@ export default function NuevaCotizacionForm() {
       <label>Presupuesto por unidad (opcional)
         <input className="admInput" name="presupuesto" maxLength={60} placeholder="Ej. S/ 100 – 180" />
       </label>
-      <label className="admSpan2">Dirección de entrega
-        <input className="admInput" name="lugar_entrega" maxLength={300} placeholder="Av., calle, número y distrito" />
+      <label>Dirección de entrega
+        <input className="admInput" name="lugar_entrega" maxLength={300} placeholder="Av., calle y número" />
+      </label>
+      <label>Ciudad / Distrito
+        <input className="admInput" name="distrito" maxLength={120} placeholder="Ej. Lima / Miraflores" />
       </label>
       <label className="admSpan2">Requerimientos
         <textarea className="admInput" name="requerimientos" rows={3} maxLength={2000} placeholder="Productos, marcas, restricciones, tarjeta con logo…" />
