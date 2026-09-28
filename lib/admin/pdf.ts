@@ -1,142 +1,45 @@
 /*
- * PDF de órdenes y cotizaciones, armado en el navegador con jsPDF.
+ * PDF de cotizaciones y órdenes de pedido, armado en el navegador con jsPDF
+ * según el modelo del cliente. Ambos documentos comparten el mismo formato:
+ * encabezado, datos del cliente, detalles, canastas con sus productos,
+ * totales, notas, condiciones y firmas.
  * Se importa de forma dinámica para no cargar la librería hasta que se use.
  */
 import type { jsPDF } from "jspdf";
-import { fecha, fechaCorta, soles } from "@/lib/admin/format";
-import { etiquetaProducto, type ProductoCanasta } from "@/lib/admin/recetas";
-import { labelCanal, labelEstado, type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
+import { fechaCorta, soles } from "@/lib/admin/format";
+import type { ProductoCanasta } from "@/lib/admin/recetas";
+import type { Cotizacion, Orden, OrdenItem } from "@/lib/admin/types";
 
-type Marca = { nombre: string; lema: string };
-type Contacto = { telefono: string; correo: string };
+type Marca = { nombre: string; lema: string; logo: string };
+type Contacto = { telefono: string; correo: string; ciudad: string };
 type Linea = OrdenItem & { envase: string; productos?: ProductoCanasta[] };
 
-export type DatosPdfOrden = { orden: Orden; items: Linea[]; marca: Marca; contacto: Contacto };
 export type DatosPdfCotizacion = {
   cotizacion: Cotizacion;
   items: Linea[];
-  marca: Marca & { logo: string };
-  contacto: Contacto & { ciudad: string };
+  marca: Marca;
+  contacto: Contacto;
   textos: { subtitulo: string; formaPago: string; horarioEntrega: string; condiciones: string[] };
 };
 
-const VINO: [number, number, number] = [123, 30, 44];
-const TINTA: [number, number, number] = [36, 25, 21];
-const GRIS: [number, number, number] = [111, 98, 90];
+export type DatosPdfOrden = {
+  orden: Orden;
+  items: Linea[];
+  marca: Marca;
+  contacto: Contacto;
+  /** Datos de la cotización de origen, si la orden vino de una. */
+  cotizacion: Pick<Cotizacion, "numero" | "cargo" | "asesor" | "forma_pago" | "distrito"> | null;
+  textos: { subtitulo: string; condiciones: string[] };
+};
 
-async function logo(): Promise<string | null> {
-  try {
-    const r = await fetch("/marca/mka-icono.png");
-    const b = await r.blob();
-    return await new Promise((ok) => {
-      const fr = new FileReader();
-      fr.onload = () => ok(String(fr.result));
-      fr.onerror = () => ok(null);
-      fr.readAsDataURL(b);
-    });
-  } catch {
-    return null;
-  }
-}
-
-async function nuevoDocumento(marca: Marca, contacto: Contacto, titulo: string, numero: string, sub: string) {
-  const [{ jsPDF }, { default: autoTable }, img] = await Promise.all([import("jspdf"), import("jspdf-autotable"), logo()]);
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const ancho = doc.internal.pageSize.getWidth();
-
-  if (img) doc.addImage(img, "PNG", 15, 12, 18, 18);
-  doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(...VINO).text(marca.nombre, 37, 19);
-  doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...GRIS).text(marca.lema, 37, 24);
-  doc.text([contacto.telefono, contacto.correo].filter(Boolean).join(" · "), 37, 29);
-
-  doc.setFont("helvetica", "bold").setFontSize(15).setTextColor(...TINTA).text(titulo, ancho - 15, 18, { align: "right" });
-  doc.setFontSize(12).setTextColor(...VINO).text(numero, ancho - 15, 25, { align: "right" });
-  doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...GRIS).text(sub, ancho - 15, 30, { align: "right" });
-
-  doc.setDrawColor(...VINO).setLineWidth(0.6).line(15, 35, ancho - 15, 35);
-  return { doc, autoTable, ancho, y: 43 };
-}
-
-/** Bloque de datos en dos columnas; devuelve la nueva altura. */
-function seccion(doc: jsPDF, titulo: string, datos: [string, string | null | undefined][], y: number, ancho: number) {
-  doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(...VINO).text(titulo, 15, y);
-  y += 6;
-  const col = (ancho - 30) / 2;
-  const filas = datos.filter(([, v]) => v);
-  filas.forEach(([k, v], i) => {
-    const x = 15 + (i % 2) * col;
-    const yy = y + Math.floor(i / 2) * 10;
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...GRIS).text(k, x, yy);
-    doc.setFontSize(10).setTextColor(...TINTA).text(doc.splitTextToSize(String(v), col - 4)[0], x, yy + 4.5);
-  });
-  return y + Math.ceil(filas.length / 2) * 10 + 3;
-}
-
-function tablaCanastas(
-  doc: jsPDF,
-  autoTable: typeof import("jspdf-autotable").default,
-  items: Linea[],
-  y: number,
-  pie: [string, string][],
-) {
-  doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(...VINO).text("Detalle de canasta", 15, y);
-  autoTable(doc, {
-    startY: y + 3,
-    margin: { left: 15, right: 15 },
-    head: [["Tipo de canasta", "Envase", "Cantidad", "Precio unid.", "Subtotal"]],
-    body: items.map((it) => [it.productos?.length ? `${it.producto_nombre}
-${it.productos.map(etiquetaProducto).join(", ")}` : it.producto_nombre, it.envase, String(it.cantidad), soles(it.precio_unitario), soles(it.subtotal)]),
-    foot: pie.map(([k, v]) => [{ content: k, colSpan: 4 }, v]),
-    theme: "grid",
-    styles: { font: "helvetica", fontSize: 9.5, textColor: TINTA, lineColor: [231, 221, 205], cellPadding: 2.5 },
-    headStyles: { fillColor: VINO, textColor: 255, fontStyle: "bold" },
-    footStyles: { fillColor: [250, 246, 239], textColor: TINTA, fontStyle: "bold" },
-    columnStyles: { 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" } },
-    didParseCell: (d) => {
-      if (d.section !== "body" && d.column.index >= 2) d.cell.styles.halign = "right";
-    },
-  });
-  return (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
-}
-
-export async function pdfOrden({ orden: o, items, marca, contacto }: DatosPdfOrden) {
-  const { doc, autoTable, ancho, y: y0 } = await nuevoDocumento(marca, contacto, "Orden de pedido", o.numero, `Creada el ${fechaCorta(o.created_at)} · ${labelCanal(o.canal)}`);
-  let y = seccion(doc, "Datos del cliente", [
-    ["Cliente", o.cliente_nombre],
-    ["Correo", o.cliente_email],
-    ["Celular", o.cliente_telefono],
-    ["Comprobante", o.comprobante_tipo === "factura" ? "Factura" : "Boleta"],
-    [o.comprobante_tipo === "factura" ? "RUC" : "DNI", o.comprobante_documento],
-    [o.comprobante_tipo === "factura" ? "Razón social" : "Nombre", o.comprobante_nombre],
-  ], y0, ancho);
-  y = seccion(doc, "Detalles de entrega", [
-    ["Fecha de entrega", o.fecha_entrega ? fecha(o.fecha_entrega) : null],
-    ["Horario", o.horario],
-    ["Distrito", o.distrito],
-    ["Dirección", o.direccion],
-    ["Referencia", o.referencia],
-    ["Recibe", o.recibe_nombre ? `${o.recibe_nombre}${o.recibe_telefono ? ` · ${o.recibe_telefono}` : ""}` : null],
-  ], y, ancho);
-  y = tablaCanastas(doc, autoTable, items, y, [
-    ["Subtotal", soles(o.subtotal)],
-    ["Delivery", soles(o.delivery)],
-    ["Total", soles(o.total)],
-  ]);
-  doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...GRIS);
-  doc.text(`Estado: ${labelEstado(o.estado)} · Pago: ${o.estado_pago === "pagado" ? "Pagado" : "Pendiente"}${o.metodo_pago ? ` (${o.metodo_pago})` : ""}`, 15, y);
-  if (o.dedicatoria) doc.text(doc.splitTextToSize(`Dedicatoria: “${o.dedicatoria}”`, ancho - 30), 15, y + 6);
-  return { doc, nombre: `${o.numero}.pdf` };
-}
-
-
-/* ------------------------------------------------------------------------
- * Cotización comercial (según el modelo del cliente, con sus mejoras)
- * ---------------------------------------------------------------------- */
-
-const PINO: [number, number, number] = [27, 58, 51];
-const ORO: [number, number, number] = [201, 164, 74];
-const CREMA: [number, number, number] = [246, 241, 231];
-const LINEA: [number, number, number] = [221, 212, 196];
+type Color = [number, number, number];
+const VINO: Color = [123, 30, 44];
+const TINTA: Color = [36, 25, 21];
+const GRIS: Color = [111, 98, 90];
+const PINO: Color = [27, 58, 51];
+const ORO: Color = [201, 164, 74];
+const CREMA: Color = [246, 241, 231];
+const LINEA: Color = [221, 212, 196];
 
 /** Logo de la marca en PNG (convierte WebP/JPG con un canvas); si falla, el ícono. */
 async function logoPng(url: string): Promise<{ data: string; ancho: number; alto: number } | null> {
@@ -163,6 +66,8 @@ async function logoPng(url: string): Promise<{ data: string; ancho: number; alto
     });
   return (await cargar(url)) ?? (await cargar("/marca/mka-icono.png"));
 }
+
+/* ---------- Monto en letras ---------- */
 
 const UNIDADES = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve", "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
 const DECENAS = ["", "", "", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
@@ -194,8 +99,38 @@ export function montoEnLetras(monto: number) {
   return `${texto.charAt(0).toUpperCase()}${texto.slice(1)} con ${String(centimos).padStart(2, "0")}/100 soles`;
 }
 
-export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, textos }: DatosPdfCotizacion) {
-  const [{ jsPDF }, { default: autoTable }, logo] = await Promise.all([import("jspdf"), import("jspdf-autotable"), logoPng(marca.logo)]);
+/* ---------- Documento comercial ---------- */
+
+type Dato = [string, string | null | undefined];
+
+type Documento = {
+  titulo: string;
+  numero: string;
+  subtitulo: string;
+  marca: Marca;
+  contacto: Contacto;
+  cliente: Dato[];
+  tituloDetalles: string;
+  detalles: Dato[];
+  items: Linea[];
+  /** Filas previas al total (el total siempre va al final, en vino). */
+  totales: [string, number][];
+  total: number;
+  etiquetaTotal: string;
+  notas: string[];
+  condiciones: string[];
+  autorizado: string | null;
+  firmas: [string, string];
+  archivo: string;
+};
+
+const nombreArchivo = (prefijo: string, numero: string, cliente: string) => {
+  const limpio = cliente.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  return `${prefijo}-${numero}${limpio ? `-${limpio}` : ""}.pdf`;
+};
+
+async function documentoComercial(d: Documento) {
+  const [{ jsPDF }, { default: autoTable }, logo] = await Promise.all([import("jspdf"), import("jspdf-autotable"), logoPng(d.marca.logo)]);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -215,12 +150,12 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     const h = logo.alto * escala;
     doc.addImage(logo.data, "PNG", M + (col - w) / 2, 12 + (altoCab - h) / 2, w, h);
   }
-  doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(...TINTA).text(marca.nombre.toUpperCase(), M + col * 1.5, 23, { align: "center" });
-  doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...GRIS).text(marca.lema, M + col * 1.5, 28.5, { align: "center" });
-  doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(...VINO).text(textos.subtitulo, M + col * 1.5, 35, { align: "center" });
+  doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(...TINTA).text(d.marca.nombre.toUpperCase(), M + col * 1.5, 23, { align: "center" });
+  doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...GRIS).text(d.marca.lema, M + col * 1.5, 28.5, { align: "center" });
+  doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(...VINO).text(d.subtitulo, M + col * 1.5, 35, { align: "center" });
   doc.setFillColor(...VINO).rect(M + col * 2, 12, col, altoCab, "F");
-  doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(255, 255, 255).text("COTIZACIÓN COMERCIAL", M + col * 2.5, 24.5, { align: "center" });
-  doc.setFontSize(13).text(c.numero, M + col * 2.5, 32, { align: "center" });
+  doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(255, 255, 255).text(d.titulo, M + col * 2.5, 24.5, { align: "center" });
+  doc.setFontSize(13).text(d.numero, M + col * 2.5, 32, { align: "center" });
 
   let y = 12 + altoCab + 8;
 
@@ -230,13 +165,19 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(255, 255, 255).text(titulo, M + 4.5, y + 5.4);
     y += 11;
   };
-  const datos = (filas: [string, string | null | undefined, string, string | null | undefined][]) => {
+  const cuadricula = (datos: Dato[]) => {
+    const filas: string[][] = [];
+    for (let i = 0; i < datos.length; i += 2) {
+      const [a, b] = datos[i];
+      const [c, e] = datos[i + 1] ?? ["", ""];
+      filas.push([a, b || "—", c, c ? e || "—" : ""]);
+    }
     autoTable(doc, {
       startY: y,
       margin: { left: M, right: M },
       theme: "grid",
       styles: base,
-      body: filas.map(([a, b, c2, d]) => [a, b || "—", c2, d || "—"]),
+      body: filas,
       columnStyles: {
         0: { fillColor: CREMA, cellWidth: 40, textColor: GRIS },
         1: { cellWidth: ancho / 2 - 40 },
@@ -247,22 +188,12 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
   };
 
   barra("DATOS DEL CLIENTE");
-  datos([
-    ["Empresa / Razón social", c.empresa, "RUC", c.ruc],
-    ["Contacto", c.contacto, "Cargo", c.cargo],
-    ["Teléfono / WhatsApp", c.telefono, "Correo", c.email],
-    ["Dirección de entrega", c.lugar_entrega, "Ciudad / Distrito", c.distrito],
-  ]);
-
-  barra("DETALLES DE LA COTIZACIÓN");
-  datos([
-    ["Fecha", fechaCorta(new Date().toISOString()), "Vigencia", c.valida_hasta ? `Hasta el ${fechaCorta(c.valida_hasta)}` : null],
-    ["Asesor comercial", c.asesor, "Forma de pago", c.forma_pago || textos.formaPago],
-    ["Fecha de entrega", c.fecha_requerida ? fechaCorta(c.fecha_requerida) : "Por coordinar", "Horario de entrega", c.horario_entrega || textos.horarioEntrega],
-  ]);
+  cuadricula(d.cliente);
+  barra(d.tituloDetalles);
+  cuadricula(d.detalles);
 
   // Cada canasta con su tabla de productos.
-  items.forEach((it, i) => {
+  d.items.forEach((it, i) => {
     if (y > H - 60) { doc.addPage(); y = 20; }
     autoTable(doc, {
       startY: y,
@@ -270,7 +201,7 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
       theme: "grid",
       styles: { ...base, fontSize: 9.5 },
       headStyles: { fillColor: PINO, textColor: 255, fontStyle: "bold", halign: "center" },
-      head: [[items.length > 1 ? `${i + 1}. TIPO DE CANASTA / BOX` : "TIPO DE CANASTA / BOX", "TIPO DE ENVASE", "CANTIDAD", "PRECIO UNIT.", "TOTAL"]],
+      head: [[d.items.length > 1 ? `${i + 1}. TIPO DE CANASTA / BOX` : "TIPO DE CANASTA / BOX", "TIPO DE ENVASE", "CANTIDAD", "PRECIO UNIT.", "TOTAL"]],
       body: [[it.producto_nombre, it.envase, String(it.cantidad), soles(it.precio_unitario), soles(it.subtotal)]],
       columnStyles: { 0: { cellWidth: 54, fontStyle: "bold" }, 1: { cellWidth: 40 }, 2: { halign: "center" }, 3: { halign: "right" }, 4: { halign: "right", fontStyle: "bold" } },
     });
@@ -292,45 +223,50 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     y += 9;
   });
 
-  // Totales (los precios incluyen IGV).
-  const total = items.reduce((s, it) => s + Number(it.subtotal), 0);
-  const subtotal = Math.round((total / 1.18) * 100) / 100;
-  const igv = Math.round((total - subtotal) * 100) / 100;
-  const unidades = items.reduce((s, it) => s + it.cantidad, 0);
-  if (y > H - 50) { doc.addPage(); y = 20; }
+  // Totales.
+  if (y > H - 55) { doc.addPage(); y = 20; }
+  const filasTotal = [...d.totales.map(([k, v]) => [k, soles(v)]), [d.etiquetaTotal, soles(d.total)]];
   autoTable(doc, {
     startY: y,
     margin: { left: M + ancho / 2, right: M },
     theme: "grid",
     styles: { ...base, fontSize: 10 },
-    body: [
-      ["SUBTOTAL", soles(subtotal)],
-      ["IGV (18 %)", soles(igv)],
-      [`TOTAL${unidades ? ` · ${unidades} canastas` : ""}`, soles(total)],
-    ],
+    body: filasTotal,
     columnStyles: { 0: { fontStyle: "bold", fillColor: CREMA }, 1: { halign: "right" } },
-    didParseCell: (d) => {
-      if (d.row.index === 2) {
-        d.cell.styles.fillColor = VINO;
-        d.cell.styles.textColor = 255;
-        d.cell.styles.fontStyle = "bold";
-        d.cell.styles.fontSize = 11;
+    didParseCell: (c) => {
+      if (c.row.index === filasTotal.length - 1) {
+        c.cell.styles.fillColor = VINO;
+        c.cell.styles.textColor = 255;
+        c.cell.styles.fontStyle = "bold";
+        c.cell.styles.fontSize = 11;
       }
     },
   });
   y = finY() + 6;
   doc.setFont("helvetica", "italic").setFontSize(8.5).setTextColor(...GRIS);
-  doc.text(`Son: ${montoEnLetras(total)}.`, W - M, y, { align: "right" });
-  y += 11;
+  doc.text(`Son: ${montoEnLetras(d.total)}.`, W - M, y, { align: "right" });
+  y += 8;
 
-  if (textos.condiciones.length) {
+  // Notas, sin recuadro.
+  if (d.notas.length) {
+    doc.setFont("helvetica", "normal").setFontSize(8.8).setTextColor(...TINTA);
+    for (const n of d.notas) {
+      const lineas = doc.splitTextToSize(n, ancho);
+      if (y + lineas.length * 4.5 > H - 25) { doc.addPage(); y = 20; }
+      doc.text(lineas, M, y);
+      y += lineas.length * 4.5 + 1.5;
+    }
+    y += 5;
+  }
+
+  if (d.condiciones.length) {
     barra("CONDICIONES Y OBSERVACIONES");
     autoTable(doc, {
       startY: y - 3,
       margin: { left: M, right: M },
       theme: "plain",
       styles: { ...base, fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 5, right: 5 } },
-      body: textos.condiciones.map((t) => [`•  ${t}`]),
+      body: d.condiciones.map((t) => [`•  ${t}`]),
       tableLineColor: LINEA,
       tableLineWidth: 0.2,
     });
@@ -339,15 +275,14 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
 
   // Firmas.
   if (y > H - 45) { doc.addPage(); y = 25; }
-  doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...TINTA);
-  doc.text(`Autorizado por: ${c.asesor || marca.nombre}`, M, y);
+  if (d.autorizado) doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...TINTA).text(`Autorizado por: ${d.autorizado}`, M, y);
   const yFirma = y + 24;
   doc.setDrawColor(...TINTA).setLineWidth(0.3);
   doc.line(M + 10, yFirma, M + 75, yFirma);
   doc.line(W - M - 75, yFirma, W - M - 10, yFirma);
-  doc.setFontSize(8.5).setTextColor(...GRIS);
-  doc.text("Firma del cliente", M + 42.5, yFirma + 5, { align: "center" });
-  doc.text(`Firma del proveedor · ${marca.nombre}`, W - M - 42.5, yFirma + 5, { align: "center" });
+  doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...GRIS);
+  doc.text(d.firmas[0], M + 42.5, yFirma + 5, { align: "center" });
+  doc.text(d.firmas[1], W - M - 42.5, yFirma + 5, { align: "center" });
 
   // Pie de página en todas las hojas.
   const paginas = doc.getNumberOfPages();
@@ -355,10 +290,99 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     doc.setPage(p);
     doc.setDrawColor(...LINEA).setLineWidth(0.3).line(M, H - 14, W - M, H - 14);
     doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...GRIS);
-    doc.text([marca.nombre, contacto.telefono, contacto.correo, contacto.ciudad].filter(Boolean).join("  ·  "), M, H - 9);
-    doc.text(`${c.numero} · Página ${p} de ${paginas}`, W - M, H - 9, { align: "right" });
+    doc.text([d.marca.nombre, d.contacto.telefono, d.contacto.correo, d.contacto.ciudad].filter(Boolean).join("  ·  "), M, H - 9);
+    doc.text(`${d.numero} · Página ${p} de ${paginas}`, W - M, H - 9, { align: "right" });
   }
 
-  const empresa = c.empresa.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-  return { doc, nombre: `Cotizacion-${c.numero}${empresa ? `-${empresa}` : ""}.pdf` };
+  return { doc, nombre: d.archivo };
+}
+
+/** Desglose de un total con IGV incluido. */
+const conIgv = (total: number) => {
+  const valor = Math.round((total / 1.18) * 100) / 100;
+  return { valor, igv: Math.round((total - valor) * 100) / 100 };
+};
+
+export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, textos }: DatosPdfCotizacion) {
+  const total = items.reduce((s, it) => s + Number(it.subtotal), 0);
+  const unidades = items.reduce((s, it) => s + it.cantidad, 0);
+  const { valor, igv } = conIgv(total);
+  return documentoComercial({
+    titulo: "COTIZACIÓN COMERCIAL",
+    numero: c.numero,
+    subtitulo: textos.subtitulo,
+    marca,
+    contacto,
+    cliente: [
+      ["Empresa / Razón social", c.empresa], ["RUC", c.ruc],
+      ["Contacto", c.contacto], ["Cargo", c.cargo],
+      ["Teléfono / WhatsApp", c.telefono], ["Correo", c.email],
+      ["Dirección de entrega", c.lugar_entrega], ["Ciudad / Distrito", c.distrito],
+    ],
+    tituloDetalles: "DETALLES DE LA COTIZACIÓN",
+    detalles: [
+      ["Fecha", fechaCorta(new Date().toISOString())], ["Vigencia", c.valida_hasta ? `Hasta el ${fechaCorta(c.valida_hasta)}` : null],
+      ["Asesor comercial", c.asesor], ["Forma de pago", c.forma_pago || textos.formaPago],
+      ["Fecha de entrega", c.fecha_requerida ? fechaCorta(c.fecha_requerida) : "Por coordinar"], ["Horario de entrega", c.horario_entrega || textos.horarioEntrega],
+    ],
+    items,
+    totales: [["SUBTOTAL", valor], ["IGV (18 %)", igv]],
+    total,
+    etiquetaTotal: `TOTAL${unidades ? ` · ${unidades} canastas` : ""}`,
+    notas: [],
+    condiciones: textos.condiciones,
+    autorizado: c.asesor || marca.nombre,
+    firmas: ["Firma del cliente", `Firma del proveedor · ${marca.nombre}`],
+    archivo: nombreArchivo("Cotizacion", c.numero, c.empresa),
+  });
+}
+
+export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, textos }: DatosPdfOrden) {
+  const factura = o.comprobante_tipo === "factura";
+  const unidades = items.reduce((s, it) => s + it.cantidad, 0);
+  const total = Number(o.total);
+  const { valor, igv } = conIgv(total);
+  const recibe = o.recibe_nombre ? `${o.recibe_nombre}${o.recibe_telefono ? ` · ${o.recibe_telefono}` : ""}` : null;
+  const direccion = [o.direccion, o.referencia ? `Ref.: ${o.referencia}` : null].filter(Boolean).join(" · ");
+
+  return documentoComercial({
+    titulo: "ORDEN DE PEDIDO",
+    numero: o.numero,
+    subtitulo: textos.subtitulo,
+    marca,
+    contacto,
+    cliente: [
+      [factura ? "Razón social" : "Nombre", o.comprobante_nombre || o.cliente_nombre], [factura ? "RUC" : "DNI", o.comprobante_documento],
+      // Las órdenes que vienen de una cotización guardan "Contacto · Empresa".
+      ["Contacto", cotizacion ? o.cliente_nombre.split(" · ")[0] : o.cliente_nombre], ["Cargo", cotizacion?.cargo],
+      ["Teléfono / WhatsApp", o.cliente_telefono], ["Correo", o.cliente_email],
+      ["Dirección de entrega", direccion], ["Ciudad / Distrito", o.distrito || cotizacion?.distrito],
+      ...(factura && o.direccion_fiscal ? ([["Dirección fiscal", o.direccion_fiscal]] as Dato[]) : []),
+    ],
+    tituloDetalles: "DETALLES DE LA ORDEN DE PEDIDO",
+    detalles: [
+      ["Fecha", fechaCorta(o.created_at)], ["Fecha de entrega", o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar"],
+      ["Asesor comercial", cotizacion?.asesor], ["Horario de entrega", o.horario],
+      ["Forma de pago", o.metodo_pago || cotizacion?.forma_pago], ["Estado de pago", o.estado_pago === "pagado" ? "Pagado" : "Pendiente"],
+      ["Comprobante", factura ? "Factura" : "Boleta"], ["Recibe", recibe],
+      ...(cotizacion ? ([["Cotización", cotizacion.numero]] as Dato[]) : []),
+    ],
+    items,
+    totales: [
+      ["Canastas", Number(o.subtotal)],
+      ...(Number(o.delivery) > 0 ? ([["Delivery", Number(o.delivery)]] as [string, number][]) : []),
+      ["Valor de venta (sin IGV)", valor],
+      ["IGV (18 %)", igv],
+    ],
+    total,
+    etiquetaTotal: `TOTAL${unidades ? ` · ${unidades} canastas` : ""}`,
+    notas: [
+      `* Se emitirá ${factura ? "factura" : "boleta"} con los datos colocados en esta orden de pedido.`,
+      ...(o.dedicatoria ? [`Dedicatoria para la tarjeta: “${o.dedicatoria}”`] : []),
+    ],
+    condiciones: textos.condiciones,
+    autorizado: cotizacion?.asesor || marca.nombre,
+    firmas: ["Recibí conforme · cliente", `Entregado por · ${marca.nombre}`],
+    archivo: nombreArchivo("Orden", o.numero, o.comprobante_nombre || o.cliente_nombre),
+  });
 }
