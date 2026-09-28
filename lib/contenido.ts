@@ -56,6 +56,7 @@ export type Contenido = {
     pdfFormaPago: string;
     pdfHorarioEntrega: string;
     pdfCondiciones: string[];
+    pdfCondicionesOrden: string[];
   };
   pie: { texto: string; derechos: string };
 };
@@ -154,6 +155,11 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       "Horario de entrega: lunes a sábado de 1:00 p. m. a 7:30 p. m.",
       "Tiempo de entrega: mínimo de 5 a 7 días hábiles luego de recibida la orden de pedido.",
       "Los productos pueden reemplazarse por otros de igual o mayor valor según disponibilidad.",
+    ],
+    pdfCondicionesOrden: [
+      "Cuenta corriente MN: Banco — N.º de cuenta.",
+      "La entrega se realiza en la dirección, fecha y horario indicados; cualquier cambio se coordina por WhatsApp.",
+      "Revisa las canastas al recibirlas: las observaciones se atienden dentro de las 24 horas siguientes.",
     ],
   },
   pie: {

@@ -39,6 +39,9 @@ export async function datosPdfOrden(id: string): Promise<DatosPdfOrden> {
     getContenido(),
   ]);
   if (error || !orden) throw new Error("No se encontró la orden");
+  const { data: cotizacion } = orden.cotizacion_id
+    ? await supabase.from("cotizaciones").select("numero,cargo,asesor,forma_pago,distrito").eq("id", orden.cotizacion_id).maybeSingle()
+    : { data: null };
   const envase = new Map((tipos ?? []).map((t: { id: string; nombre: string }) => [t.id, t.nombre]));
   return {
     orden: orden as Orden,
@@ -47,8 +50,10 @@ export async function datosPdfOrden(id: string): Promise<DatosPdfOrden> {
       envase: it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—",
       productos: it.contenido ? personalizados(it.contenido) : trae.get(it.producto_id ?? "") ?? [],
     })),
-    marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema },
-    contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo },
+    marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema, logo: contenido.marca.logo },
+    contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo, ciudad: contenido.contacto.ciudad },
+    cotizacion,
+    textos: { subtitulo: contenido.cotizacion.pdfSubtitulo, condiciones: contenido.cotizacion.pdfCondicionesOrden },
   };
 }
 
