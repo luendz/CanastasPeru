@@ -157,7 +157,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     corpTexto: "Sorprende a tus colaboradores, clientes y socios con canastas y boxes navideños pensados para cada presupuesto.",
     corpPuntos: ["Pedidos por volumen", "Opciones para diferentes presupuestos", "Personalización corporativa", "Entregas coordinadas", "Atención personalizada"],
     corpBoton: "Solicitar cotización",
-    corpImagen: "",
+    corpImagen: "/imgs_general/banner-3-v2.webp",
     marcasTitulo: "Marcas que forman parte de nuestras canastas",
     marcasTexto: "Trabajamos con marcas reconocidas que garantizan calidad y sabor en cada regalo.",
     marcas: [
