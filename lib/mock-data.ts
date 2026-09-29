@@ -152,12 +152,6 @@ export const formatPrice = (value: number) =>
 export const findBasketType = (types: BasketType[], product: Pick<Product, "baseType" | "baseImage">) =>
   types.find((t) => t.id === product.baseType) ?? types.find((t) => t.image === product.baseImage) ?? types[0];
 
-/** Carrito de prueba compartido por carrito y checkout mientras no haya persistencia. */
-export const mockCart = [
-  { slug: "canasta-premium", qty: 2 },
-  { slug: "box-navideno", qty: 1 },
-];
-
 /** Tarifas de delivery de prueba por distrito de Lima. */
 export const deliveryZones = [
   { district: "Miraflores", fee: 15 },

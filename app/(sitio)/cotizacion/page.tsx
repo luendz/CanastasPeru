@@ -1,46 +1,50 @@
-import { getCatalogo } from "@/lib/catalogo";
+import Brand from "@/components/Brand";
+import Icono, { type NombreIcono } from "@/components/Icono";
 import QuoteForm from "@/components/QuoteForm";
-import { getContenido } from "@/lib/contenido";
-import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
+import { getCatalogo } from "@/lib/catalogo";
+import { getContenido } from "@/lib/contenido";
+
+export const metadata = { title: "Cotización para empresas" };
+
+const ICONOS_LADO: NombreIcono[] = ["regalo", "camion", "estrella"];
+const ICONOS_PASO: NombreIcono[] = ["documento", "documento", "camion"];
 
 export default async function CotizacionPage() {
-  const [{ products }, { cotizacion: t, contacto }] = await Promise.all([getCatalogo(), getContenido()]);
+  const [{ deliveryZones }, { cotizacion: t, catalogo, marca }] = await Promise.all([getCatalogo(), getContenido()]);
   return (
-    <>
-      <section className="quoteHero">
-        <div className="shell quoteHeroGrid">
-          <div>
-            <span className="pill">{t.etiqueta}</span>
+    <section className="cotPagina">
+      <div className="shell cotLayout">
+        <aside className="cotLado">
+          <Brand marca={marca} />
+          <p className="cotLadoTitulo">{t.ladoTitulo}</p>
+          <ul>
+            {t.ladoPuntos.map((p, n) => <li key={n}><span><Icono nombre={ICONOS_LADO[n % ICONOS_LADO.length]} /></span>{p}</li>)}
+          </ul>
+          <div className="cotLadoImg">
+            {t.ladoImagen ? <img src={t.ladoImagen} alt="" /> : <span className="cotLadoFallback" aria-hidden="true">✦</span>}
+          </div>
+          <p className="cotLadoFrase">{t.ladoFrase}</p>
+        </aside>
+
+        <div className="cotCuerpo">
+          <header className="cotCabecera">
+            <span className="hmEtiqueta">{t.etiqueta}</span>
             <h1><SplitWords text={t.titulo} immediate /></h1>
             <p>{t.texto}</p>
-          </div>
-          <ol className="quoteSteps">
-            {t.pasos.map((s, i) => (
-              <li key={`${s.titulo}-${i}`} style={{ "--i": i } as React.CSSProperties}><span>{String(i + 1).padStart(2, "0")}</span><div><strong>{s.titulo}</strong><small>{s.texto}</small></div></li>
-            ))}
-          </ol>
+            <ol className="cotPasos">
+              {t.pasos.map((s, n) => (
+                <li key={n}>
+                  <span className="cotNum">{String(n + 1).padStart(2, "0")}</span>
+                  <Icono nombre={ICONOS_PASO[n % ICONOS_PASO.length]} className="cotPasoIcono" />
+                  <div><strong>{s.titulo}</strong><small>{s.texto}</small></div>
+                </li>
+              ))}
+            </ol>
+          </header>
+          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} />
         </div>
-        <div className="textileBand" aria-hidden="true" />
-      </section>
-
-      <section className="shell quotePage">
-        <Reveal as="div" className="quoteIntro">
-          <span className="eyebrow">Por qué con nosotros</span>
-          <h2><SplitWords text={t.beneficiosTitulo} /></h2>
-          <ul className="quotePerks">
-            {t.beneficios.map((p, n) => <li key={`${p}-${n}`} data-reveal-item style={{ "--i": n + 3 } as React.CSSProperties}><span aria-hidden="true">✦</span>{p}</li>)}
-          </ul>
-          <div className="quoteContact">
-            <small>¿Prefieres hablar con alguien?</small>
-            <strong>{contacto.telefono}</strong>
-            <span>{contacto.correo}</span>
-          </div>
-        </Reveal>
-        <Reveal threshold={0.05}>
-          <QuoteForm products={products} opciones={t} />
-        </Reveal>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

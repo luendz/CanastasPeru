@@ -13,7 +13,7 @@ export default async function CarritoPage() {
         <span className="eyebrow">Tu compra</span>
         <h1><SplitWords text="Tu *carrito*" immediate /></h1>
       </div>
-      <CartView products={products} basketTypes={basketTypes} notaImpuestos={checkout.notaImpuestos} />
+      <CartView products={products} basketTypes={basketTypes} opciones={checkout} />
     </section>
   );
 }

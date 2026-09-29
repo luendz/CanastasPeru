@@ -1,91 +1,159 @@
 import Link from "next/link";
+import Enfasis from "@/components/Enfasis";
 import HeroArt from "@/components/HeroArt";
-import ProductCard from "@/components/ProductCard";
-import CountUp from "@/components/motion/CountUp";
+import Icono, { type NombreIcono } from "@/components/Icono";
+import ProductComposition from "@/components/ProductComposition";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
+import { LINEAS, productosDe } from "@/lib/lineas";
+import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 const i = (n: number) => ({ "--i": n }) as React.CSSProperties;
 
+const ICONOS_HERO: NombreIcono[] = ["camion", "ubicacion", "regalo"];
+const ICONOS_POR_QUE: NombreIcono[] = ["regalo", "lazo", "grafico", "persona"];
+const ICONOS_LINEA: NombreIcono[] = ["regalo", "diamante", "maletin", "caja"];
+const ICONOS_COMPRA: NombreIcono[] = ["carrito", "documento", "tarjeta", "camion"];
+const ICONOS_CORP: NombreIcono[] = ["caja", "grafico", "lazo", "camion", "persona"];
+
+/** Separador de título con líneas a los lados, como en la referencia. */
+function TituloCentrado({ etiqueta, titulo }: { etiqueta?: string; titulo: string }) {
+  return (
+    <div className="hmTitulo">
+      {etiqueta && <span className="hmEtiqueta">{etiqueta}</span>}
+      <h2><Enfasis text={titulo} /></h2>
+    </div>
+  );
+}
+
 export default async function HomePage() {
-  const [{ products }, { portada }] = await Promise.all([getCatalogo(), getContenido()]);
-  const hero = products.find((p) => p.slug === portada.canastaDestacada) ?? products[0];
-  const fromPrice = products.length ? Math.min(...products.map((p) => p.price)) : 0;
+  const [{ products, basketTypes }, { portada: t, catalogo, contacto }] = await Promise.all([getCatalogo(), getContenido()]);
+  const destacada = products.find((p) => p.slug === t.canastaDestacada) ?? products[0];
+  const desde = products.length ? Math.min(...products.map((p) => p.price)) : 0;
 
   return (
     <>
-      <section className="hero">
-        <div className="shell heroGrid">
-          <div className="heroCopy">
-            {portada.etiqueta && <span className="pill">{portada.etiqueta}</span>}
-            <h1><SplitWords text={portada.titulo} immediate /></h1>
-            <p>{portada.texto}</p>
-            <div className="heroActions">
-              <Link className="btn btnPrimary" href="/catalogo">{portada.botonPrincipal}</Link>
-              <Link className="btn btnGhost" href="/cotizacion">{portada.botonSecundario}</Link>
+      {/* a) Banner principal */}
+      <section className="hmHero">
+        <div className="shell hmHeroGrid">
+          <div className="hmHeroCopy">
+            <span className="hmEtiqueta">{t.heroEtiqueta}</span>
+            <h1><SplitWords text={t.heroTitulo} immediate /></h1>
+            <p>{t.heroTexto}</p>
+            <div className="hmBotones">
+              <Link className="btn btnPrimary" href="/canastas">{t.heroBoton1} <Icono nombre="flecha" /></Link>
+              <Link className="btn btnGhost hmBtnContorno" href="/boxes">{t.heroBoton2} <Icono nombre="flecha" /></Link>
             </div>
-            {portada.cifras.length > 0 && (
-              <dl className="heroStats">
-                {portada.cifras.map((s, n) => (
-                  <div key={`${s.valor}-${n}`} style={i(n)}><dt><CountUp value={s.valor} /></dt><dd>{s.texto}</dd></div>
-                ))}
-              </dl>
-            )}
+            <ul className="hmPuntos">
+              {t.heroPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_HERO[n % ICONOS_HERO.length]} />{p}</li>)}
+            </ul>
           </div>
-          {hero && <HeroArt product={hero} fromPrice={fromPrice} />}
+          <div className="hmHeroArte">
+            {t.heroImagen ? <img className="hmHeroImg" src={t.heroImagen} alt="" /> : destacada && <HeroArt product={destacada} fromPrice={desde} />}
+          </div>
         </div>
       </section>
 
-      {portada.cinta.length > 0 && (
-        <div className="marquee" aria-hidden="true">
-          <div className="marqueeTrack">
-            {[...portada.cinta, ...portada.cinta].map((word, n) => <span key={n}>{word}<i>✦</i></span>)}
-          </div>
-        </div>
-      )}
-
-      <section className="section shell">
-        <Reveal className="sectionHead">
-          <div><span className="eyebrow" data-reveal-item style={i(0)}>{portada.destacadosEtiqueta}</span><h2><SplitWords text={portada.destacadosTitulo} /></h2></div>
-          <Link className="textLink" data-reveal-item style={i(4)} href="/catalogo">Ver todo el catálogo →</Link>
-        </Reveal>
-        <Reveal className="productGrid" threshold={0.1}>
-          {products.map((product, n) => (
-            <div className="gridItem" data-reveal-item style={i(n)} key={product.slug}>
-              <ProductCard product={product} />
-            </div>
+      {/* b) ¿Por qué elegir MKA? */}
+      <section className="hmSeccion shell">
+        <TituloCentrado titulo={t.porQueTitulo} />
+        <Reveal as="ul" className="hmPorQue" threshold={0.15}>
+          {t.porQue.map((x, n) => (
+            <li key={n} data-reveal-item style={i(n)}>
+              <span className="hmIconoCirculo"><Icono nombre={ICONOS_POR_QUE[n % ICONOS_POR_QUE.length]} /></span>
+              <h3>{x.titulo}</h3>
+              <p>{x.texto}</p>
+            </li>
           ))}
         </Reveal>
       </section>
 
-      {portada.pasos.length > 0 && (
-        <section className="section stepsSection">
-          <div className="shell">
-            <Reveal className="sectionHead">
-              <div><span className="eyebrow" data-reveal-item style={i(0)}>{portada.pasosEtiqueta}</span><h2><SplitWords text={portada.pasosTitulo} /></h2></div>
-            </Reveal>
-            <Reveal as="ol" className="featureGrid" threshold={0.15}>
-              {portada.pasos.map((paso, n) => (
-                <li className="feature" data-reveal-item style={i(n)} key={`${paso.titulo}-${n}`}>
-                  <span>{String(n + 1).padStart(2, "0")}</span><h3>{paso.titulo}</h3><p>{paso.texto}</p>
-                </li>
-              ))}
-            </Reveal>
-          </div>
-        </section>
-      )}
-
-      <section className="shell">
-        <Reveal className="businessBanner">
-          <div>
-            <span className="eyebrow" data-reveal-item style={i(0)}>{portada.empresasEtiqueta}</span>
-            <h2><SplitWords text={portada.empresasTitulo} /></h2>
-            <p data-reveal-item style={i(4)}>{portada.empresasTexto}</p>
-          </div>
-          <Link className="btn btnLight" data-reveal-item style={i(5)} href="/cotizacion">{portada.empresasBoton}</Link>
+      {/* c) Tipos de canasta */}
+      <section className="hmSeccion shell">
+        <TituloCentrado etiqueta={t.tiposEtiqueta} titulo={t.tiposTitulo} />
+        <Reveal className="hmTipos" threshold={0.1}>
+          {LINEAS.map((l, n) => {
+            const texto = catalogo.lineas[n] ?? { titulo: l.titulo, texto: "", imagen: "" };
+            const muestra = productosDe(products, l.id)[0];
+            const href = l.id === "boxes" ? "/boxes" : `/canastas/${l.id}`;
+            return (
+              <article key={l.id} className="hmTipo" data-reveal-item style={i(n)}>
+                <Link href={href} className="hmTipoImg" tabIndex={-1} aria-hidden="true">
+                  {texto.imagen ? <img src={texto.imagen} alt="" /> : muestra ? <ProductComposition product={muestra} baseImage={basketTypes.find((b) => b.id === muestra.baseType)?.image} /> : <span className="hmVacio">Imagen pendiente</span>}
+                </Link>
+                <div className="hmTipoCuerpo">
+                  <h3><Icono nombre={ICONOS_LINEA[n]} />{texto.titulo}</h3>
+                  <p>{texto.texto}</p>
+                  <Link className="btn hmBtnPino" href={href}>{l.id === "boxes" ? "Ver boxes" : "Ver canastas"} <Icono nombre="flecha" /></Link>
+                </div>
+              </article>
+            );
+          })}
         </Reveal>
+      </section>
+
+      {/* d) Cómo comprar */}
+      <section className="hmSeccion shell">
+        <TituloCentrado titulo={t.comprarTitulo} />
+        <Reveal as="ol" className="hmPasos" threshold={0.15}>
+          {t.comprarPasos.map((p, n) => (
+            <li key={n} data-reveal-item style={i(n)}>
+              <span className="hmPasoNum">{n + 1}</span>
+              <Icono nombre={ICONOS_COMPRA[n % ICONOS_COMPRA.length]} className="hmPasoIcono" />
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </li>
+          ))}
+        </Reveal>
+      </section>
+
+      {/* e) Banner para solicitar una cotización */}
+      <section className="hmCorp">
+        <div className="shell hmCorpGrid">
+          <Reveal className="hmCorpCopy">
+            <span className="hmEtiqueta" data-reveal-item style={i(0)}>{t.corpEtiqueta}</span>
+            <h2><SplitWords text={t.corpTitulo} /></h2>
+            <p data-reveal-item style={i(3)}>{t.corpTexto}</p>
+            <ul className="hmCorpPuntos">
+              {t.corpPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_CORP[n % ICONOS_CORP.length]} />{p}</li>)}
+            </ul>
+            <Link className="btn btnPrimary" data-reveal-item style={i(5)} href="/cotizacion">{t.corpBoton} <Icono nombre="flecha" /></Link>
+          </Reveal>
+          <div className="hmCorpArte">
+            {t.corpImagen ? <img src={t.corpImagen} alt="" /> : <div className="hmVacio hmVacioGrande">Espacio para la foto de boxes corporativos<small>Súbela en Panel → Contenido web → Portada</small></div>}
+          </div>
+        </div>
+      </section>
+
+      {/* f) Marcas que forman parte de nuestras canastas */}
+      <section className="hmSeccion shell hmMarcasSeccion">
+        <div className="hmTitulo">
+          <h2 className="hmMarcasTitulo">{t.marcasTitulo}</h2>
+          <p className="hmSub">{t.marcasTexto}</p>
+        </div>
+        <ul className="hmMarcas">
+          {t.marcas.map((m, n) => (
+            <li key={`${m.nombre}-${n}`}>{m.imagen ? <img src={m.imagen} alt={m.nombre} /> : <span>{m.nombre}</span>}</li>
+          ))}
+        </ul>
+      </section>
+
+      {/* g) Canales de atención */}
+      <section className="shell">
+        <div className="hmCanales">
+          <div>
+            <h2>{t.canalesTitulo}</h2>
+            <p>{t.canalesTexto}</p>
+          </div>
+          <div className="hmBotones">
+            <Link className="btn btnPrimary" href="/canastas">{t.canalesBoton} <Icono nombre="flecha" /></Link>
+            {contacto.telefono && (
+              <a className="btn hmBtnClaro" href={enlaceWhatsApp(contacto.telefono)} target="_blank" rel="noopener noreferrer"><Icono nombre="chat" /> {t.canalesWhatsapp}</a>
+            )}
+          </div>
+        </div>
       </section>
     </>
   );

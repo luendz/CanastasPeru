@@ -5,6 +5,7 @@ import { useState, ViewTransition } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
+import { carrito } from "@/lib/carrito";
 import { BasketType, Product, findBasketType, formatPrice } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
@@ -19,8 +20,8 @@ export default function ProductDetail({ product, basketTypes, beneficios }: { pr
   const [added, setAdded] = useState(false);
 
   function addToCart() {
-    // Prototipo: avisa al header para que sume y anime el contador.
-    window.dispatchEvent(new CustomEvent("mka:cart-add", { detail: { qty } }));
+    // Se guarda con el tipo de canasta elegido; el header anima el contador.
+    carrito.agregar(product.slug, selected.id, qty);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2600);
   }
