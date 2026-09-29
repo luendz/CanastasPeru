@@ -4,10 +4,10 @@ import { getContenido } from "@/lib/contenido";
 
 /** Layout de la tienda pública: header y footer de la marca, con el contenido editable. */
 export default async function SitioLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { marca, anuncios, contacto, pie } = await getContenido();
+  const { marca, contacto, pie } = await getContenido();
   return (
     <>
-      <Header marca={marca} anuncios={anuncios} contacto={contacto} />
+      <Header marca={marca} contacto={contacto} />
       <main>{children}</main>
       <Footer marca={marca} contacto={contacto} pie={pie} />
     </>
