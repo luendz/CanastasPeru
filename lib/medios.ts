@@ -17,8 +17,9 @@ export type Medio = {
 
 /** Imágenes que vienen con la web (carpeta public/). Se pueden usar pero no borrar. */
 export const MEDIOS_DE_LA_WEB: Medio[] = [
-  "/marca/mka-logo.webp",
-  "/marca/mka-icono.png",
+  "/marca/mka-logo-color.webp",
+  "/marca/mka-logo-blanco.webp",
+  "/marca/mka-icono-2026.png",
   "/imgs_general/banner-1.webp",
   "/imgs_general/banner-2.webp",
   "/imgs_general/banner-3-v2.webp",

@@ -64,7 +64,7 @@ async function logoPng(url: string): Promise<{ data: string; ancho: number; alto
       img.onerror = () => ok(null);
       img.src = src;
     });
-  return (await cargar(url)) ?? (await cargar("/marca/mka-icono.png"));
+  return (await cargar(url)) ?? (await cargar("/marca/mka-logo-color.webp"));
 }
 
 /* ---------- Monto en letras ---------- */

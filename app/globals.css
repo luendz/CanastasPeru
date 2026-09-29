@@ -42,15 +42,9 @@ h1 em, h2 em { font-style: italic; font-weight: 500; color: var(--wine); }
 .topbar { padding: 9px 20px; display: flex; justify-content: center; gap: 34px; background: var(--wine-dark); color: var(--gold-soft); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .headerWrap { background: var(--paper); }
 .header { min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-/* Marca MKA: ícono del logo oficial sobre disco blanco con aro dorado, como el emblema. */
-.brand { display: inline-flex; align-items: center; gap: 12px; }
-.brandMark { flex: 0 0 auto; width: 54px; height: 54px; overflow: hidden; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--gold), 0 6px 16px rgba(74, 15, 25, .14); }
-.brandMark img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.brandText { display: grid; gap: 1px; line-height: 1; }
-.brandText strong { font-family: var(--font-display-stack); font-size: 30px; font-weight: 600; letter-spacing: .04em; color: var(--gold-deep); }
-.brandText small { color: var(--wine); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.brandLight .brandText strong { color: var(--gold-soft); }
-.brandLight .brandText small { color: var(--cream); }
+/* Marca MKA: logo completo (canasta, nombre y lema). */
+.brand { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.brandLogo { display: block; width: auto; height: 58px; }
 .nav { display: flex; gap: 6px; font-size: 14px; font-weight: 700; }
 .nav a { padding: 9px 14px; border-radius: 99px; transition: .2s ease; }
 .nav a:hover { background: var(--cream); color: var(--wine); }
@@ -369,7 +363,6 @@ del { color: #a99a8e; font-size: 13px; }
 .footerGrid { padding-top: 64px; display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 50px; }
 .footerAbout { display: grid; grid-template-columns: 132px 1fr; gap: 22px; align-items: center; }
 .footerLogo { width: 132px; height: 132px; border-radius: 50%; background: #fff; object-fit: cover; box-shadow: 0 0 0 3px var(--gold), 0 14px 30px rgba(0, 0, 0, .3); }
-.footerAbout .brandMark { display: none; }
 .footer p { color: rgba(243, 232, 214, .62); font-size: 14px; line-height: 1.7; }
 .footer h4 { color: var(--gold-soft); font-size: 20px; }
 .footerBottom { margin-top: 45px; padding: 22px 0; border-top: 1px solid rgba(232, 201, 138, .15); color: rgba(243, 232, 214, .45); font-size: 12px; }
@@ -390,10 +383,7 @@ del { color: #a99a8e; font-size: 13px; }
 @media (max-width: 640px) {
   .shell { width: min(100% - 32px, 1180px); }
   .header { min-height: 68px; }
-  .brand { font-size: 21px; }
-  .brandMark { width: 44px; height: 44px; }
-  .brandText strong { font-size: 25px; }
-  .brandText small { font-size: 8.5px; letter-spacing: .08em; }
+  .brandLogo { height: 44px; }
   .footerAbout { grid-template-columns: 96px 1fr; }
   .footerLogo { width: 96px; height: 96px; }
   .cartBtn { padding: 0 14px; }
@@ -773,6 +763,7 @@ del { color: #a99a8e; font-size: 13px; }
 .cotPagina { padding: 34px 0 80px; background: var(--paper); }
 .cotLayout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: start; }
 .cotLado { position: sticky; top: 110px; display: grid; gap: 20px; padding: 28px 22px; border-radius: 24px; background: linear-gradient(180deg, #f6ead3 0%, #f3e0d3 55%, var(--wine) 100%); }
+.cotLado .brandLogo { width: 100%; height: auto; }
 .cotLadoTitulo { margin: 0; padding-top: 16px; border-top: 1px solid #d9c3a3; color: var(--ink); font-size: 13px; font-weight: 800; letter-spacing: .16em; line-height: 1.6; text-transform: uppercase; }
 .cotLado ul { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .cotLado li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; }
@@ -1006,7 +997,7 @@ del { color: #a99a8e; font-size: 13px; }
 /* Pie de página claro */
 .footer2 { border-top: 1px solid var(--line); background: #fffdf9; color: var(--ink); }
 .footer2Grid { padding: 40px 0 30px; display: grid; grid-template-columns: 170px repeat(3, minmax(0, 1fr)) minmax(220px, 1.3fr); gap: 34px; align-items: start; }
-.footer2Logo img { width: 150px; height: auto; }
+.footer2Logo img { width: 170px; height: auto; }
 .footer2 h4 { margin: 0 0 12px; font-family: var(--font-sans-stack); font-size: 14px; font-weight: 800; }
 .footer2 nav a, .footer2Dato { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--muted); font-size: 13.5px; }
 .footer2 nav a:hover, a.footer2Dato:hover { color: var(--wine); }

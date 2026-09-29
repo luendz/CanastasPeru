@@ -14,7 +14,8 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
     campos: [
       { tipo: "texto", clave: "nombre", etiqueta: "Nombre de la marca" },
       { tipo: "texto", clave: "lema", etiqueta: "Lema" },
-      { tipo: "imagen", clave: "logo", etiqueta: "Logo", ayuda: "Se muestra en la cabecera y el pie. Mejor con fondo transparente." },
+      { tipo: "imagen", clave: "logo", etiqueta: "Logo a color", ayuda: "Logo completo (canasta, nombre y lema), horizontal y con fondo transparente. Se usa en la cabecera, el pie y los PDF." },
+      { tipo: "imagen", clave: "logoBlanco", etiqueta: "Logo en blanco", ayuda: "La misma versión en blanco, para fondos oscuros." },
       { tipo: "imagen", clave: "icono", etiqueta: "Ícono (favicon)", ayuda: "Imagen cuadrada, idealmente PNG de 512×512." },
     ],
   },
