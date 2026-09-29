@@ -195,3 +195,36 @@ export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion
     },
   };
 }
+
+/** Corrige los datos de la solicitud (cliente, contacto y entrega). */
+export async function editarDatosCotizacion(_prev: EstadoForm, fd: FormData): Promise<EstadoForm> {
+  const { supabase } = await requireAdmin();
+  const id = txt(fd, "id", 40);
+  const empresa = txt(fd, "empresa", 200);
+  const contacto = txt(fd, "contacto", 160);
+  const ruc = txt(fd, "ruc", 11).replace(/\D/g, "");
+  if (!empresa || !contacto) return { error: "Completa la empresa / razón social y el contacto." };
+  if (ruc && !/^\d{11}$/.test(ruc)) return { error: "El RUC debe tener 11 dígitos." };
+  const cantidad = Math.round(Number(fd.get("cantidad_estimada") || 0));
+
+  const { error } = await supabase
+    .from("cotizaciones")
+    .update({
+      empresa,
+      ruc: ruc || null,
+      contacto,
+      cargo: txt(fd, "cargo", 120) || null,
+      email: txt(fd, "email", 160) || null,
+      telefono: txt(fd, "telefono", 40) || null,
+      cantidad_estimada: cantidad > 0 ? cantidad : null,
+      presupuesto: txt(fd, "presupuesto", 60) || null,
+      fecha_requerida: txt(fd, "fecha_requerida", 10) || null,
+      lugar_entrega: txt(fd, "lugar_entrega", 300) || null,
+      distrito: txt(fd, "distrito", 120) || null,
+      requerimientos: txt(fd, "requerimientos", 2000) || null,
+    })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  refrescar(id);
+  return { ok: true, en: Date.now() };
+}

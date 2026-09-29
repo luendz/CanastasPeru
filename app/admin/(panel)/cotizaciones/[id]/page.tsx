@@ -7,6 +7,8 @@ import { labelCanal, labelEstado, type Cotizacion, type CotizacionItem, type Pro
 import { getContenido } from "@/lib/contenido";
 import ConfirmButton from "../../ConfirmButton";
 import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
+import EditarDatos from "../../EditarDatos";
+import { editarDatosCotizacion } from "../actions";
 import AgregarLinea from "./AgregarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
 
@@ -49,9 +51,33 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
       <div className="admGrid2 admGridDetail">
         <div className="admStack">
           <section className="admCard">
-            <h2>Detalle de la cotización</h2>
+            <div className="admCardHead">
+              <h2>Detalle de la cotización</h2>
+              {editable && (
+                <EditarDatos
+                  titulo={`Editar cotización · ${c.numero}`}
+                  id={c.id}
+                  accion={editarDatosCotizacion}
+                  valores={c as unknown as Record<string, string | number | null>}
+                  campos={[
+                    { clave: "empresa", etiqueta: "Empresa / Razón social", max: 200 },
+                    { clave: "ruc", etiqueta: "RUC", max: 11 },
+                    { clave: "contacto", etiqueta: "Nombre de contacto", max: 160 },
+                    { clave: "cargo", etiqueta: "Cargo", max: 120 },
+                    { clave: "email", etiqueta: "Correo", tipo: "email", max: 160 },
+                    { clave: "telefono", etiqueta: "Celular / WhatsApp", tipo: "tel", max: 40 },
+                    { clave: "cantidad_estimada", etiqueta: "Cantidad estimada", tipo: "numero" },
+                    { clave: "presupuesto", etiqueta: "Presupuesto por canasta", max: 60 },
+                    { clave: "fecha_requerida", etiqueta: "Fecha requerida", tipo: "fecha" },
+                    { clave: "distrito", etiqueta: "Ciudad / Distrito", max: 120 },
+                    { clave: "lugar_entrega", etiqueta: "Dirección de entrega", ancho: true, max: 300 },
+                    { clave: "requerimientos", etiqueta: "Requerimientos", tipo: "area", ancho: true, max: 2000 },
+                  ]}
+                />
+              )}
+            </div>
             <dl className="admDl">
-              {dato("Cliente / Empresa", c.empresa)}
+              {dato("Empresa / Razón social", c.empresa)}
               {dato("RUC", c.ruc)}
               {dato("Contacto", `${c.contacto}${c.cargo ? ` · ${c.cargo}` : ""}`)}
               {dato("Correo", c.email)}

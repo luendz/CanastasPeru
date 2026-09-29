@@ -61,7 +61,7 @@ export default async function CosteoPage() {
               <tbody>
                 {items.map((r) => {
                   const insumo = todos.find((i) => i.id === r.insumo_id);
-                  const costo = costoDe.get(r.insumo_id)?.costo_promedio;
+                  const costo = costoDe.get(r.insumo_id)?.costo_actual;
                   return (
                     <tr key={r.insumo_id}>
                       <td>{insumo?.nombre}<small className="admMuted"> · {insumo?.unidad}</small></td>

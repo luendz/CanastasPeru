@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/admin/auth";
+import PestanasProductos from "../productos/PestanasProductos";
 import Biblioteca from "./Biblioteca";
 
 export const metadata = { title: "Imágenes" };
@@ -9,13 +10,14 @@ export default async function MediosPage() {
     <>
       <header className="admHead">
         <div>
-          <h1>Imágenes</h1>
+          <h1>Productos</h1>
           <p className="admMuted">
-            Sube aquí las fotos de productos, canastas y marca. Luego elígelas desde Catálogo o Contenido.
+            Biblioteca con las fotos de productos, canastas y marca. Luego elígelas desde la ficha de cada producto, el Catálogo o Contenido.
             Una imagen que se está usando en la web no se puede borrar.
           </p>
         </div>
       </header>
+      <PestanasProductos actual="imagenes" />
       <section className="admCard">
         <Biblioteca />
       </section>

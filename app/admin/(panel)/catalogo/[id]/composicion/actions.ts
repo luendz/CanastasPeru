@@ -13,7 +13,7 @@ const numero = (v: unknown, min: number, max: number) => {
 
 /**
  * Guarda la composición visual de una canasta. La foto no se guarda aquí:
- * la web la toma del insumo con el mismo nombre (Catálogo → Fotos de productos).
+ * la web la toma del insumo con el mismo nombre (Productos → ficha del producto).
  */
 export async function guardarComposicion(id: string, items: ProductVisualItem[]): Promise<GuardarState> {
   const { supabase } = await requireAdmin();

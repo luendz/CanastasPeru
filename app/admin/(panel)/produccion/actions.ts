@@ -23,20 +23,3 @@ export async function actualizarInsumo(formData: FormData) {
   if (error) throw new Error(error.message);
   refrescar();
 }
-
-export async function crearInsumo(formData: FormData) {
-  const { supabase } = await requireAdmin();
-  const nombre = String(formData.get("nombre") ?? "").trim().slice(0, 120);
-  const tipo = String(formData.get("tipo") ?? "producto");
-  if (!nombre) throw new Error("Falta el nombre");
-  if (!["producto", "empaque", "otro"].includes(tipo)) throw new Error("Tipo inválido");
-
-  const { error } = await supabase.from("insumos").insert({
-    nombre,
-    tipo,
-    unidad: String(formData.get("unidad") ?? "").trim().slice(0, 30) || "unidad",
-    stock_minimo: Number(formData.get("stock_minimo")) || 0,
-  });
-  if (error) throw new Error(error.code === "23505" ? "Ya existe un insumo con ese nombre" : error.message);
-  refrescar();
-}

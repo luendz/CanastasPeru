@@ -151,15 +151,3 @@ export async function crearZona(fd: FormData) {
   if (error) throw new Error(error.code === "23505" ? "Ese distrito ya existe" : error.message);
   refrescar();
 }
-
-/** Foto y emoji de un insumo: es lo que se ve en la composición de todas las canastas que lo llevan. */
-export async function guardarInsumoVisual(fd: FormData) {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase
-    .from("insumos")
-    .update({ imagen: imagen(fd, "imagen"), emoji: txt(fd, "emoji", 8) || "📦", presentacion: txt(fd, "presentacion", 80) || null })
-    .eq("id", txt(fd, "id", 40));
-  if (error) throw new Error(error.message);
-  refrescar();
-  revalidatePath("/", "layout");
-}

@@ -1,5 +1,5 @@
 import type { Workbook, Worksheet } from "exceljs";
-import { labelCanal, labelEstado } from "@/lib/admin/types";
+import { labelCanal, labelEstado, labelDocumento, labelTipoCosto, TIPOS_COSTO } from "@/lib/admin/types";
 import type { DatosReporte } from "./actions";
 
 export type TipoReporte = "canastas" | "ordenes" | "compras" | "resumen" | "completo";
@@ -106,19 +106,29 @@ function hojaOrdenes(wb: Workbook, d: DatosReporte, periodo: string) {
 
 function hojaCompras(wb: Workbook, d: DatosReporte, periodo: string) {
   const ws = wb.addWorksheet("Compras");
-  const h = prepararHoja(ws, "Compras y costos", periodo, [
+  const h = prepararHoja(ws, "Costos totales", periodo, [
     { header: "Fecha", key: "fecha", width: 12 },
-    { header: "Tipo", key: "tipo", width: 13 },
-    { header: "Subcategoría", key: "sub", width: 20 },
-    { header: "Descripción", key: "desc", width: 36 },
+    { header: "Tipo de costo", key: "tipo", width: 24 },
+    { header: "Comprobante", key: "comp", width: 22 },
     { header: "Proveedor", key: "prov", width: 22 },
-    { header: "Comprobante", key: "comp", width: 15 },
-    { header: "Cantidad", key: "cant", width: 11 },
+    { header: "Descripción", key: "desc", width: 38 },
+    { header: "Presentación", key: "pres", width: 18 },
+    { header: "Unidades", key: "cant", width: 11 },
     { header: "Costo unitario", key: "cu", width: 15, money: true },
     { header: "Total", key: "total", width: 14, money: true },
   ]);
   d.compras.forEach((c) =>
-    ws.addRow([c.fecha, c.categoria === "produccion" ? "Producción" : "Marketing", c.subcategoria ?? "", c.descripcion, c.proveedor ?? "", c.comprobante ?? "", Number(c.cantidad), Number(c.costo_unitario), Number(c.total)]),
+    ws.addRow([
+      c.fecha,
+      labelTipoCosto(c.categoria),
+      [labelDocumento(c.tipo_documento), c.comprobante].filter(Boolean).join(" "),
+      c.proveedor ?? "",
+      c.descripcion,
+      Number(c.unidades_por_presentacion) > 1 ? `${Number(c.cantidad_presentaciones)} ${c.presentacion.toLowerCase()} × ${Number(c.unidades_por_presentacion)}` : c.presentacion,
+      Number(c.cantidad),
+      Number(c.costo_unitario),
+      Number(c.total),
+    ]),
   );
   if (d.compras.length) {
     ws.autoFilter = { from: { row: h, column: 1 }, to: { row: h + d.compras.length, column: 9 } };
@@ -134,12 +144,13 @@ function hojaResumen(wb: Workbook, d: DatosReporte, periodo: string) {
   ]);
   const validas = d.ordenes.filter((o) => o.estado !== "anulada");
   const ventas = validas.reduce((s, o) => s + Number(o.total), 0);
-  const prod = d.compras.filter((c) => c.categoria === "produccion").reduce((s, c) => s + Number(c.total), 0);
-  const mkt = d.compras.filter((c) => c.categoria === "marketing").reduce((s, c) => s + Number(c.total), 0);
   ws.addRow(["Ventas (órdenes no anuladas)", ventas]);
-  ws.addRow(["Costos de producción", prod]);
-  ws.addRow(["Costos de marketing", mkt]);
-  const r = ws.addRow(["Ganancia estimada", { formula: "B5-B6-B7" }]);
+  for (const t of TIPOS_COSTO) {
+    ws.addRow([t.label, d.compras.filter((c) => c.categoria === t.id).reduce((s, c) => s + Number(c.total), 0)]);
+  }
+  const costos = ws.addRow(["Costos totales", { formula: `SUM(B6:B${5 + TIPOS_COSTO.length})` }]);
+  costos.font = { bold: true };
+  const r = ws.addRow(["Utilidad estimada", { formula: `B5-B${costos.number}` }]);
   r.font = { bold: true };
   ws.addRow([]);
   ws.addRow(["Órdenes", validas.length]).getCell(2).numFmt = "0";

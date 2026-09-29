@@ -67,3 +67,44 @@ export async function cambiarEstadoOrden(id: string, estado: string) {
   revalidatePath(`/admin/ordenes/${id}`);
   revalidatePath("/admin");
 }
+
+type EstadoEdicion = { ok?: boolean; error?: string; en?: number };
+const campo = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
+
+/** Corrige los datos del cliente y de la entrega (el cliente a veces los envía mal). */
+export async function editarDatosOrden(_prev: EstadoEdicion, fd: FormData): Promise<EstadoEdicion> {
+  const { supabase } = await requireAdmin();
+  const id = String(fd.get("id") ?? "");
+  const tipo = String(fd.get("comprobante_tipo") ?? "boleta");
+  const documento = (campo(fd, "comprobante_documento", 11) ?? "").replace(/\D/g, "");
+  const nombre = campo(fd, "cliente_nombre", 160);
+  if (!nombre) return { error: "Falta el nombre del cliente." };
+  if (tipo !== "boleta" && tipo !== "factura") return { error: "Elige boleta o factura." };
+  if (tipo === "factura" && !/^\d{11}$/.test(documento)) return { error: "El RUC debe tener 11 dígitos." };
+  if (tipo === "boleta" && documento && !/^\d{8}$/.test(documento)) return { error: "El DNI debe tener 8 dígitos." };
+
+  const { error } = await supabase
+    .from("ordenes")
+    .update({
+      cliente_nombre: nombre,
+      cliente_email: campo(fd, "cliente_email", 160),
+      cliente_telefono: campo(fd, "cliente_telefono", 40),
+      comprobante_tipo: tipo,
+      comprobante_documento: documento || null,
+      comprobante_nombre: campo(fd, "comprobante_nombre", 200),
+      direccion_fiscal: tipo === "factura" ? campo(fd, "direccion_fiscal", 300) : null,
+      distrito: campo(fd, "distrito", 80),
+      direccion: campo(fd, "direccion", 300),
+      referencia: campo(fd, "referencia", 300),
+      fecha_entrega: campo(fd, "fecha_entrega", 10),
+      horario: campo(fd, "horario", 60),
+      recibe_nombre: campo(fd, "recibe_nombre", 160),
+      recibe_telefono: campo(fd, "recibe_telefono", 40),
+    })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath(`/admin/ordenes/${id}`);
+  revalidatePath("/admin/ordenes");
+  revalidatePath("/admin");
+  return { ok: true, en: Date.now() };
+}

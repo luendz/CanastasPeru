@@ -85,7 +85,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     setCambios(false);
   }
 
-  // Cualquier insumo registrado se puede sumar; la foto sale de Catálogo → Fotos de productos.
+  // Cualquier insumo registrado se puede sumar; la foto sale de la ficha en Productos.
   const disponibles = insumos.filter((ins) => !items.some((x) => x.name === ins.nombre));
 
   function agregar() {
@@ -171,7 +171,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
               <button className="btn btnGhost" type="button" onClick={agregar} disabled={!aAgregar}>Agregar</button>
             </div>
           )}
-          <p className="devHint">¿Falta una foto? Súbela en <Link href="/admin/catalogo#productos">Fotos de productos</Link>.</p>
+          <p className="devHint">¿Falta una foto o un producto? Agrégalo en <Link href="/admin/productos">Productos</Link>.</p>
 
           {current && (
             <div className="devControls">
