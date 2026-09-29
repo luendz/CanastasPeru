@@ -438,6 +438,37 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admAjustes > .admFormGrid { display: grid; gap: 12px; margin-top: 12px; }
 .admDialogMedio { width: min(760px, calc(100vw - 32px)); }
 .admAvisoCorto { padding: 4px 10px; font-size: 12px; }
+
+/* Costeo por canasta: tarjetas como la tabla del cliente */
+.admCosteoGrupo { display: grid; gap: 12px; }
+.admCosteoGrupo h2 { margin: 6px 0 0; }
+.admCosteoGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.admCosteoCard { overflow: hidden; border: 1px solid var(--a-line); border-radius: 12px; background: var(--a-surface); }
+.admCosteoCard h3 { margin: 0; padding: 9px 12px; background: #dbe7f7; color: var(--a-ink); font-family: var(--font-sans-stack, sans-serif); font-size: 14px; text-align: center; }
+.admCosteoGrupo[data-linea="premium"] .admCosteoCard h3 { background: #cfe5c6; }
+.admCosteoGrupo[data-linea="ejecutivas"] .admCosteoCard h3 { background: #e0dbef; }
+.admCosteoCard h3 small { color: var(--a-muted); font-weight: 600; }
+.admCosteoCard table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admCosteoCard td { padding: 6px 12px; border-top: 1px solid #f1eadf; }
+.admCosteoCard td:last-child { width: 110px; text-align: right; font-variant-numeric: tabular-nums; }
+.admCosteoCard .admInputSm { width: 100%; min-height: 30px; padding: 0 8px; text-align: right; }
+.admCosteoCard td[data-tone="ok"] { color: var(--a-ok); font-weight: 700; }
+.admCosteoCard td[data-tone="warn"] { color: var(--a-warn); font-weight: 700; }
+.admCosteoCard td[data-tone="bad"] { color: var(--a-bad); font-weight: 700; }
+.admFilaFuerte td { font-weight: 800; background: #faf6ef; }
+.admCosteoPie { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--a-line); }
+.admTablaCosto td { padding: 8px 4px; }
+.admTablaCosto td[data-tone="ok"] { color: var(--a-ok); }
+.admTablaCosto td[data-tone="bad"] { color: var(--a-bad); }
+.admCostosCanasta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; padding: 14px; border: 1px solid var(--a-line); border-radius: 12px; }
+.admCostosCanasta legend { padding: 0 6px; font-weight: 800; }
+.admCostosCanasta legend small { color: var(--a-muted); font-weight: 500; }
+.admCostosResumen2 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; }
+.admCostosResumen2 div { padding: 8px 10px; border-radius: 9px; background: #faf6ef; }
+.admCostosResumen2 dt { color: var(--a-muted); font-size: 12px; font-weight: 700; }
+.admCostosResumen2 dd { margin: 2px 0 0; font-weight: 800; }
+.admCostosResumen2 dd[data-tone="ok"] { color: var(--a-ok); }
+.admCostosResumen2 dd[data-tone="bad"] { color: var(--a-bad); }
 .admHeadAcciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; align-self: flex-end; }
 .admBtnEditar { gap: 8px; border-color: var(--a-wine); color: var(--a-wine) !important; }
 .admBtnEditar:hover { background: var(--a-wine); color: #fff !important; }

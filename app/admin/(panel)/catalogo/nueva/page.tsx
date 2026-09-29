@@ -30,6 +30,8 @@ export default async function NuevaCanastaPage() {
             categoria: "",
             precio: null,
             precio_anterior: null,
+          costo_viveres: null,
+          costo_presentacion: null,
             insignia: null,
             descripcion: "",
             emoji: "🧺",

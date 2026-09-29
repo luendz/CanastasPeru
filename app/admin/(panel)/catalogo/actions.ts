@@ -44,6 +44,10 @@ function datosCanasta(fd: FormData) {
   if (Number.isNaN(precioAnterior)) return { error: "El precio anterior no es válido." };
   if (precioAnterior !== null && precioAnterior <= precio) return { error: "El precio tachado debe ser mayor que el precio actual (o déjalo vacío)." };
   if (!tipo) return { error: "Elige el tipo de canasta." };
+  const costoViveres = num(fd, "costo_viveres");
+  const costoPresentacion = num(fd, "costo_presentacion");
+  if (Number.isNaN(costoViveres) || (costoViveres ?? 0) < 0) return { error: "El costo de víveres no es válido." };
+  if (Number.isNaN(costoPresentacion) || (costoPresentacion ?? 0) < 0) return { error: "El costo de presentación no es válido." };
 
   return {
     datos: {
@@ -51,6 +55,8 @@ function datosCanasta(fd: FormData) {
       categoria,
       precio,
       precio_anterior: precioAnterior,
+      costo_viveres: costoViveres,
+      costo_presentacion: costoPresentacion,
       insignia: txt(fd, "insignia", 40) || null,
       descripcion: txt(fd, "descripcion", 400),
       emoji: txt(fd, "emoji", 8) || "🧺",

@@ -15,7 +15,7 @@ export default async function EditarCanastaPage({ params }: { params: Promise<{ 
     supabase.from("productos").select("*").eq("id", id).maybeSingle(),
     supabase.from("tipos_canasta").select("*").order("orden"),
     supabase.from("productos").select("categoria"),
-    supabase.from("v_costeo_canastas").select("costo,margen,margen_pct").eq("producto_id", id).maybeSingle(),
+    supabase.from("v_costeo_canastas").select("costo,margen,margen_pct,costo_viveres,costo_presentacion,fuente").eq("producto_id", id).maybeSingle(),
     supabase.from("recetas").select("insumo_id", { count: "exact", head: true }).eq("producto_id", id),
   ]);
   if (!producto) notFound();
@@ -42,10 +42,22 @@ export default async function EditarCanastaPage({ params }: { params: Promise<{ 
           <section className="admCard">
             <h2>Costo y margen</h2>
             {costeo ? (
-              <dl className="admDl">
-                <div><dt>Costo</dt><dd>{soles(costeo.costo)}</dd></div>
-                <div><dt>Margen</dt><dd>{soles(costeo.margen)} · {costeo.margen_pct == null ? "—" : `${numero(costeo.margen_pct, 1)} %`}</dd></div>
-              </dl>
+              <table className="admTable admTablaCosto">
+                <tbody>
+                  {costeo.fuente === "tabla" ? (
+                    <>
+                      <tr><td>Costo total de víveres</td><td className="num">{soles(costeo.costo_viveres ?? 0)}</td></tr>
+                      <tr><td>Costo de presentación</td><td className="num">{soles(costeo.costo_presentacion ?? 0)}</td></tr>
+                    </>
+                  ) : (
+                    <tr><td>Costo según la receta</td><td className="num">{soles(costeo.costo)}</td></tr>
+                  )}
+                  <tr className="admFilaFuerte"><td>Costo total de canasta</td><td className="num">{soles(costeo.costo)}</td></tr>
+                  <tr><td>Margen</td><td className="num">{costeo.margen_pct == null ? "—" : `${numero(costeo.margen_pct, 1)} %`}</td></tr>
+                  <tr><td>Valor venta</td><td className="num">{soles(p.precio ?? 0)}</td></tr>
+                  <tr className="admFilaFuerte"><td>Utilidad</td><td className="num" data-tone={Number(costeo.margen) >= 0 ? "ok" : "bad"}>{soles(costeo.margen)}</td></tr>
+                </tbody>
+              </table>
             ) : <p className="admMuted">Sin datos.</p>}
           </section>
           <section className="admCard">
