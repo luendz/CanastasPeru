@@ -88,6 +88,12 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
    - **Textos** (`/admin/contenido`): tabla `contenido`, una fila por sección (marca, anuncios, portada, catálogo, producto, contacto, checkout, cotización, pie). `lib/contenido.ts` tiene los textos por defecto y los combina campo a campo con lo guardado; `sanearSeccion()` valida lo que llega del panel. "Restaurar textos originales" deja la fila en `{}`.
    - La marca (logo e ícono de pestaña) también es contenido: `app/layout.tsx` arma el título y el favicon desde `contenido.marca`.
 
+5. **Tienda (desde 2026-09-29).**
+   - Menú: Inicio · Canastas (Económicas, Premium, Ejecutivas) · Boxes navideños · Empresas · Nosotros · Contacto. Las líneas salen de la **categoría** de cada canasta (`lib/lineas.ts`: "Económica", "Premium", "Ejecutiva", "Box Navideño"). `/catalogo` redirige a `/canastas`.
+   - El carrito es real y vive en el navegador (`lib/carrito.ts`, localStorage): guarda canasta, tipo de canasta y cantidad, más la **tarjeta navideña** (cantidad y dedicatoria). Los precios nunca se guardan ahí: `crear_orden_web` los recalcula, incluido el de la tarjeta, que lee de `contenido.checkout.tarjetaPrecio`. La tarjeta entra a la orden como una línea que descuenta el insumo "Tarjeta…".
+   - La confirmación lee un resumen del pedido desde una cookie httpOnly de una hora (`mka-pedido`); no se ponen datos personales en la URL.
+6. **Costos y productos.** El costo de cada producto es el de su **compra más reciente** (`v_costo_insumos.costo_actual`). Las compras se registran por comprobante en **Costos totales** con 5 tipos (`mercaderia`, `empaque`, `logistica`, `marketing`, `administrativos`). Renombrar un producto actualiza solo la composición visual de las canastas (trigger).
+
 ## Otras ramas
 
 - **`rediseno-animado`:** rediseño alternativo del sitio, con otra identidad visual. No está mergeado.

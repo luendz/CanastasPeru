@@ -1,6 +1,10 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getCatalogo } from "@/lib/catalogo";
+import { getContenido } from "@/lib/contenido";
+import { findBasketType } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,12 +23,13 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!campo(fd, "distrito")) return { error: "Elige el distrito de entrega." };
   if (!fd.get("terminos")) return { error: "Acepta los términos para continuar." };
 
-  let items: { slug: string; cantidad: number }[] = [];
+  let items: { slug: string; tipo_canasta?: string; cantidad: number }[] = [];
   try {
     items = JSON.parse(campo(fd, "items"));
   } catch {
     return { error: "No pudimos leer tu carrito." };
   }
+  if (!items.length) return { error: "Tu carrito está vacío." };
 
   // Sin Supabase configurado, la tienda funciona como demostración.
   if (!supabaseConfigurado) redirect("/confirmacion");
@@ -48,15 +53,42 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
         horario: campo(fd, "horario"),
         recibe_nombre: campo(fd, "recibe_nombre"),
         recibe_telefono: campo(fd, "recibe_telefono"),
-        dedicatoria: campo(fd, "dedicatoria"),
       },
+      tarjetas: { cantidad: Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0)), dedicatoria: campo(fd, "dedicatoria") },
       metodo_pago: campo(fd, "metodo_pago"),
-      items: items.map((i) => ({ slug: i.slug, cantidad: i.cantidad })),
+      items: items.map((i) => ({ slug: i.slug, tipo_canasta: i.tipo_canasta ?? "", cantidad: i.cantidad })),
     },
   });
 
   if (error || !data) return { error: "No pudimos registrar tu pedido. Inténtalo de nuevo en unos minutos." };
 
   const { numero, total } = data as { numero: string; total: number };
+
+  // Resumen para la página de confirmación (cookie privada de una hora; nada personal va en la URL).
+  const [{ products, basketTypes }, { checkout }] = await Promise.all([getCatalogo(), getContenido()]);
+  const lineas = items.flatMap((i) => {
+    const p = products.find((x) => x.slug === i.slug);
+    if (!p) return [];
+    const propia = findBasketType(basketTypes, p);
+    const tipo = basketTypes.find((t) => t.id === i.tipo_canasta) ?? propia;
+    return [{ nombre: p.name, detalle: tipo.label, cantidad: i.cantidad, precio: p.price + tipo.priceDelta - propia.priceDelta }];
+  });
+  const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));
+  if (tarjetas) lineas.push({ nombre: "Tarjeta de dedicatoria", detalle: "", cantidad: tarjetas, precio: checkout.tarjetaPrecio });
+  (await cookies()).set(
+    "mka-pedido",
+    JSON.stringify({
+      numero,
+      total: Number(total),
+      lineas,
+      distrito: campo(fd, "distrito"),
+      fecha: campo(fd, "fecha_entrega"),
+      horario: campo(fd, "horario"),
+      pago: campo(fd, "metodo_pago"),
+      comprobante: factura ? "Factura" : "Boleta",
+      correo: campo(fd, "email"),
+    }),
+    { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 3600, path: "/confirmacion" },
+  );
   redirect(`/confirmacion?pedido=${encodeURIComponent(numero)}&total=${Number(total).toFixed(2)}`);
 }

@@ -7,7 +7,9 @@ import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import type { DeliveryZone } from "@/lib/catalogo";
 import type { Contenido } from "@/lib/contenido";
-import { formatPrice, mockCart, type Product } from "@/lib/mock-data";
+import { lineasCarrito } from "@/components/CartView";
+import { useCarrito } from "@/lib/carrito";
+import { formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -18,7 +20,7 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-export default function CheckoutForm({ products, deliveryZones, opciones }: { products: Product[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"] }) {
+export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones }: { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"] }) {
   // Horarios y métodos de pago se editan en Panel → Contenido → Checkout.
   const timeSlots = opciones.horarios.map((h, i) => ({ id: String(i), label: h.nombre, hint: h.rango }));
   const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota }));
@@ -28,12 +30,12 @@ export default function CheckoutForm({ products, deliveryZones, opciones }: { pr
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
   const [pay, setPay] = useState("0");
 
-  const lines = mockCart.flatMap(({ slug, qty }) => {
-    const product = products.find((p) => p.slug === slug);
-    return product ? [{ product, qty }] : [];
-  });
-  const units = lines.reduce((sum, l) => sum + l.qty, 0);
-  const subtotal = lines.reduce((sum, l) => sum + l.product.price * l.qty, 0);
+  const c = useCarrito();
+  const lines = lineasCarrito(c.lineas, products, basketTypes);
+  const units = lines.reduce((sum, l) => sum + l.cantidad, 0);
+  const tarjetas = c.tarjetas.activa ? c.tarjetas.cantidad : 0;
+  const totalTarjetas = tarjetas * opciones.tarjetaPrecio;
+  const subtotal = lines.reduce((sum, l) => sum + l.precio * l.cantidad, 0) + totalTarjetas;
   const fee = deliveryZones.find((z) => z.district === district)?.fee;
   const total = subtotal + (fee ?? 0);
   const payNote = payMethods.find((m) => m.id === pay)?.note;
@@ -43,7 +45,9 @@ export default function CheckoutForm({ products, deliveryZones, opciones }: { pr
   return (
     <div className="checkoutLayout">
       <form id="checkout" className="checkoutForm" action={action}>
-        <input type="hidden" name="items" value={JSON.stringify(mockCart.map((c) => ({ slug: c.slug, cantidad: c.qty })))} />
+        <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, tipo_canasta: l.tipo.id, cantidad: l.cantidad })))} />
+        <input type="hidden" name="tarjetas" value={tarjetas} />
+        <input type="hidden" name="dedicatoria" value={tarjetas ? c.tarjetas.dedicatoria : ""} />
         <input type="hidden" name="horario" value={slotInfo ? `${slotInfo.label} · ${slotInfo.hint}` : ""} />
         <input type="hidden" name="metodo_pago" value={payMethods.find((m) => m.id === pay)?.label ?? ""} />
         <input type="hidden" name="comprobante" value={doc} />
@@ -92,10 +96,6 @@ export default function CheckoutForm({ products, deliveryZones, opciones }: { pr
             </div>
           )}
 
-          <label className="giftField">
-            <span><strong>✦ Dedicatoria</strong> <small>opcional · va en una tarjeta impresa</small></span>
-            <textarea className="textarea" name="dedicatoria" maxLength={240} placeholder="¡Feliz Navidad! Gracias por un año increíble…" />
-          </label>
         </Section>
 
         <Section n={3} title="Comprobante" hint="Elige cómo emitimos tu comprobante electrónico.">
@@ -142,19 +142,26 @@ export default function CheckoutForm({ products, deliveryZones, opciones }: { pr
           <Link className="textLink" href="/carrito">Editar</Link>
         </div>
         <ul className="summaryItems">
-          {lines.map(({ product, qty }) => (
-            <li key={product.slug}>
+          {lines.map((l) => (
+            <li key={`${l.slug}|${l.tipo.id}`}>
               <span className="summaryThumb">
-                <span className="cartThumbStage"><ProductComposition product={product} /></span>
-                <b>{qty}</b>
+                <span className="cartThumbStage"><ProductComposition product={l.product} baseImage={l.tipo.image} /></span>
+                <b>{l.cantidad}</b>
               </span>
-              <span className="summaryItemName">{product.name}<small>{formatPrice(product.price)} c/u</small></span>
-              <strong>{formatPrice(product.price * qty)}</strong>
+              <span className="summaryItemName">{l.product.name}<small>{l.tipo.label} · {formatPrice(l.precio)} c/u</small></span>
+              <strong>{formatPrice(l.precio * l.cantidad)}</strong>
             </li>
           ))}
+          {tarjetas > 0 && (
+            <li>
+              <span className="summaryThumb summaryThumbCard" aria-hidden="true">✉<b>{tarjetas}</b></span>
+              <span className="summaryItemName">Tarjeta de dedicatoria<small>{formatPrice(opciones.tarjetaPrecio)} c/u</small></span>
+              <strong>{formatPrice(totalTarjetas)}</strong>
+            </li>
+          )}
         </ul>
         <hr />
-        <div><span>Subtotal ({units} {units === 1 ? "canasta" : "canastas"})</span><strong>{formatPrice(subtotal)}</strong></div>
+        <div><span>Subtotal ({units} {units === 1 ? "canasta" : "canastas"}{tarjetas ? ` y ${tarjetas} ${tarjetas === 1 ? "tarjeta" : "tarjetas"}` : ""})</span><strong>{formatPrice(subtotal)}</strong></div>
         <div><span>Delivery{district && ` · ${district}`}</span>{fee !== undefined ? <strong><AnimatedPrice value={fee} duration={400} /></strong> : <span className="muted">Elige un distrito</span>}</div>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={total} /></strong></div>
@@ -164,7 +171,7 @@ export default function CheckoutForm({ products, deliveryZones, opciones }: { pr
           <span>Acepto los términos y la política de privacidad.</span>
         </label>
         {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
-        <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending}>
+        <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending || lines.length === 0}>
           {pending ? "Registrando pedido…" : <>Pagar&nbsp;<AnimatedPrice value={total} /></>}
         </button>
         <p className="muted summaryFoot">Prototipo: se registra el pedido pero todavía no se cobra.</p>

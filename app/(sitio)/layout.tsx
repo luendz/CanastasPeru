@@ -7,7 +7,7 @@ export default async function SitioLayout({ children }: Readonly<{ children: Rea
   const { marca, anuncios, contacto, pie } = await getContenido();
   return (
     <>
-      <Header marca={marca} anuncios={anuncios} />
+      <Header marca={marca} anuncios={anuncios} contacto={contacto} />
       <main>{children}</main>
       <Footer marca={marca} contacto={contacto} pie={pie} />
     </>

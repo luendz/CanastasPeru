@@ -4,11 +4,12 @@ import { useActionState, useState } from "react";
 import SelectorImagen from "../medios/SelectorImagen";
 import { guardarContenido, restaurarContenido, type EstadoContenido } from "./actions";
 
-type Columna = { clave: string; etiqueta: string; tipo?: "texto" | "numero"; largo?: boolean };
+type Columna = { clave: string; etiqueta: string; tipo?: "texto" | "numero" | "imagen"; largo?: boolean };
 
 export type Campo =
   | { tipo: "texto"; clave: string; etiqueta: string; ayuda?: string; largo?: boolean }
   | { tipo: "imagen"; clave: string; etiqueta: string; ayuda?: string }
+  | { tipo: "numero"; clave: string; etiqueta: string; ayuda?: string }
   | { tipo: "canasta"; clave: string; etiqueta: string; ayuda?: string }
   | { tipo: "lineas"; clave: string; etiqueta: string; ayuda?: string }
   | { tipo: "numeros"; clave: string; etiqueta: string; ayuda?: string }
@@ -30,6 +31,7 @@ function serializar(campos: Campo[], estado: Record<string, unknown>) {
   for (const c of campos) {
     const v = estado[c.clave];
     if (c.tipo === "lineas") res[c.clave] = (v as string[]).map((s) => s.trim()).filter(Boolean);
+    else if (c.tipo === "numero") res[c.clave] = Number(v) || 0;
     else if (c.tipo === "numeros") res[c.clave] = String(v).split(/[,\s]+/).filter(Boolean).map(Number).filter((n) => Number.isFinite(n) && n > 0);
     else res[c.clave] = v;
   }
@@ -80,6 +82,13 @@ export default function EditorSeccion({ seccion, campos, valor, canastas, editad
                   {ayuda}
                 </div>
               );
+            case "numero":
+              return (
+                <label key={c.clave}>{c.etiqueta}
+                  <input className="admInput" type="number" min={0} step="any" value={String(estado[c.clave] ?? "")} onChange={(e) => set(c.clave, e.target.value)} />
+                  {ayuda}
+                </label>
+              );
             case "canasta":
               return (
                 <label key={c.clave}>{c.etiqueta}
@@ -118,8 +127,12 @@ export default function EditorSeccion({ seccion, campos, valor, canastas, editad
                   <legend>{c.etiqueta}</legend>
                   {ayuda}
                   {filas.map((f, i) => (
-                    <div key={i} className="admFila" style={{ gridTemplateColumns: `${c.columnas.map((col) => (col.largo ? "2fr" : col.tipo === "numero" ? "110px" : "1fr")).join(" ")} auto` }}>
-                      {c.columnas.map((col) => (
+                    <div key={i} className="admFila" style={{ gridTemplateColumns: `${c.columnas.map((col) => (col.largo ? "2fr" : col.tipo === "numero" ? "110px" : col.tipo === "imagen" ? "56px" : "1fr")).join(" ")} auto` }}>
+                      {c.columnas.map((col) => col.tipo === "imagen" ? (
+                        <div key={col.clave} className="admField"><span className="admSmall admMuted">{col.etiqueta}</span>
+                          <SelectorImagen name={`_${c.clave}_${i}_${col.clave}`} label={col.etiqueta} defaultValue={String(f[col.clave] ?? "")} onChange={(url) => cambiar(i, col.clave, url)} compacto />
+                        </div>
+                      ) : (
                         <label key={col.clave}><span className="admSmall admMuted">{col.etiqueta}</span>
                           <input className="admInput" type={col.tipo === "numero" ? "number" : "text"} min={0} step="any"
                             value={f[col.clave] ?? ""} onChange={(e) => cambiar(i, col.clave, col.tipo === "numero" ? Number(e.target.value) : e.target.value)} />

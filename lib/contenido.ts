@@ -14,33 +14,67 @@ export type Cifra = { valor: string; texto: string };
 export type Horario = { nombre: string; rango: string };
 export type MetodoPago = { nombre: string; detalle: string; nota: string };
 export type Presupuesto = { etiqueta: string; min: number; max: number };
+export type Marca = { nombre: string; imagen: string };
+export type LineaTexto = { titulo: string; texto: string; imagen: string };
 
 export type Contenido = {
   marca: { nombre: string; lema: string; logo: string; icono: string };
   anuncios: { mensajes: string[] };
   portada: {
+    heroEtiqueta: string;
+    heroTitulo: string;
+    heroTexto: string;
+    heroImagen: string;
+    heroBoton1: string;
+    heroBoton2: string;
+    heroPuntos: string[];
+    /** Canasta que se muestra en el banner mientras no haya imagen. */
+    canastaDestacada: string;
+    porQueTitulo: string;
+    porQue: Paso[];
+    tiposEtiqueta: string;
+    tiposTitulo: string;
+    comprarTitulo: string;
+    comprarPasos: Paso[];
+    corpEtiqueta: string;
+    corpTitulo: string;
+    corpTexto: string;
+    corpPuntos: string[];
+    corpBoton: string;
+    corpImagen: string;
+    marcasTitulo: string;
+    marcasTexto: string;
+    marcas: Marca[];
+    canalesTitulo: string;
+    canalesTexto: string;
+    canalesBoton: string;
+    canalesWhatsapp: string;
+  };
+  catalogo: {
     etiqueta: string;
     titulo: string;
     texto: string;
-    botonPrincipal: string;
-    botonSecundario: string;
-    cifras: Cifra[];
-    cinta: string[];
-    canastaDestacada: string;
-    destacadosEtiqueta: string;
-    destacadosTitulo: string;
-    pasosEtiqueta: string;
-    pasosTitulo: string;
-    pasos: Paso[];
-    empresasEtiqueta: string;
-    empresasTitulo: string;
-    empresasTexto: string;
-    empresasBoton: string;
+    /** Económicas, Premium, Ejecutivas y Boxes, en ese orden. */
+    lineas: LineaTexto[];
+    boxesEtiqueta: string;
+    boxesTitulo: string;
+    boxesTexto: string;
+    ctaTitulo: string;
+    ctaTexto: string;
+    ctaBoton: string;
   };
-  catalogo: { etiqueta: string; titulo: string; texto: string; ctaTitulo: string; ctaTexto: string; ctaBoton: string };
   producto: { beneficios: Paso[] };
-  contacto: { ciudad: string; correo: string; telefono: string };
-  checkout: { horarios: Horario[]; metodosPago: MetodoPago[]; notaImpuestos: string };
+  contacto: { ciudad: string; correo: string; telefono: string; horario: string; instagram: string; facebook: string; tiktok: string };
+  checkout: {
+    horarios: Horario[];
+    metodosPago: MetodoPago[];
+    notaImpuestos: string;
+    /** Tarjeta navideña que se ofrece en el carrito. */
+    tarjetaPrecio: number;
+    tarjetaTitulo: string;
+    tarjetaTexto: string;
+    tarjetaImagen: string;
+  };
   cotizacion: {
     etiqueta: string;
     titulo: string;
@@ -51,6 +85,12 @@ export type Contenido = {
     cantidades: number[];
     presupuestos: Presupuesto[];
     personalizacion: string[];
+    /** Columna decorativa del formulario. */
+    ladoTitulo: string;
+    ladoPuntos: string[];
+    ladoFrase: string;
+    ladoImagen: string;
+    notaEntrega: string;
     /** PDF de cotización comercial. */
     pdfSubtitulo: string;
     pdfFormaPago: string;
@@ -59,6 +99,7 @@ export type Contenido = {
     pdfCondicionesOrden: string[];
   };
   pie: { texto: string; derechos: string };
+  nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; valores: Paso[] };
 };
 
 export type SeccionContenido = keyof Contenido;
@@ -72,36 +113,66 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   },
   anuncios: { mensajes: ["Envíos programados en Lima", "Atención a empresas", "Cotizaciones en 24 h"] },
   portada: {
-    etiqueta: "Campaña Navidad 2026",
-    titulo: "Regalos que llegan *llenos* de Navidad.",
-    texto: "Canastas armadas a mano con productos que sí se disfrutan. Para la familia, el equipo o ese cliente que quieres conservar.",
-    botonPrincipal: "Ver catálogo",
-    botonSecundario: "Cotizar para empresa",
-    cifras: [
-      { valor: "+1 200", texto: "canastas entregadas" },
-      { valor: "48 h", texto: "entrega en Lima" },
-      { valor: "4.9 ★", texto: "valoración promedio" },
+    heroEtiqueta: "Canastas y boxes navideños",
+    heroTitulo: "Esta Navidad, *regala momentos.*",
+    heroTexto: "Canastas y boxes navideños preparados para celebrar, agradecer y compartir.",
+    heroImagen: "",
+    heroBoton1: "Ver canastas",
+    heroBoton2: "Ver boxes",
+    heroPuntos: ["Pedidos individuales y corporativos", "Lima y provincias", "Opciones para todos los presupuestos"],
+    canastaDestacada: "canasta-clasica",
+    porQueTitulo: "¿Por qué elegir MKA?",
+    porQue: [
+      { titulo: "Productos seleccionados", texto: "Elegimos cuidadosamente cada producto." },
+      { titulo: "Presentación especial", texto: "Cuidamos cada detalle para una experiencia única." },
+      { titulo: "Opciones para cada presupuesto", texto: "Económicas, Premium, Ejecutivas y Boxes Navideños." },
+      { titulo: "Atención personalizada", texto: "Te ayudamos a encontrar la opción ideal para tu pedido." },
     ],
-    cinta: ["Panetón", "Champagne", "Chocolates", "Galletas navideñas", "Duraznos", "Canastas de mimbre", "Boxes corporativos", "Tarjeta personalizada"],
-    canastaDestacada: "canasta-ejecutiva",
-    destacadosEtiqueta: "Destacados",
-    destacadosTitulo: "Encuentra la *canasta* ideal",
-    pasosEtiqueta: "Cómo funciona",
-    pasosTitulo: "Tres pasos, *cero* estrés",
-    pasos: [
-      { titulo: "Elige tu canasta", texto: "Explora opciones por presupuesto, categoría o tipo de regalo." },
-      { titulo: "Personalízala", texto: "Cambia la canasta, indica cantidades, dedicatoria y comprobante." },
-      { titulo: "Nosotros la llevamos", texto: "Programa la entrega y recibe confirmación en cada paso." },
+    tiposEtiqueta: "Encuentra el regalo perfecto",
+    tiposTitulo: "¿Qué estás buscando?",
+    comprarTitulo: "¿Cómo comprar?",
+    comprarPasos: [
+      { titulo: "Elige", texto: "Selecciona tu canasta o box." },
+      { titulo: "Confirma", texto: "Indícanos la cantidad y los datos de entrega." },
+      { titulo: "Realiza tu pago", texto: "Te indicamos los medios de pago disponibles." },
+      { titulo: "Recibe", texto: "Coordinamos la entrega de tu pedido." },
     ],
-    empresasEtiqueta: "Ventas corporativas",
-    empresasTitulo: "¿20, 100 o *500* canastas?",
-    empresasTexto: "Precios por volumen, tarjeta con tu logo y entregas coordinadas a cada colaborador.",
-    empresasBoton: "Solicitar cotización",
+    corpEtiqueta: "Pedidos corporativos",
+    corpTitulo: "Navidad para tu *empresa*",
+    corpTexto: "Sorprende a tus colaboradores, clientes y socios con canastas y boxes navideños pensados para cada presupuesto.",
+    corpPuntos: ["Pedidos por volumen", "Opciones para diferentes presupuestos", "Personalización corporativa", "Entregas coordinadas", "Atención personalizada"],
+    corpBoton: "Solicitar cotización",
+    corpImagen: "",
+    marcasTitulo: "Marcas que forman parte de nuestras canastas",
+    marcasTexto: "Trabajamos con marcas reconocidas que garantizan calidad y sabor en cada regalo.",
+    marcas: [
+      { nombre: "Molitalia", imagen: "" },
+      { nombre: "Sayón", imagen: "" },
+      { nombre: "Costa", imagen: "" },
+      { nombre: "Gloria", imagen: "" },
+      { nombre: "Alicorp", imagen: "" },
+      { nombre: "Vallealto", imagen: "" },
+      { nombre: "Nestlé", imagen: "" },
+      { nombre: "Laive", imagen: "" },
+    ],
+    canalesTitulo: "Haz que esta Navidad sea especial",
+    canalesTexto: "Encuentra la canasta o box ideal para regalar.",
+    canalesBoton: "Ver catálogo",
+    canalesWhatsapp: "Hablar por WhatsApp",
   },
   catalogo: {
     etiqueta: "Catálogo Navidad 2026",
     titulo: "Canastas para *cada* mesa.",
-    texto: "Desde la clásica familiar hasta la ejecutiva para tus clientes. Todas se pueden personalizar con otro tipo de canasta al elegirlas.",
+    texto: "Elige la línea que mejor va con tu regalo. Todas se pueden armar con otro tipo de canasta al elegirlas.",
+    lineas: [
+      { titulo: "Canastas económicas", texto: "Detalles que celebran sin exceder tu presupuesto.", imagen: "" },
+      { titulo: "Canastas premium", texto: "Una selección especial para una experiencia más completa.", imagen: "" },
+      { titulo: "Canastas ejecutivas", texto: "Elegancia para clientes, colaboradores y socios.", imagen: "" },
+      { titulo: "Boxes navideños", texto: "Pequeños detalles, grandes momentos.", imagen: "" },
+    ],
+    boxesEtiqueta: "Boxes navideños",
+    boxesTitulo: "Pequeños detalles, *grandes* momentos.",
+    boxesTexto: "Boxes listos para regalar a quien quieras, en casa o en la oficina.",
     ctaTitulo: "¿No encuentras la *ideal*?",
     ctaTexto: "Armamos canastas a medida desde 20 unidades, con tu logo y tu presupuesto.",
     ctaBoton: "Armar una a medida",
@@ -113,7 +184,15 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { titulo: "Lista para regalar", texto: "Con lazo y tarjeta" },
     ],
   },
-  contacto: { ciudad: "Lima, Perú", correo: "ventas@canastasperu.pe", telefono: "+51 999 999 999" },
+  contacto: {
+    ciudad: "Lima, Perú",
+    correo: "ventas@canastasperu.pe",
+    telefono: "+51 999 999 999",
+    horario: "Lunes a sábado de 9:00 a. m. a 7:30 p. m.",
+    instagram: "",
+    facebook: "",
+    tiktok: "",
+  },
   checkout: {
     horarios: [
       { nombre: "Mañana", rango: "9:00 – 13:00" },
@@ -126,6 +205,10 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { nombre: "Transferencia", detalle: "BCP, Interbank, BBVA", nota: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono." },
     ],
     notaImpuestos: "Precios incluyen IGV.",
+    tarjetaPrecio: 2,
+    tarjetaTitulo: "Tarjeta navideña de dedicatoria",
+    tarjetaTexto: "Agrega una tarjeta con una dedicatoria personalizada para tu regalo.",
+    tarjetaImagen: "",
   },
   cotizacion: {
     etiqueta: "Ventas corporativas",
@@ -146,6 +229,11 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { etiqueta: "Más de S/ 250", min: 250, max: 0 },
     ],
     personalizacion: ["Tarjeta con tu logo", "Cinta con colores de marca", "Entrega a cada colaborador", "Producto propio de tu empresa"],
+    ladoTitulo: "Regalos corporativos que conectan",
+    ladoPuntos: ["Productos de calidad", "Entregas seguras y puntuales", "Presentaciones personalizadas"],
+    ladoFrase: "Detalles que fortalecen grandes relaciones",
+    ladoImagen: "",
+    notaEntrega: "Cada pedido corporativo contempla una sola dirección de entrega.",
     pdfSubtitulo: "Navidad 2026",
     pdfFormaPago: "50 % adelantado, 50 % un día antes de la entrega",
     pdfHorarioEntrega: "Lunes a sábado de 1:00 p. m. a 7:30 p. m.",
@@ -165,6 +253,18 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   pie: {
     texto: "Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.",
     derechos: "© 2026 MKA · Canastas Navideñas & Regalos",
+  },
+  nosotros: {
+    etiqueta: "Nosotros",
+    titulo: "Regalos que *conectan* personas.",
+    texto: "En MKA preparamos canastas y boxes navideños con productos seleccionados, pensados para celebrar, agradecer y compartir.",
+    imagen: "",
+    historia: "Aquí va la historia de MKA: cómo empezó, qué nos mueve y cómo trabajamos cada pedido. Edita este texto en Panel → Contenido web → Nosotros.",
+    valores: [
+      { titulo: "Calidad", texto: "Elegimos marcas y productos que sí se disfrutan." },
+      { titulo: "Detalle", texto: "Cada canasta se arma y presenta a mano." },
+      { titulo: "Cumplimiento", texto: "Entregamos en la fecha y el lugar acordados." },
+    ],
   },
 };
 
@@ -191,7 +291,7 @@ export function combinarContenido(guardado: Partial<Record<SeccionContenido, Rec
  */
 export function sanearSeccion<S extends SeccionContenido>(seccion: S, valor: unknown): Contenido[S] {
   const limpiar = (plantilla: unknown, v: unknown): unknown => {
-    if (typeof plantilla === "string") return typeof v === "string" ? v.trim().slice(0, 600) : plantilla;
+    if (typeof plantilla === "string") return typeof v === "string" ? v.trim().slice(0, 3000) : plantilla;
     if (typeof plantilla === "number") {
       const n = typeof v === "number" ? v : Number(v);
       return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : plantilla;
