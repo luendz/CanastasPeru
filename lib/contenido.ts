@@ -53,6 +53,7 @@ export type Contenido = {
     canalesTexto: string;
     canalesBoton: string;
     canalesWhatsapp: string;
+    canalesImagen: string;
   };
   catalogo: {
     etiqueta: string;
@@ -127,7 +128,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     heroEtiqueta: "Canastas y boxes navideños",
     heroTitulo: "Esta Navidad, *regala momentos.*",
     heroTexto: "Canastas y boxes navideños preparados para celebrar, agradecer y compartir.",
-    heroImagen: "",
+    heroImagen: "/imgs_general/banner-1.webp",
     heroFondos: [{ imagen: "" }],
     heroBoton1: "Ver canastas",
     heroBoton2: "Ver boxes",
@@ -140,7 +141,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { titulo: "Opciones para cada presupuesto", texto: "Económicas, Premium, Ejecutivas y Boxes Navideños." },
       { titulo: "Atención personalizada", texto: "Te ayudamos a encontrar la opción ideal para tu pedido." },
     ],
-    tiposEtiqueta: "Encuentra el regalo perfecto para esta Navidad.",
+    tiposEtiqueta: "Encuentra el regalo perfecto",
     tiposTitulo: "¿Qué estás buscando?",
     favoritosTitulo: "Nuestros favoritos",
     favoritosTexto: "Una selección de nuestras mejores opciones.",
@@ -160,19 +161,23 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     marcasTitulo: "Marcas que forman parte de nuestras canastas",
     marcasTexto: "Trabajamos con marcas reconocidas que garantizan calidad y sabor en cada regalo.",
     marcas: [
-      { nombre: "Molitalia", imagen: "" },
-      { nombre: "Sayón", imagen: "" },
-      { nombre: "Costa", imagen: "" },
-      { nombre: "Gloria", imagen: "" },
-      { nombre: "Alicorp", imagen: "" },
-      { nombre: "Vallealto", imagen: "" },
-      { nombre: "Nestlé", imagen: "" },
-      { nombre: "Laive", imagen: "" },
+      { nombre: "Molitalia", imagen: "/imgs_general/marcas/logo-molitalia.webp" },
+      { nombre: "Sayón", imagen: "/imgs_general/marcas/logo-sayon.webp" },
+      { nombre: "Costa", imagen: "/imgs_general/marcas/logo-costa.webp" },
+      { nombre: "Gloria", imagen: "/imgs_general/marcas/logo-gloria.webp" },
+      { nombre: "Alicorp", imagen: "/imgs_general/marcas/logo-alicorp.webp" },
+      { nombre: "Nestlé", imagen: "/imgs_general/marcas/logo-nestle.webp" },
+      { nombre: "Laive", imagen: "/imgs_general/marcas/logo-laive.webp" },
+      { nombre: "Winter's", imagen: "/imgs_general/marcas/logo-winters.webp" },
+      { nombre: "Paisana", imagen: "/imgs_general/marcas/logo-paisana.webp" },
+      { nombre: "Primor", imagen: "/imgs_general/marcas/logo-primor.webp" },
+      { nombre: "Sol del Cusco", imagen: "/imgs_general/marcas/logo-sol-del-cusco.webp" },
     ],
     canalesTitulo: "Haz que esta Navidad sea especial",
     canalesTexto: "Encuentra la canasta o box ideal para regalar.",
     canalesBoton: "Ver catálogo",
     canalesWhatsapp: "Hablar por WhatsApp",
+    canalesImagen: "/imgs_general/banner-2.webp",
   },
   catalogo: {
     etiqueta: "Catálogo Navidad 2026",
