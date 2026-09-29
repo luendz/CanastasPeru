@@ -10,8 +10,8 @@ export default async function PanelLayout({ children }: Readonly<{ children: Rea
     <div className="admShell">
       <aside className="admSide">
         <Link href="/admin" className="admBrand">
-          <img src="/marca/mka-icono.png" alt="" width={40} height={40} />
-          <span><strong>MKA</strong><small>Panel de gestión</small></span>
+          <img src="/marca/mka-logo-blanco.webp" alt="MKA · Canastas Navideñas & Regalos" width={1245} height={385} />
+          <small>Panel de gestión</small>
         </Link>
         <AdminNav />
         <div className="admSideFoot">

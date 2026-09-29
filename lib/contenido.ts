@@ -18,7 +18,7 @@ export type Marca = { nombre: string; imagen: string };
 export type LineaTexto = { titulo: string; texto: string; imagen: string };
 
 export type Contenido = {
-  marca: { nombre: string; lema: string; logo: string; icono: string };
+  marca: { nombre: string; lema: string; logo: string; logoBlanco: string; icono: string };
   anuncios: { mensajes: string[] };
   portada: {
     heroEtiqueta: string;
@@ -120,8 +120,9 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   marca: {
     nombre: "MKA",
     lema: "Canastas Navideñas & Regalos",
-    logo: "/marca/mka-logo.webp",
-    icono: "/marca/mka-icono.png",
+    logo: "/marca/mka-logo-color.webp",
+    logoBlanco: "/marca/mka-logo-blanco.webp",
+    icono: "/marca/mka-icono-2026.png",
   },
   anuncios: { mensajes: ["Envíos programados en Lima", "Atención a empresas", "Cotizaciones en 24 h"] },
   portada: {

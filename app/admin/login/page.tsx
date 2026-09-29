@@ -9,7 +9,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <main className="admLogin">
       <div className="admLoginCard">
-        <img src="/marca/mka-icono.png" alt="" width={64} height={64} className="admLoginLogo" />
+        <img src="/marca/mka-logo-color.webp" alt="MKA · Canastas Navideñas & Regalos" width={1246} height={385} className="admLoginLogo" />
         <h1>Panel MKA</h1>
         <p className="admMuted">Gestión de pedidos, cotizaciones y costos.</p>
 
