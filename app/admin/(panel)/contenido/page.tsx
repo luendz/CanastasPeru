@@ -41,7 +41,7 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "corpTexto", etiqueta: "Banner empresas: texto", largo: true },
       { tipo: "lineas", clave: "corpPuntos", etiqueta: "Banner empresas: puntos" },
       { tipo: "texto", clave: "corpBoton", etiqueta: "Banner empresas: botón" },
-      { tipo: "imagen", clave: "corpImagen", etiqueta: "Banner empresas: imagen" },
+      { tipo: "imagen", clave: "corpImagen", etiqueta: "Banner empresas: imagen de fondo", ayuda: "Horizontal, con el lado izquierdo despejado: el texto va encima a la izquierda." },
       { tipo: "texto", clave: "marcasTitulo", etiqueta: "Marcas: título" },
       { tipo: "texto", clave: "marcasTexto", etiqueta: "Marcas: texto", largo: true },
       { tipo: "filas", clave: "marcas", etiqueta: "Marcas", ayuda: "La sección aparece en la portada cuando al menos una marca tiene logo.", columnas: [{ clave: "imagen", etiqueta: "Logo", tipo: "imagen" }, { clave: "nombre", etiqueta: "Nombre" }] },

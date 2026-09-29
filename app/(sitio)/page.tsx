@@ -89,20 +89,36 @@ export default async function HomePage() {
         </Reveal>
       </section>
 
-      {/* Navidad para tu empresa */}
-      <section className="hmCorp2">
-        <div className="hmCorp2Img">
-          {t.corpImagen ? <img src={t.corpImagen} alt="" /> : <div className="hmVacio hmVacioGrande">Espacio para la foto de boxes corporativos<small>Súbela en Panel → Contenido web → Portada</small></div>}
-        </div>
-        <Reveal className="hmCorp2Texto">
-          <h2><SplitWords text={t.corpTitulo} /></h2>
-          <p data-reveal-item style={i(3)}>{t.corpTexto}</p>
-          <ul className="hmCorpPuntos">
-            {t.corpPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_CORP[n % ICONOS_CORP.length]} />{p}</li>)}
-          </ul>
-          <Link className="btn btnPrimary hmBtnMayus" data-reveal-item style={i(5)} href="/cotizacion">{t.corpBoton} <Icono nombre="flecha" /></Link>
-        </Reveal>
-      </section>
+      {/* Navidad para tu empresa: con imagen, banner a todo el ancho y texto a la izquierda */}
+      {t.corpImagen ? (
+        <section className="hmCorp3" style={{ backgroundImage: `url("${t.corpImagen}")` }}>
+          <div className="shell">
+            <Reveal className="hmCorp3Texto">
+              <span className="hmEtiqueta" data-reveal-item style={i(0)}>{t.corpEtiqueta}</span>
+              <h2><SplitWords text={t.corpTitulo} /></h2>
+              <p data-reveal-item style={i(3)}>{t.corpTexto}</p>
+              <ul className="hmCorpPuntos">
+                {t.corpPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_CORP[n % ICONOS_CORP.length]} />{p}</li>)}
+              </ul>
+              <Link className="btn hmBtnMayus hmBtnPildora hmBtnRojo" data-reveal-item style={i(5)} href="/cotizacion">{t.corpBoton} <Icono nombre="flecha" /></Link>
+            </Reveal>
+          </div>
+        </section>
+      ) : (
+        <section className="hmCorp2">
+          <div className="hmCorp2Img">
+            <div className="hmVacio hmVacioGrande">Espacio para la foto de boxes corporativos<small>Súbela en Panel → Contenido web → Portada</small></div>
+          </div>
+          <Reveal className="hmCorp2Texto">
+            <h2><SplitWords text={t.corpTitulo} /></h2>
+            <p data-reveal-item style={i(3)}>{t.corpTexto}</p>
+            <ul className="hmCorpPuntos">
+              {t.corpPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_CORP[n % ICONOS_CORP.length]} />{p}</li>)}
+            </ul>
+            <Link className="btn btnPrimary hmBtnMayus" data-reveal-item style={i(5)} href="/cotizacion">{t.corpBoton} <Icono nombre="flecha" /></Link>
+          </Reveal>
+        </section>
+      )}
 
       {/* ¿Por qué elegir MKA? */}
       <section className="hmSeccion shell">

@@ -934,6 +934,21 @@ del { color: #a99a8e; font-size: 13px; }
 .hmCorp2Texto .btn { justify-self: start; }
 
 /* ¿Cómo comprar? */
+/* Navidad para tu empresa: imagen de fondo a todo el ancho, texto a la izquierda */
+.hmCorp3 { margin-top: 64px; background-color: #f7eee2; background-size: cover; background-position: right center; }
+.hmCorp3 .shell { min-height: clamp(380px, 34vw, 500px); display: flex; align-items: center; }
+.hmCorp3Texto { max-width: 560px; padding: 44px 0; display: grid; gap: 4px; }
+.hmCorp3Texto h2 { margin: 6px 0 10px; color: var(--ink); font-size: clamp(30px, 3.6vw, 46px); }
+.hmCorp3Texto h2 em { color: var(--wine); }
+.hmCorp3Texto > p { margin: 0 0 18px; line-height: 1.55; }
+.hmCorp3Texto .hmCorpPuntos { margin-bottom: 24px; }
+.hmCorp3Texto .btn { justify-self: start; }
+@media (max-width: 980px) {
+  .hmCorp3 { position: relative; background-position: 70% center; }
+  .hmCorp3::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(247, 238, 226, .95) 0%, rgba(247, 238, 226, .85) 60%, rgba(247, 238, 226, .4) 100%); }
+  .hmCorp3 .shell { position: relative; }
+}
+
 /* ¿Cómo comprar? como el PDF: número + ícono grande, flechas a media altura */
 .hmPasos { gap: 36px; padding: 26px 30px; border-radius: 10px; background: #f7ede3; }
 .hmPasos li { gap: 6px; }
