@@ -21,10 +21,12 @@ type Props = {
   valores: Record<string, string | number | null>;
   accion: (prev: Estado, fd: FormData) => Promise<Estado>;
   etiquetaBoton?: string;
+  /** "boton": botón grande (cabecera de la página); por defecto, ícono pequeño. */
+  variante?: "icono" | "boton";
 };
 
 /** Botón pequeño "Editar" que abre una ventana para corregir datos. */
-export default function EditarDatos({ titulo, id, campos, valores, accion, etiquetaBoton = "Editar" }: Props) {
+export default function EditarDatos({ titulo, id, campos, valores, accion, etiquetaBoton = "Editar", variante = "icono" }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [estado, enviar, guardando] = useActionState<Estado, FormData>(accion, {});
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -42,7 +44,7 @@ export default function EditarDatos({ titulo, id, campos, valores, accion, etiqu
 
   return (
     <>
-      <button type="button" className="admIconBtn" onClick={() => setAbierto(true)}>
+      <button type="button" className={variante === "boton" ? "admBtn admBtnEditar" : "admIconBtn"} onClick={() => setAbierto(true)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg>
         <span>{etiquetaBoton}</span>
       </button>

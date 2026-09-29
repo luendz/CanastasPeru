@@ -438,6 +438,10 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admAjustes > .admFormGrid { display: grid; gap: 12px; margin-top: 12px; }
 .admDialogMedio { width: min(760px, calc(100vw - 32px)); }
 .admAvisoCorto { padding: 4px 10px; font-size: 12px; }
+.admHeadAcciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; align-self: flex-end; }
+.admBtnEditar { gap: 8px; border-color: var(--a-wine); color: var(--a-wine) !important; }
+.admBtnEditar:hover { background: var(--a-wine); color: #fff !important; }
+.admBtnEditar svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 @media (max-width: 1180px) {
   .admCostosResumen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
