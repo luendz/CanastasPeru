@@ -251,7 +251,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     ladoTitulo: "Regalos corporativos que conectan",
     ladoPuntos: ["Productos de calidad", "Entregas seguras y puntuales", "Presentaciones personalizadas"],
     ladoFrase: "Detalles que fortalecen grandes relaciones",
-    ladoImagen: "",
+    ladoImagen: "/imgs_general/banner-4.webp",
     notaEntrega: "Cada pedido corporativo contempla una sola dirección de entrega.",
     pdfSubtitulo: "Navidad 2026",
     pdfFormaPago: "50 % adelantado, 50 % un día antes de la entrega",

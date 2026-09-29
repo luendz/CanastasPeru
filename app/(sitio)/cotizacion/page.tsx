@@ -15,16 +15,24 @@ export default async function CotizacionPage() {
   return (
     <section className="cotPagina">
       <div className="shell cotLayout">
-        <aside className="cotLado">
+        <aside
+          className={t.ladoImagen ? "cotLado cotLadoConFondo" : "cotLado"}
+          style={t.ladoImagen ? { backgroundImage: `url("${t.ladoImagen}")` } : undefined}
+        >
           <Brand marca={marca} />
           <p className="cotLadoTitulo">{t.ladoTitulo}</p>
           <ul>
             {t.ladoPuntos.map((p, n) => <li key={n}><span><Icono nombre={ICONOS_LADO[n % ICONOS_LADO.length]} /></span>{p}</li>)}
           </ul>
-          <div className="cotLadoImg">
-            {t.ladoImagen ? <img src={t.ladoImagen} alt="" /> : <span className="cotLadoFallback" aria-hidden="true">✦</span>}
-          </div>
-          <p className="cotLadoFrase">{t.ladoFrase}</p>
+          {/* Con imagen, la frase va dentro de la imagen de fondo. */}
+          {t.ladoImagen ? (
+            <p className="srOnly">{t.ladoFrase}</p>
+          ) : (
+            <>
+              <div className="cotLadoImg"><span className="cotLadoFallback" aria-hidden="true">✦</span></div>
+              <p className="cotLadoFrase">{t.ladoFrase}</p>
+            </>
+          )}
         </aside>
 
         <div className="cotCuerpo">
