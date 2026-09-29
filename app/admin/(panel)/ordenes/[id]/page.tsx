@@ -41,36 +41,38 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
             {o.cotizacion_id && <> · <Link href={`/admin/cotizaciones/${o.cotizacion_id}`}>ver cotización</Link></>}
           </p>
         </div>
+        <div className="admHeadAcciones">
+          <EditarDatos
+            variante="boton"
+            etiquetaBoton="Editar"
+            titulo={`Editar datos · ${o.numero}`}
+            id={o.id}
+            accion={editarDatosOrden}
+            valores={o as unknown as Record<string, string | null>}
+            campos={[
+              { clave: "cliente_nombre", etiqueta: "Cliente", max: 160 },
+              { clave: "cliente_telefono", etiqueta: "Celular / WhatsApp", tipo: "tel", max: 40 },
+              { clave: "cliente_email", etiqueta: "Correo", tipo: "email", max: 160 },
+              { clave: "comprobante_tipo", etiqueta: "Comprobante", tipo: "select", opciones: [{ valor: "boleta", texto: "Boleta" }, { valor: "factura", texto: "Factura" }] },
+              { clave: "comprobante_documento", etiqueta: "DNI / RUC", max: 11, ayuda: "8 dígitos para DNI, 11 para RUC." },
+              { clave: "comprobante_nombre", etiqueta: "Nombre / Razón social", max: 200 },
+              { clave: "direccion_fiscal", etiqueta: "Dirección fiscal (factura)", ancho: true, max: 300 },
+              { clave: "fecha_entrega", etiqueta: "Fecha de entrega", tipo: "fecha" },
+              { clave: "horario", etiqueta: "Horario", max: 60 },
+              { clave: "distrito", etiqueta: "Distrito", max: 80 },
+              { clave: "direccion", etiqueta: "Dirección de entrega", max: 300 },
+              { clave: "referencia", etiqueta: "Referencia", ancho: true, max: 300 },
+              { clave: "recibe_nombre", etiqueta: "Recibe", max: 160 },
+              { clave: "recibe_telefono", etiqueta: "Celular de quien recibe", tipo: "tel", max: 40 },
+            ]}
+          />
+        </div>
       </header>
 
       <div className="admGrid2 admGridDetail">
         <div className="admStack">
           <section className="admCard">
-            <div className="admCardHead">
-              <h2>Datos del cliente</h2>
-              <EditarDatos
-                titulo={`Editar datos · ${o.numero}`}
-                id={o.id}
-                accion={editarDatosOrden}
-                valores={o as unknown as Record<string, string | null>}
-                campos={[
-                  { clave: "cliente_nombre", etiqueta: "Cliente", max: 160 },
-                  { clave: "cliente_telefono", etiqueta: "Celular / WhatsApp", tipo: "tel", max: 40 },
-                  { clave: "cliente_email", etiqueta: "Correo", tipo: "email", max: 160 },
-                  { clave: "comprobante_tipo", etiqueta: "Comprobante", tipo: "select", opciones: [{ valor: "boleta", texto: "Boleta" }, { valor: "factura", texto: "Factura" }] },
-                  { clave: "comprobante_documento", etiqueta: "DNI / RUC", max: 11, ayuda: "8 dígitos para DNI, 11 para RUC." },
-                  { clave: "comprobante_nombre", etiqueta: "Nombre / Razón social", max: 200 },
-                  { clave: "direccion_fiscal", etiqueta: "Dirección fiscal (factura)", ancho: true, max: 300 },
-                  { clave: "fecha_entrega", etiqueta: "Fecha de entrega", tipo: "fecha" },
-                  { clave: "horario", etiqueta: "Horario", max: 60 },
-                  { clave: "distrito", etiqueta: "Distrito", max: 80 },
-                  { clave: "direccion", etiqueta: "Dirección de entrega", max: 300 },
-                  { clave: "referencia", etiqueta: "Referencia", ancho: true, max: 300 },
-                  { clave: "recibe_nombre", etiqueta: "Recibe", max: 160 },
-                  { clave: "recibe_telefono", etiqueta: "Celular de quien recibe", tipo: "tel", max: 40 },
-                ]}
-              />
-            </div>
+            <h2>Datos del cliente</h2>
             <dl className="admDl">
               {dato("Cliente", o.cliente_nombre)}
               {dato("Correo", o.cliente_email)}
