@@ -155,7 +155,21 @@ export type Insumo = {
   emoji: string;
 };
 export type Receta = { producto_id: string; insumo_id: string; cantidad: number };
-export type CosteoCanasta = { producto_id: string; slug: string; nombre: string; precio: number; costo: number; margen: number; margen_pct: number | null; insumos_sin_costo: number };
+export type CosteoCanasta = {
+  producto_id: string;
+  slug: string;
+  nombre: string;
+  precio: number;
+  costo: number;
+  margen: number;
+  margen_pct: number | null;
+  insumos_sin_costo: number;
+  costo_viveres: number | null;
+  costo_presentacion: number | null;
+  costo_receta: number;
+  /** "tabla": costos cargados a mano (víveres + presentación); "receta": suma de la receta. */
+  fuente: "tabla" | "receta";
+};
 export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null; costo_actual: number | null };
 export type InventarioFila = { insumo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };
 

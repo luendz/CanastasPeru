@@ -1,14 +1,16 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { CostoInsumo, CosteoCanasta, Insumo, Receta } from "@/lib/admin/types";
-import { guardarRecetaItem, quitarRecetaItem } from "./actions";
+import { LINEAS } from "@/lib/lineas";
+import { guardarCostosCanasta, guardarRecetaItem, quitarRecetaItem } from "./actions";
 
 export const metadata = { title: "Costeo por canasta" };
 
 export default async function CosteoPage() {
   const { supabase } = await requireAdmin();
-  const [{ data: costeo }, { data: recetas }, { data: costos }, { data: insumos }] = await Promise.all([
+  const [{ data: costeo }, { data: prods }, { data: recetas }, { data: costos }, { data: insumos }] = await Promise.all([
     supabase.from("v_costeo_canastas").select("*").order("precio"),
+    supabase.from("productos").select("id,categoria,activo"),
     supabase.from("recetas").select("*"),
     supabase.from("v_costo_insumos").select("*"),
     supabase.from("insumos").select("*").order("tipo").order("nombre"),
@@ -17,38 +19,55 @@ export default async function CosteoPage() {
   const lista = (recetas ?? []) as Receta[];
   const costoDe = new Map(((costos ?? []) as CostoInsumo[]).map((c) => [c.insumo_id, c]));
   const todos = (insumos ?? []) as Insumo[];
+  const infoDe = new Map(((prods ?? []) as { id: string; categoria: string; activo: boolean }[]).map((x) => [x.id, x]));
+  const normal = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const grupos = [
+    ...LINEAS.filter((l) => l.id !== "boxes").map((l) => ({
+      titulo: l.titulo,
+      id: l.id,
+      canastas: canastas.filter((c) => normal(infoDe.get(c.producto_id)?.categoria ?? "").startsWith(normal(l.categoria).slice(0, 6))),
+    })),
+  ];
+  const agrupadas = new Set(grupos.flatMap((g) => g.canastas.map((c) => c.producto_id)));
+  const otras = canastas.filter((c) => !agrupadas.has(c.producto_id));
+  if (otras.length) grupos.push({ titulo: "Otras canastas", id: "economicas", canastas: otras });
 
   return (
     <>
       <header className="admHead">
         <div>
           <h1>Costeo por canasta</h1>
-          <p className="admMuted">Costo = cantidad de cada insumo de la receta × su costo promedio en las compras de producción. El margen se calcula sobre el precio de catálogo.</p>
+          <p className="admMuted">Costo de cada canasta (víveres + presentación), margen y utilidad sobre su valor de venta. Edita los costos aquí o en la ficha de la canasta. Si una canasta no tiene costos cargados, se calcula con su receta y la última compra de cada producto.</p>
         </div>
       </header>
 
-      <div className="admCard admCardFlush">
-        <table className="admTable">
-          <thead><tr><th>Canasta</th><th className="num">Precio</th><th className="num">Costo</th><th className="num">Margen</th><th className="num">Margen %</th><th>Observación</th></tr></thead>
-          <tbody>
-            {canastas.map((c) => (
-              <tr key={c.producto_id}>
-                <td><a className="admStrongLink" href={`#receta-${c.slug}`}>{c.nombre}</a></td>
-                <td className="num">{soles(c.precio)}</td>
-                <td className="num">{soles(c.costo)}</td>
-                <td className="num" data-tone={Number(c.margen) >= 0 ? "ok" : "bad"}>{soles(c.margen)}</td>
-                <td className="num">
-                  <span className="admMeter" data-tone={Number(c.margen_pct ?? 0) >= 30 ? "ok" : Number(c.margen_pct ?? 0) >= 10 ? "warn" : "bad"}>
-                    <i style={{ width: `${Math.max(0, Math.min(100, Number(c.margen_pct ?? 0)))}%` }} />
-                  </span>
-                  {c.margen_pct === null ? "—" : `${numero(c.margen_pct, 1)} %`}
-                </td>
-                <td>{Number(c.insumos_sin_costo) > 0 ? <span className="admWarn">{c.insumos_sin_costo} insumos sin compras registradas</span> : <span className="admMuted">Costo completo</span>}</td>
-              </tr>
+      {grupos.filter((g) => g.canastas.length).map((g) => (
+        <section key={g.titulo} className="admCosteoGrupo" data-linea={g.id}>
+          <h2>{g.titulo}</h2>
+          <div className="admCosteoGrid">
+            {g.canastas.map((c) => (
+              <form key={c.producto_id} action={guardarCostosCanasta} className="admCosteoCard">
+                <input type="hidden" name="producto_id" value={c.producto_id} />
+                <h3>{c.nombre}{infoDe.get(c.producto_id)?.activo === false && <small> · oculta</small>}</h3>
+                <table>
+                  <tbody>
+                    <tr><td>Costo total de víveres</td><td><input className="admInput admInputSm" name="costo_viveres" type="number" min="0" step="0.01" defaultValue={c.costo_viveres ?? ""} placeholder={c.fuente === "receta" ? String(c.costo_receta) : ""} aria-label={`Costo de víveres de ${c.nombre}`} /></td></tr>
+                    <tr><td>Costo de presentación</td><td><input className="admInput admInputSm" name="costo_presentacion" type="number" min="0" step="0.01" defaultValue={c.costo_presentacion ?? ""} aria-label={`Costo de presentación de ${c.nombre}`} /></td></tr>
+                    <tr className="admFilaFuerte"><td>Costo total de canasta</td><td>{soles(c.costo)}</td></tr>
+                    <tr><td>Margen</td><td data-tone={Number(c.margen_pct ?? 0) >= 30 ? "ok" : Number(c.margen_pct ?? 0) >= 10 ? "warn" : "bad"}>{c.margen_pct === null ? "—" : `${numero(c.margen_pct, 1)} %`}</td></tr>
+                    <tr><td>Valor venta</td><td>{soles(c.precio)}</td></tr>
+                    <tr className="admFilaFuerte"><td>Utilidad</td><td data-tone={Number(c.margen) >= 0 ? "ok" : "bad"}>{soles(c.margen)}</td></tr>
+                  </tbody>
+                </table>
+                <div className="admCosteoPie">
+                  <small className="admMuted">{c.fuente === "tabla" ? "Costos cargados a mano" : Number(c.insumos_sin_costo) > 0 ? `Según receta · ${c.insumos_sin_costo} insumos sin compras` : "Según receta"}</small>
+                  <button className="admLinkMuted" type="submit">Guardar</button>
+                </div>
+              </form>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </section>
+      ))}
 
       {canastas.map((c) => {
         const items = lista.filter((r) => r.producto_id === c.producto_id);

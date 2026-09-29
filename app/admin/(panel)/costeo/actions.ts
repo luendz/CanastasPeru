@@ -32,3 +32,22 @@ export async function quitarRecetaItem(formData: FormData) {
   if (error) throw new Error(error.message);
   refrescar();
 }
+
+/** Costos de víveres y presentación de una canasta (como la tabla del cliente). */
+export async function guardarCostosCanasta(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const leer = (k: string) => {
+    const raw = String(formData.get(k) ?? "").trim().replace(",", ".");
+    if (!raw) return null;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) throw new Error("Costo inválido");
+    return Math.round(n * 100) / 100;
+  };
+  const { error } = await supabase
+    .from("productos")
+    .update({ costo_viveres: leer("costo_viveres"), costo_presentacion: leer("costo_presentacion") })
+    .eq("id", String(formData.get("producto_id") ?? ""));
+  if (error) throw new Error(error.message);
+  refrescar();
+  revalidatePath("/admin/catalogo", "layout");
+}
