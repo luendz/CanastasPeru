@@ -110,7 +110,7 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "ladoTitulo", etiqueta: "Columna izquierda: título" },
       { tipo: "lineas", clave: "ladoPuntos", etiqueta: "Columna izquierda: puntos" },
       { tipo: "texto", clave: "ladoFrase", etiqueta: "Columna izquierda: frase final" },
-      { tipo: "imagen", clave: "ladoImagen", etiqueta: "Columna izquierda: imagen" },
+      { tipo: "imagen", clave: "ladoImagen", etiqueta: "Columna izquierda: imagen de fondo", ayuda: "Vertical (aprox. 1 × 6), con la parte de arriba despejada para el logo y los puntos; la frase va dentro de la imagen." },
       { tipo: "texto", clave: "notaEntrega", etiqueta: "Nota bajo la dirección de entrega" },
       { tipo: "texto", clave: "pdfSubtitulo", etiqueta: "PDF: subtítulo del encabezado", ayuda: "Ej. Navidad 2026. Sale en la cotización y en la orden de pedido." },
       { tipo: "texto", clave: "pdfFormaPago", etiqueta: "PDF: forma de pago por defecto" },
