@@ -18,7 +18,7 @@ const links = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-export default function Header({ marca, anuncios, contacto }: { marca: Contenido["marca"]; anuncios: Contenido["anuncios"]; contacto: Contenido["contacto"] }) {
+export default function Header({ marca, contacto }: { marca: Contenido["marca"]; contacto: Contenido["contacto"] }) {
   const pathname = usePathname();
   const c = useCarrito();
   const count = unidades(c);
@@ -26,6 +26,7 @@ export default function Header({ marca, anuncios, contacto }: { marca: Contenido
   const [scrolled, setScrolled] = useState(false);
   const [bump, setBump] = useState(0);
   const [menu, setMenu] = useState(false);
+  const [buscar, setBuscar] = useState(false);
 
   // Se esconde al bajar, vuelve al subir y toma sombra apenas hay scroll.
   useEffect(() => {
@@ -57,15 +58,15 @@ export default function Header({ marca, anuncios, contacto }: { marca: Contenido
     return () => window.removeEventListener("mka:cart-add", onAdd);
   }, []);
 
-  useEffect(() => setMenu(false), [pathname]);
+  useEffect(() => {
+    setMenu(false);
+    setBuscar(false);
+  }, [pathname]);
 
   const activo = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href) || (href === "/canastas" && pathname.startsWith("/catalogo")));
 
   return (
     <>
-      <div className="topbar">
-        {anuncios.mensajes.map((m, i) => <span key={i} className={i > 0 ? "topbarHide" : undefined}>✦ {m}</span>)}
-      </div>
       <div className="headerSticky" data-hidden={hidden || undefined} data-scrolled={scrolled || undefined}>
         <div className="headerWrap">
           <header className="header shell">
@@ -86,8 +87,19 @@ export default function Header({ marca, anuncios, contacto }: { marca: Contenido
               )}
             </nav>
             <div className="headerActions">
-              <Link className="cartBtn" href="/carrito" aria-label={`Carrito, ${count} ${count === 1 ? "canasta" : "canastas"}`} data-bump={bump % 2 ? "a" : bump ? "b" : undefined}>
-                Carrito {count > 0 && <span key={bump}>{count}</span>}
+              <div className="buscador" data-abierto={buscar || undefined}>
+                <button type="button" className="iconoBtn" aria-label="Buscar" aria-expanded={buscar} onClick={() => setBuscar((b) => !b)}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-4-4" /></svg>
+                </button>
+                {buscar && (
+                  <form className="buscadorForm" action="/buscar" role="search">
+                    <input className="input" name="q" type="search" placeholder="Buscar canastas o productos…" autoFocus aria-label="Buscar" />
+                  </form>
+                )}
+              </div>
+              <Link className="iconoBtn carritoBtn" href="/carrito" aria-label={`Carrito, ${count} ${count === 1 ? "canasta" : "canastas"}`} data-bump={bump % 2 ? "a" : bump ? "b" : undefined}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm9 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /></svg>
+                <span key={bump}>{count}</span>
               </Link>
               {contacto.telefono && (
                 <a className="waBtn" href={enlaceWhatsApp(contacto.telefono)} target="_blank" rel="noopener noreferrer">
@@ -112,7 +124,6 @@ export default function Header({ marca, anuncios, contacto }: { marca: Contenido
             </nav>
           )}
         </div>
-        <div className="textileBand" aria-hidden="true" />
       </div>
     </>
   );

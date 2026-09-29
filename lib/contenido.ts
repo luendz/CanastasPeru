@@ -25,6 +25,8 @@ export type Contenido = {
     heroTitulo: string;
     heroTexto: string;
     heroImagen: string;
+    /** Más imágenes del banner: pasan solas y con puntos. */
+    heroFondos: { imagen: string }[];
     heroBoton1: string;
     heroBoton2: string;
     heroPuntos: string[];
@@ -34,6 +36,8 @@ export type Contenido = {
     porQue: Paso[];
     tiposEtiqueta: string;
     tiposTitulo: string;
+    favoritosTitulo: string;
+    favoritosTexto: string;
     comprarTitulo: string;
     comprarPasos: Paso[];
     corpEtiqueta: string;
@@ -98,7 +102,14 @@ export type Contenido = {
     pdfCondiciones: string[];
     pdfCondicionesOrden: string[];
   };
-  pie: { texto: string; derechos: string };
+  pie: {
+    texto: string;
+    derechos: string;
+    suscribirTitulo: string;
+    faq: Paso[];
+    terminos: string;
+    privacidad: string;
+  };
   nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; valores: Paso[] };
 };
 
@@ -117,6 +128,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     heroTitulo: "Esta Navidad, *regala momentos.*",
     heroTexto: "Canastas y boxes navideños preparados para celebrar, agradecer y compartir.",
     heroImagen: "",
+    heroFondos: [{ imagen: "" }],
     heroBoton1: "Ver canastas",
     heroBoton2: "Ver boxes",
     heroPuntos: ["Pedidos individuales y corporativos", "Lima y provincias", "Opciones para todos los presupuestos"],
@@ -128,8 +140,10 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { titulo: "Opciones para cada presupuesto", texto: "Económicas, Premium, Ejecutivas y Boxes Navideños." },
       { titulo: "Atención personalizada", texto: "Te ayudamos a encontrar la opción ideal para tu pedido." },
     ],
-    tiposEtiqueta: "Encuentra el regalo perfecto",
+    tiposEtiqueta: "Encuentra el regalo perfecto para esta Navidad.",
     tiposTitulo: "¿Qué estás buscando?",
+    favoritosTitulo: "Nuestros favoritos",
+    favoritosTexto: "Una selección de nuestras mejores opciones.",
     comprarTitulo: "¿Cómo comprar?",
     comprarPasos: [
       { titulo: "Elige", texto: "Selecciona tu canasta o box." },
@@ -253,6 +267,16 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   pie: {
     texto: "Canastas navideñas y regalos corporativos armados a mano, con atención personalizada.",
     derechos: "© 2026 MKA · Canastas Navideñas & Regalos",
+    suscribirTitulo: "Suscríbete y recibe novedades",
+    faq: [
+      { titulo: "¿Hacen entregas en provincias?", texto: "Sí. Coordinamos envíos a provincias; el costo depende del destino. Escríbenos por WhatsApp para cotizarlo." },
+      { titulo: "¿Con cuánta anticipación debo pedir?", texto: "Recomendamos hacer tu pedido con al menos 5 a 7 días hábiles de anticipación, sobre todo en diciembre." },
+      { titulo: "¿Puedo personalizar mi canasta?", texto: "Sí. Puedes elegir otro tipo de canasta al comprar y, para empresas, armamos canastas a medida con tu logo." },
+      { titulo: "¿Qué medios de pago aceptan?", texto: "Tarjeta, Yape / Plin y transferencia bancaria. Te confirmamos el pago antes de preparar tu pedido." },
+      { titulo: "¿Emiten boleta o factura?", texto: "Sí, emitimos boleta o factura electrónica con los datos que indiques al comprar." },
+    ],
+    terminos: "Aquí van los términos y condiciones de venta: precios, plazos de entrega, cambios y devoluciones. Edita este texto en Panel → Contenido web → Pie de página.",
+    privacidad: "Aquí va la política de privacidad: qué datos pedimos, para qué los usamos y cómo pueden solicitar su eliminación. Edita este texto en Panel → Contenido web → Pie de página.",
   },
   nosotros: {
     etiqueta: "Nosotros",
