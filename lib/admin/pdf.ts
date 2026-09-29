@@ -8,7 +8,7 @@
 import type { jsPDF } from "jspdf";
 import { fechaCorta, soles } from "@/lib/admin/format";
 import type { ProductoCanasta } from "@/lib/admin/recetas";
-import type { Cotizacion, Orden, OrdenItem } from "@/lib/admin/types";
+import { labelEstado, type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
 
 type Marca = { nombre: string; lema: string; logo: string };
 type Contacto = { telefono: string; correo: string; ciudad: string };
@@ -122,6 +122,8 @@ type Documento = {
   autorizado: string | null;
   firmas: [string, string];
   archivo: string;
+  /** Franja de estado para producción (solo en la orden de pedido). */
+  estado?: { pagado: boolean; pedido: string; entrega: string };
 };
 
 const nombreArchivo = (prefijo: string, numero: string, cliente: string) => {
@@ -158,6 +160,22 @@ async function documentoComercial(d: Documento) {
   doc.setFontSize(13).text(d.numero, M + col * 2.5, 32, { align: "center" });
 
   let y = 12 + altoCab + 8;
+
+  // Franja de estado: el pago salta a la vista para el área de producción.
+  if (d.estado) {
+    const alto = 13;
+    const colorPago: Color = d.estado.pagado ? [29, 107, 69] : [161, 44, 44];
+    const anchoPago = 70;
+    doc.setFillColor(...colorPago).rect(W - M - anchoPago, y, anchoPago, alto, "F");
+    doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(255, 255, 255);
+    doc.text(d.estado.pagado ? "PAGADO" : "PAGO PENDIENTE", W - M - anchoPago / 2, y + 8.6, { align: "center" });
+    doc.setFillColor(...CREMA).rect(M, y, ancho - anchoPago - 3, alto, "F");
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...GRIS).text("ESTADO DEL PEDIDO", M + 4.5, y + 5);
+    doc.text("ENTREGA", M + 60, y + 5);
+    doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(...TINTA).text(d.estado.pedido, M + 4.5, y + 10.2);
+    doc.text(d.estado.entrega, M + 60, y + 10.2);
+    y += alto + 7;
+  }
 
   const barra = (titulo: string) => {
     if (y > H - 40) { doc.addPage(); y = 20; }
@@ -383,6 +401,11 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     condiciones: textos.condiciones,
     autorizado: cotizacion?.asesor || marca.nombre,
     firmas: ["Recibí conforme · cliente", `Entregado por · ${marca.nombre}`],
+    estado: {
+      pagado: o.estado_pago === "pagado",
+      pedido: labelEstado(o.estado),
+      entrega: [o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar", o.horario?.split(" · ").pop()].filter(Boolean).join(" · "),
+    },
     archivo: nombreArchivo("Orden", o.numero, o.comprobante_nombre || o.cliente_nombre),
   });
 }

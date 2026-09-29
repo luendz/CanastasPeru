@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fecha, fechaCorta, inicioMesLima, numero, soles } from "@/lib/admin/format";
-import { ESTADOS_ORDEN, labelEstado, type Compra, type InventarioFila, type Orden, type OrdenItem } from "@/lib/admin/types";
+import { ESTADOS_ORDEN, labelEstado, TIPOS_COSTO, type Compra, type InventarioFila, type Orden, type OrdenItem } from "@/lib/admin/types";
 
 export const metadata = { title: "Inicio" };
 
@@ -16,15 +16,15 @@ export default async function DashboardPage() {
     supabase.from("orden_items").select("producto_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
     supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]),
     supabase.from("v_inventario").select("*"),
-    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,horario,estado").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(6),
+    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,horario,estado").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(8),
   ]);
 
   const ventas = (ordenesMes.data ?? []) as Pick<Orden, "id" | "total" | "estado">[];
   const totalVentas = ventas.reduce((s, o) => s + Number(o.total), 0);
   const listaCompras = (compras.data ?? []) as Pick<Compra, "categoria" | "total">[];
-  const costoProd = listaCompras.filter((c) => c.categoria === "produccion").reduce((s, c) => s + Number(c.total), 0);
-  const costoMkt = listaCompras.filter((c) => c.categoria === "marketing").reduce((s, c) => s + Number(c.total), 0);
-  const ganancia = totalVentas - costoProd - costoMkt;
+  const costos = TIPOS_COSTO.map((t) => ({ ...t, total: listaCompras.filter((c) => c.categoria === t.id).reduce((s, c) => s + Number(c.total), 0) }));
+  const costoTotal = costos.reduce((s, c) => s + c.total, 0);
+  const utilidad = totalVentas - costoTotal;
 
   const porEstado = new Map<string, number>();
   (abiertas.data ?? []).forEach((o: { estado: string }) => porEstado.set(o.estado, (porEstado.get(o.estado) ?? 0) + 1));
@@ -50,11 +50,26 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <section className="admKpis">
-        <div className="admKpi"><span>Ventas del mes</span><strong>{soles(totalVentas)}</strong><small>{ventas.length} órdenes · ticket promedio {soles(ventas.length ? totalVentas / ventas.length : 0)}</small></div>
-        <div className="admKpi"><span>Costos de producción</span><strong>{soles(costoProd)}</strong><small>compras de mercadería e insumos</small></div>
-        <div className="admKpi"><span>Costos de marketing</span><strong>{soles(costoMkt)}</strong><small>publicidad, diseño, impresiones</small></div>
-        <div className="admKpi" data-tone={ganancia >= 0 ? "ok" : "bad"}><span>Ganancia estimada</span><strong>{soles(ganancia)}</strong><small>ventas − costos del mes</small></div>
+      <section className="admKpis admKpisInicio">
+        <div className="admKpi">
+          <span>Ventas del mes</span>
+          <strong>{soles(totalVentas)}</strong>
+          <small>{ventas.length} órdenes · ticket promedio {soles(ventas.length ? totalVentas / ventas.length : 0)}</small>
+        </div>
+        <Link className="admKpi admKpiCostos" href="/admin/compras">
+          <span>Costos totales</span>
+          <strong>{soles(costoTotal)}</strong>
+          <ul>
+            {costos.map((c) => (
+              <li key={c.id}><i data-tipo={c.id} />{c.label}<b>{soles(c.total)}</b></li>
+            ))}
+          </ul>
+        </Link>
+        <div className="admKpi" data-tone={utilidad >= 0 ? "ok" : "bad"}>
+          <span>Utilidad estimada</span>
+          <strong>{soles(utilidad)}</strong>
+          <small>ventas − costos totales del mes{totalVentas > 0 ? ` · margen ${numero((utilidad / totalVentas) * 100, 1)} %` : ""}</small>
+        </div>
       </section>
 
       <div className="admGrid2">
@@ -88,49 +103,55 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section className="admCard">
-          <div className="admCardHead"><h2>Próximas entregas</h2><Link href="/admin/ordenes">Ver todas →</Link></div>
-          {(entregas.data ?? []).length === 0 ? (
-            <p className="admEmpty">No hay entregas programadas.</p>
-          ) : (
-            <table className="admTable admTableCompact">
-              <thead><tr><th>N.º OP</th><th>Fecha de entrega</th><th>Horario de entrega</th><th>Distrito</th><th>Estado</th></tr></thead>
-              <tbody>
-                {(entregas.data as Orden[]).map((o) => (
-                  <tr key={o.id}>
-                    <td><Link href={`/admin/ordenes/${o.id}`}>{o.numero}</Link></td>
-                    <td>{fechaCorta(o.fecha_entrega)}</td>
-                    <td>{o.horario ?? "—"}</td>
-                    <td>{o.distrito ?? "—"}</td>
-                    <td><span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
+      </div>
 
-        <section className="admCard">
-          <div className="admCardHead"><h2>Stock por reponer</h2><Link href="/admin/produccion">Producción →</Link></div>
-          {bajos.length === 0 ? (
-            <p className="admEmpty">Todo el stock cubre los pedidos pendientes.</p>
-          ) : (
-            <table className="admTable admTableCompact">
-              <thead><tr><th>Insumo</th><th className="num">Stock</th><th className="num">Pendiente</th><th className="num">Mínimo</th></tr></thead>
-              <tbody>
-                {bajos.slice(0, 8).map((i) => (
+      <section className="admCard admCardFlush">
+        <div className="admCardHead admPad"><h2>Próximas entregas</h2><Link href="/admin/ordenes">Ver todas →</Link></div>
+        {(entregas.data ?? []).length === 0 ? (
+          <p className="admEmpty">No hay entregas programadas.</p>
+        ) : (
+          <table className="admTable admTablaAmplia">
+            <thead><tr><th>N.º OP</th><th>Cliente</th><th>Fecha de entrega</th><th>Horario</th><th>Distrito</th><th>Estado</th></tr></thead>
+            <tbody>
+              {(entregas.data as Orden[]).map((o) => (
+                <tr key={o.id}>
+                  <td><Link className="admStrongLink" href={`/admin/ordenes/${o.id}`}>{o.numero}</Link></td>
+                  <td className="admCeldaLarga">{o.cliente_nombre}</td>
+                  <td>{fechaCorta(o.fecha_entrega)}</td>
+                  <td className="admNoWrap">{o.horario ? o.horario.split(" · ").pop() : "—"}</td>
+                  <td>{o.distrito ?? "—"}</td>
+                  <td><span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section className="admCard admCardFlush">
+        <div className="admCardHead admPad"><h2>Stock por reponer</h2><Link href="/admin/produccion">Producción e inventario →</Link></div>
+        {bajos.length === 0 ? (
+          <p className="admEmpty">Todo el stock cubre los pedidos pendientes.</p>
+        ) : (
+          <table className="admTable admTablaAmplia">
+            <thead><tr><th>Producto</th><th className="num">Stock</th><th className="num">Pendiente</th><th className="num">Mínimo</th><th className="num">Falta comprar</th></tr></thead>
+            <tbody>
+              {bajos.slice(0, 10).map((i) => {
+                const falta = Math.max(0, Number(i.requerido_pendiente) + Number(i.stock_minimo) - Number(i.stock));
+                return (
                   <tr key={i.insumo_id}>
-                    <td>{i.nombre}</td>
-                    <td className="num">{numero(i.stock)}</td>
+                    <td className="admCeldaLarga">{i.nombre}</td>
+                    <td className="num" data-tone={Number(i.stock) < 0 ? "bad" : undefined}>{numero(i.stock)}</td>
                     <td className="num">{numero(i.requerido_pendiente)}</td>
                     <td className="num">{numero(i.stock_minimo)}</td>
+                    <td className="num"><strong>{numero(falta)}</strong></td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-      </div>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </section>
     </>
   );
 }

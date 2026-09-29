@@ -8,7 +8,7 @@ import { descargarExcel, type TipoReporte } from "./excel";
 const REPORTES: { id: TipoReporte; titulo: string; texto: string }[] = [
   { id: "canastas", titulo: "Pedidos por canasta", texto: "Cantidad vendida, número de pedidos, precio e importe total de cada canasta." },
   { id: "ordenes", titulo: "Listado de órdenes", texto: "Todas las órdenes con cliente, canastas, entrega, estado, pago y totales." },
-  { id: "compras", titulo: "Compras y costos", texto: "Compras de producción y marketing con proveedor, comprobante y totales." },
+  { id: "compras", titulo: "Costos totales", texto: "Compras y gastos por tipo de costo, con proveedor, comprobante y totales." },
   { id: "resumen", titulo: "Resumen del período", texto: "Ventas, costos, ganancia estimada y ticket promedio." },
   { id: "completo", titulo: "Todo en un archivo", texto: "Los cuatro reportes, cada uno en su hoja." },
 ];

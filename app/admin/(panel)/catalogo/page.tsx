@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import SelectorImagen from "../medios/SelectorImagen";
-import { alternarCanasta, crearZona, guardarInsumoVisual, guardarTipo, guardarZona } from "./actions";
+import { alternarCanasta, crearZona, guardarTipo, guardarZona } from "./actions";
 
 export const metadata = { title: "Catálogo" };
 
@@ -12,19 +12,16 @@ type ProductoFila = {
   insignia: string | null; tipo_canasta_base: string; orden: number; activo: boolean; composicion: unknown[];
 };
 type TipoFila = TipoCanasta & { imagen: string | null; descripcion: string | null; orden: number };
-type InsumoFila = { id: string; nombre: string; tipo: string; imagen: string | null; emoji: string; presentacion: string | null };
 type ZonaFila = { distrito: string; tarifa: number; activo: boolean; orden: number };
 
 export default async function CatalogoAdminPage() {
   const { supabase } = await requireAdmin();
-  const [{ data: productos }, { data: tipos }, { data: zonas }, { data: costeo }, { data: insumos }] = await Promise.all([
+  const [{ data: productos }, { data: tipos }, { data: zonas }, { data: costeo }] = await Promise.all([
     supabase.from("productos").select("*").order("orden").order("precio"),
     supabase.from("tipos_canasta").select("*").order("orden").order("recargo"),
     supabase.from("zonas_delivery").select("*").order("orden").order("distrito"),
     supabase.from("v_costeo_canastas").select("producto_id,costo,margen_pct"),
-    supabase.from("insumos").select("id,nombre,tipo,imagen,emoji,presentacion").order("tipo").order("nombre"),
   ]);
-  const listaInsumos = (insumos ?? []) as InsumoFila[];
   const lista = (productos ?? []) as ProductoFila[];
   const listaTipos = (tipos ?? []) as TipoFila[];
   const listaZonas = (zonas ?? []) as ZonaFila[];
@@ -42,7 +39,6 @@ export default async function CatalogoAdminPage() {
 
       <nav className="admTabs" aria-label="Secciones del catálogo">
         <a href="#canastas">Canastas</a>
-        <a href="#productos">Fotos de productos</a>
         <a href="#tipos">Tipos de canasta</a>
         <a href="#delivery">Delivery</a>
       </nav>
@@ -81,28 +77,6 @@ export default async function CatalogoAdminPage() {
             })}
           </tbody>
         </table>
-      </section>
-
-      <section className="admCard" id="productos">
-        <div className="admCardHead"><h2>Fotos de productos</h2><span className="admMuted">La foto de cada producto se usa en todas las canastas que lo llevan (sin foto, se muestra el emoji). La presentación —marca y tamaño, p. ej. “Milano Sayon 750 g”— sale en el PDF de cotización.</span></div>
-        <ul className="admInsumos">
-          {listaInsumos.map((i) => (
-            <li key={i.id}>
-              <form action={guardarInsumoVisual} className="admInsumo">
-                <input type="hidden" name="id" value={i.id} />
-                <SelectorImagen name="imagen" defaultValue={i.imagen} label={`Foto de ${i.nombre}`} compacto />
-                <div>
-                  <strong>{i.nombre}</strong>
-                  <input className="admInput admInputSm admPresentacion" name="presentacion" defaultValue={i.presentacion ?? ""} maxLength={80}
-                    placeholder={i.tipo === "producto" ? "Presentación: marca y tamaño" : i.tipo === "empaque" ? "Empaque" : "Otro"} aria-label={`Presentación de ${i.nombre}`} />
-                </div>
-                <input className="admInput admInputEmoji" name="emoji" defaultValue={i.emoji} maxLength={8} aria-label={`Emoji de ${i.nombre}`} />
-                <button className="admLinkMuted" type="submit">Guardar</button>
-              </form>
-            </li>
-          ))}
-        </ul>
-        {listaInsumos.length === 0 && <p className="admEmpty">Registra productos en Producción e inventario.</p>}
       </section>
 
       <section className="admCard" id="tipos">

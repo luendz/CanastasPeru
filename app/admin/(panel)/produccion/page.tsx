@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { numero } from "@/lib/admin/format";
 import type { InventarioFila, OrdenItem } from "@/lib/admin/types";
-import { actualizarInsumo, crearInsumo } from "./actions";
+import { actualizarInsumo } from "./actions";
 
 export const metadata = { title: "Producción e inventario" };
 
@@ -34,7 +34,7 @@ export default async function ProduccionPage() {
         <div>
           <h1>Producción e inventario</h1>
           <p className="admMuted">
-            El stock suma las compras de producción ligadas a cada insumo y descuenta las canastas en preparación o entregadas.
+            El stock suma las compras registradas de cada producto y descuenta las canastas en preparación o entregadas.
             Lo “requerido” sale de los pedidos nuevos y pendientes.
           </p>
         </div>
@@ -58,14 +58,14 @@ export default async function ProduccionPage() {
         </section>
 
         <section className="admCard">
-          <div className="admCardHead"><h2>Lista de compras</h2><Link href="/admin/compras">Registrar compra →</Link></div>
+          <div className="admCardHead"><h2>Lista de compras</h2><Link href="/admin/compras/registrar">Registrar compra →</Link></div>
           {aComprar.length === 0 ? (
             <p className="admEmpty">El stock cubre todos los pedidos pendientes.</p>
           ) : (
             <table className="admTable admTableCompact">
-              <thead><tr><th>Insumo</th><th className="num">Falta comprar</th></tr></thead>
+              <thead><tr><th>Producto</th><th className="num">Falta comprar</th></tr></thead>
               <tbody>
-                {aComprar.map((f) => <tr key={f.insumo_id}><td>{f.nombre}</td><td className="num"><strong>{numero(f.faltante, 2).replace(/[.,]00$/, "")}</strong> <small className="admMuted">{f.unidad}</small></td></tr>)}
+                {aComprar.map((f) => <tr key={f.insumo_id}><td className="admCeldaLarga">{f.nombre}</td><td className="num"><strong>{numero(f.faltante, 2).replace(/[.,]00$/, "")}</strong> <small className="admMuted">{f.unidad}</small></td></tr>)}
               </tbody>
             </table>
           )}
@@ -73,13 +73,13 @@ export default async function ProduccionPage() {
       </div>
 
       <section className="admCard admCardFlush">
-        <div className="admCardHead admPad"><h2>Inventario de insumos</h2></div>
+        <div className="admCardHead admPad"><h2>Inventario de productos</h2><Link href="/admin/productos/nuevo">+ Añadir producto</Link></div>
         <table className="admTable">
-          <thead><tr><th>Insumo</th><th>Tipo</th><th className="num">Stock</th><th className="num">Requerido</th><th className="num">Queda</th><th>Estado</th><th>Stock inicial · mínimo</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Tipo</th><th className="num">Stock</th><th className="num">Requerido</th><th className="num">Queda</th><th>Estado</th><th>Stock inicial · mínimo</th></tr></thead>
           <tbody>
             {filas.map((f) => (
               <tr key={f.insumo_id}>
-                <td>{f.nombre}<small className="admMuted"> · {f.unidad}</small></td>
+                <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.insumo_id}`}>{f.nombre}</Link></td>
                 <td>{f.tipo === "producto" ? "Producto" : f.tipo === "empaque" ? "Empaque" : "Otro"}</td>
                 <td className="num">{numero(f.stock)}</td>
                 <td className="num">{numero(f.requerido)}</td>
@@ -99,18 +99,6 @@ export default async function ProduccionPage() {
         </table>
       </section>
 
-      <section className="admCard">
-        <h2>Nuevo insumo</h2>
-        <form action={crearInsumo} className="admInlineForm">
-          <label>Nombre<input className="admInput" name="nombre" required maxLength={120} placeholder="Ej. Chocolate Sublime" /></label>
-          <label>Unidad<input className="admInput" name="unidad" placeholder="unidad" maxLength={30} /></label>
-          <label>Tipo
-            <select className="admInput" name="tipo"><option value="producto">Producto</option><option value="empaque">Empaque</option><option value="otro">Otro</option></select>
-          </label>
-          <label>Stock mínimo<input className="admInput" type="number" name="stock_minimo" min="0" step="1" defaultValue={0} /></label>
-          <button className="admBtn" type="submit">Crear</button>
-        </form>
-      </section>
     </>
   );
 }

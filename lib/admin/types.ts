@@ -12,7 +12,30 @@ export const CANALES: { id: Canal; label: string }[] = [
 ];
 export const labelCanal = (id: string) => CANALES.find((c) => c.id === id)?.label ?? id;
 export type EstadoCotizacion = "pendiente" | "enviada" | "aprobada" | "rechazada";
-export type CategoriaCompra = "produccion" | "marketing";
+export type CategoriaCompra = "mercaderia" | "empaque" | "logistica" | "marketing" | "administrativos";
+
+/** Los 5 tipos de costo o gasto (Costos totales). */
+export const TIPOS_COSTO: { id: CategoriaCompra; label: string; ayuda: string }[] = [
+  { id: "mercaderia", label: "Costo de mercadería", ayuda: "Productos que van dentro de las canastas" },
+  { id: "empaque", label: "Empaque y presentación", ayuda: "Cestas, cajas, cintas, tarjetas" },
+  { id: "logistica", label: "Logística y movilidad", ayuda: "Delivery, taxis, fletes, combustible" },
+  { id: "marketing", label: "Marketing y ventas", ayuda: "Publicidad, diseño, fotos, comisiones" },
+  { id: "administrativos", label: "Gastos administrativos", ayuda: "Alquiler, servicios, contabilidad, sueldos" },
+];
+export const labelTipoCosto = (id: string) => TIPOS_COSTO.find((t) => t.id === id)?.label ?? id;
+
+export type TipoDocumento = "factura" | "boleta" | "recibo" | "nota_venta" | "sin_comprobante";
+export const TIPOS_DOCUMENTO: { id: TipoDocumento; label: string }[] = [
+  { id: "factura", label: "Factura" },
+  { id: "boleta", label: "Boleta" },
+  { id: "recibo", label: "Recibo por honorarios" },
+  { id: "nota_venta", label: "Nota de venta" },
+  { id: "sin_comprobante", label: "Sin comprobante" },
+];
+export const labelDocumento = (id: string) => TIPOS_DOCUMENTO.find((t) => t.id === id)?.label ?? id;
+
+/** Cómo viene el producto al comprarlo. */
+export const PRESENTACIONES = ["Unidad", "Paquete", "Caja", "Plancha", "Bolsa", "Six pack", "Docena", "Saco", "Fardo"];
 
 export type Orden = {
   id: string;
@@ -95,23 +118,45 @@ export type Compra = {
   fecha: string;
   categoria: CategoriaCompra;
   subcategoria: string | null;
+  tipo_documento: TipoDocumento;
+  comprobante: string | null;
   proveedor: string | null;
+  ruc_proveedor: string | null;
   descripcion: string;
   insumo_id: string | null;
+  presentacion: string;
+  cantidad_presentaciones: number;
+  unidades_por_presentacion: number;
+  precio_presentacion: number;
+  /** Unidades compradas (presentaciones × unidades por presentación). */
   cantidad: number;
   costo_unitario: number;
   total: number;
-  comprobante: string | null;
+  incluye_igv: boolean;
+  afecto_igv: boolean;
   notas: string | null;
   created_at: string;
 };
 
 export type Producto = { id: string; slug: string; nombre: string; categoria: string; precio: number; tipo_canasta_base: string; activo: boolean };
 export type TipoCanasta = { id: string; nombre: string; recargo: number };
-export type Insumo = { id: string; nombre: string; unidad: string; tipo: "producto" | "empaque" | "otro"; stock_inicial: number; stock_minimo: number };
+export type Insumo = {
+  id: string;
+  sku: string;
+  nombre: string;
+  categoria: string | null;
+  unidad: string;
+  tipo: "producto" | "empaque" | "otro";
+  presentacion_compra: string;
+  unidades_por_presentacion: number;
+  stock_inicial: number;
+  stock_minimo: number;
+  imagen: string | null;
+  emoji: string;
+};
 export type Receta = { producto_id: string; insumo_id: string; cantidad: number };
 export type CosteoCanasta = { producto_id: string; slug: string; nombre: string; precio: number; costo: number; margen: number; margen_pct: number | null; insumos_sin_costo: number };
-export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null };
+export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null; costo_actual: number | null };
 export type InventarioFila = { insumo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };
 
 export const ESTADOS_ORDEN: { id: EstadoOrden; label: string }[] = [
