@@ -65,6 +65,20 @@ export default async function HomePage() {
         </div>
       </HeroBanner>
 
+      {/* ¿Por qué elegir MKA? */}
+      <section className="hmSeccion shell">
+        <Titulo titulo={t.porQueTitulo} />
+        <Reveal as="ul" className="hmPorQue" threshold={0.15}>
+          {t.porQue.map((x, n) => (
+            <li key={n} data-reveal-item style={i(n)}>
+              <span className="hmIconoCirculo"><Icono nombre={ICONOS_POR_QUE[n % ICONOS_POR_QUE.length]} /></span>
+              <h3>{x.titulo}</h3>
+              <p>{x.texto}</p>
+            </li>
+          ))}
+        </Reveal>
+      </section>
+
       {/* ¿Qué estás buscando? */}
       <section className="hmSeccion shell">
         <Titulo titulo={t.tiposTitulo} etiqueta={t.tiposEtiqueta} />
@@ -86,6 +100,23 @@ export default async function HomePage() {
               </article>
             );
           })}
+        </Reveal>
+      </section>
+
+      {/* ¿Cómo comprar? */}
+      <section className="hmSeccion shell">
+        <Titulo titulo={t.comprarTitulo} />
+        <Reveal as="ol" className="hmPasos" threshold={0.15}>
+          {t.comprarPasos.map((p, n) => (
+            <li key={n} data-reveal-item style={i(n)}>
+              <div className="hmPasoCabeza">
+                <span className="hmPasoNum">{n + 1}</span>
+                <Icono nombre={ICONOS_COMPRA[n % ICONOS_COMPRA.length]} className="hmPasoIcono" />
+              </div>
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </li>
+          ))}
         </Reveal>
       </section>
 
@@ -119,37 +150,6 @@ export default async function HomePage() {
           </Reveal>
         </section>
       )}
-
-      {/* ¿Por qué elegir MKA? */}
-      <section className="hmSeccion shell">
-        <Titulo titulo={t.porQueTitulo} />
-        <Reveal as="ul" className="hmPorQue" threshold={0.15}>
-          {t.porQue.map((x, n) => (
-            <li key={n} data-reveal-item style={i(n)}>
-              <span className="hmIconoCirculo"><Icono nombre={ICONOS_POR_QUE[n % ICONOS_POR_QUE.length]} /></span>
-              <h3>{x.titulo}</h3>
-              <p>{x.texto}</p>
-            </li>
-          ))}
-        </Reveal>
-      </section>
-
-      {/* ¿Cómo comprar? */}
-      <section className="hmSeccion shell">
-        <Titulo titulo={t.comprarTitulo} />
-        <Reveal as="ol" className="hmPasos" threshold={0.15}>
-          {t.comprarPasos.map((p, n) => (
-            <li key={n} data-reveal-item style={i(n)}>
-              <div className="hmPasoCabeza">
-                <span className="hmPasoNum">{n + 1}</span>
-                <Icono nombre={ICONOS_COMPRA[n % ICONOS_COMPRA.length]} className="hmPasoIcono" />
-              </div>
-              <h3>{p.titulo}</h3>
-              <p>{p.texto}</p>
-            </li>
-          ))}
-        </Reveal>
-      </section>
 
       {/* Marcas que forman parte de nuestras canastas */}
       {t.marcas.length > 0 && (

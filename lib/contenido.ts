@@ -227,7 +227,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     tarjetaPrecio: 2,
     tarjetaTitulo: "Tarjeta navideña de dedicatoria",
     tarjetaTexto: "Agrega una tarjeta con una dedicatoria personalizada para tu regalo.",
-    tarjetaImagen: "",
+    tarjetaImagen: "/imgs_general/tarjeta-navidad.webp",
   },
   cotizacion: {
     etiqueta: "Ventas corporativas",
