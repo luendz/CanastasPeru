@@ -22,6 +22,7 @@ export const MEDIOS_DE_LA_WEB: Medio[] = [
   "/imgs_general/banner-1.webp",
   "/imgs_general/banner-2.webp",
   "/imgs_general/banner-3-v2.webp",
+  "/imgs_general/tarjeta-navidad.webp",
   "/imgs_general/marcas/logo-molitalia.webp",
   "/imgs_general/marcas/logo-sayon.webp",
   "/imgs_general/marcas/logo-costa.webp",
