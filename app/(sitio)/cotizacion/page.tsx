@@ -4,10 +4,23 @@ import QuoteForm from "@/components/QuoteForm";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
+import { fechasReparto } from "@/lib/entrega";
 
 export const metadata = { title: "Cotización para empresas" };
 
 const ICONOS_LADO: NombreIcono[] = ["regalo", "camion", "estrella"];
+
+/** Ícono según lo que dice cada punto (los textos se editan en el panel). */
+function iconoLado(texto: string, n: number): NombreIcono {
+  const t = texto.toLowerCase();
+  if (t.includes("presupuesto") || t.includes("precio")) return "grafico";
+  if (t.includes("atención") || t.includes("atencion") || t.includes("asesor")) return "persona";
+  if (t.includes("personaliz") || t.includes("logo") || t.includes("marca")) return "logo";
+  if (t.includes("propuesta") || t.includes("medida") || t.includes("cotiza")) return "documento";
+  if (t.includes("entrega") || t.includes("envío") || t.includes("delivery")) return "camion";
+  if (t.includes("calidad") || t.includes("producto")) return "regalo";
+  return ICONOS_LADO[n % ICONOS_LADO.length];
+}
 const ICONOS_PASO: NombreIcono[] = ["documento", "documento", "camion"];
 
 export default async function CotizacionPage() {
@@ -22,7 +35,7 @@ export default async function CotizacionPage() {
           <Brand marca={marca} />
           <p className="cotLadoTitulo">{t.ladoTitulo}</p>
           <ul>
-            {t.ladoPuntos.map((p, n) => <li key={n}><span><Icono nombre={ICONOS_LADO[n % ICONOS_LADO.length]} /></span>{p}</li>)}
+            {t.ladoPuntos.map((p, n) => <li key={n}><span><Icono nombre={iconoLado(p, n)} /></span>{p}</li>)}
           </ul>
           {/* Con imagen, la frase va dentro de la imagen de fondo. */}
           {t.ladoImagen ? (
@@ -50,7 +63,7 @@ export default async function CotizacionPage() {
               ))}
             </ol>
           </header>
-          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} />
+          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} fechas={fechasReparto(40)} />
         </div>
       </div>
     </section>

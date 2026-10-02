@@ -15,7 +15,6 @@ type Resumen = {
   lineas: { nombre: string; detalle: string; cantidad: number; precio: number }[];
   distrito: string;
   fecha: string;
-  horario: string;
   pago: string;
   comprobante: string;
   correo: string;
@@ -50,7 +49,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
   const total = r?.total ?? (totalUrl && Number.isFinite(Number(totalUrl)) ? Number(totalUrl) : null);
   const subtotal = r ? r.lineas.reduce((s, l) => s + l.precio * l.cantidad, 0) : 0;
   const delivery = r && total != null ? Math.max(0, total - subtotal) : 0;
-  const entrega = r ? [fechaLarga(r.fecha), r.horario].filter(Boolean).join(" · ") : "";
+  const entrega = r ? fechaLarga(r.fecha) : "";
 
   const pasos = [
     { label: "Pedido registrado", hint: numero ? `N.º ${numero}` : "", state: "done" },

@@ -20,6 +20,10 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
     ],
   },
   {
+    id: "anuncios", titulo: "Franja de anuncio", donde: "La franja sobre la cabecera, en todas las páginas.", ver: "/",
+    campos: [{ tipo: "texto", clave: "franja", etiqueta: "Texto de la franja", ayuda: "Vacío = no se muestra la franja." }],
+  },
+  {
     id: "portada", titulo: "Portada", donde: "La página de inicio, de arriba hacia abajo.", ver: "/",
     campos: [
       { tipo: "texto", clave: "heroEtiqueta", etiqueta: "Banner: etiqueta" },
@@ -31,11 +35,9 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "heroBoton1", etiqueta: "Banner: botón a canastas" },
       { tipo: "texto", clave: "heroBoton2", etiqueta: "Banner: botón a boxes" },
       { tipo: "lineas", clave: "heroPuntos", etiqueta: "Banner: puntos (3)" },
-      { tipo: "texto", clave: "porQueTitulo", etiqueta: "¿Por qué elegir MKA?: título" },
       { tipo: "filas", clave: "porQue", etiqueta: "¿Por qué elegir MKA?: razones", columnas: PASOS },
-      { tipo: "texto", clave: "tiposEtiqueta", etiqueta: "Tipos de canasta: texto sobre el título" },
-      { tipo: "texto", clave: "tiposTitulo", etiqueta: "Tipos de canasta: título", ayuda: "Los textos e imágenes de cada tipo se editan en la sección Catálogo." },
-      { tipo: "texto", clave: "comprarTitulo", etiqueta: "¿Cómo comprar?: título" },
+      { tipo: "texto", clave: "tiposEtiqueta", etiqueta: "Tipos de canasta: título", ayuda: "Los textos e imágenes de cada tipo se editan en la sección Catálogo." },
+      { tipo: "texto", clave: "comprarTitulo", etiqueta: "Pasos de compra: título" },
       { tipo: "filas", clave: "comprarPasos", etiqueta: "¿Cómo comprar?: pasos", columnas: PASOS },
       { tipo: "texto", clave: "corpEtiqueta", etiqueta: "Banner empresas: etiqueta" },
       { tipo: "texto", clave: "corpTitulo", etiqueta: "Banner empresas: título", ayuda: ENFASIS },
@@ -69,10 +71,6 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
     ],
   },
   {
-    id: "producto", titulo: "Página de producto", donde: "Beneficios bajo el botón de compra.", ver: "/catalogo",
-    campos: [{ tipo: "filas", clave: "beneficios", etiqueta: "Beneficios", columnas: PASOS }],
-  },
-  {
     id: "contacto", titulo: "Contacto", donde: "Pie de página, botón de WhatsApp y página Contacto.", ver: "/contacto",
     campos: [
       { tipo: "texto", clave: "telefono", etiqueta: "Teléfono / WhatsApp" },
@@ -85,9 +83,8 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
     ],
   },
   {
-    id: "checkout", titulo: "Pago y entrega", donde: "Horarios de entrega y métodos de pago del checkout.", ver: "/checkout",
+    id: "checkout", titulo: "Pago y entrega", donde: "Métodos de pago y tarjeta navideña del checkout.", ver: "/checkout",
     campos: [
-      { tipo: "filas", clave: "horarios", etiqueta: "Horarios de entrega", columnas: [{ clave: "nombre", etiqueta: "Nombre" }, { clave: "rango", etiqueta: "Horario" }] },
       { tipo: "filas", clave: "metodosPago", etiqueta: "Métodos de pago", columnas: [{ clave: "nombre", etiqueta: "Nombre" }, { clave: "detalle", etiqueta: "Detalle" }, { clave: "nota", etiqueta: "Nota al elegirlo", largo: true }] },
       { tipo: "texto", clave: "notaImpuestos", etiqueta: "Nota de impuestos", ayuda: "Aparece bajo los totales del carrito y el checkout." },
       { tipo: "numero", clave: "tarjetaPrecio", etiqueta: "Tarjeta navideña: precio (S/)", ayuda: "Se suma al pedido por cada tarjeta." },
@@ -115,7 +112,6 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "notaEntrega", etiqueta: "Nota bajo la dirección de entrega" },
       { tipo: "texto", clave: "pdfSubtitulo", etiqueta: "PDF: subtítulo del encabezado", ayuda: "Ej. Navidad 2026. Sale en la cotización y en la orden de pedido." },
       { tipo: "texto", clave: "pdfFormaPago", etiqueta: "PDF: forma de pago por defecto" },
-      { tipo: "texto", clave: "pdfHorarioEntrega", etiqueta: "PDF: horario de entrega por defecto" },
       { tipo: "lineas", clave: "pdfCondiciones", etiqueta: "PDF de cotización: condiciones y observaciones", ayuda: "Incluye aquí la cuenta bancaria." },
       { tipo: "lineas", clave: "pdfCondicionesOrden", etiqueta: "PDF de orden de pedido: condiciones y observaciones" },
     ],

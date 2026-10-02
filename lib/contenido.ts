@@ -19,7 +19,7 @@ export type LineaTexto = { titulo: string; texto: string; imagen: string };
 
 export type Contenido = {
   marca: { nombre: string; lema: string; logo: string; logoBlanco: string; icono: string };
-  anuncios: { mensajes: string[] };
+  anuncios: { mensajes: string[]; franja: string };
   portada: {
     heroEtiqueta: string;
     heroTitulo: string;
@@ -124,12 +124,12 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     logoBlanco: "/marca/mka-logo-blanco.webp",
     icono: "/marca/mka-icono-2026.png",
   },
-  anuncios: { mensajes: ["Envíos programados en Lima", "Atención a empresas", "Cotizaciones en 24 h"] },
+  anuncios: { mensajes: ["Envíos programados en Lima", "Atención a empresas", "Cotizaciones en 24 h"], franja: "🎁 Delivery gratis en pedidos mayores a 100 unidades" },
   portada: {
     heroEtiqueta: "Canastas y boxes navideños",
     heroTitulo: "Esta Navidad, *regala momentos.*",
     heroTexto: "Canastas y boxes navideños preparados para celebrar, agradecer y compartir.",
-    heroImagen: "/imgs_general/banner-1.webp",
+    heroImagen: "/imgs_general/banner-1-v2.webp",
     heroFondos: [{ imagen: "" }],
     heroBoton1: "Ver canastas",
     heroBoton2: "Ver boxes",
@@ -146,7 +146,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     tiposTitulo: "¿Qué estás buscando?",
     favoritosTitulo: "Nuestros favoritos",
     favoritosTexto: "Una selección de nuestras mejores opciones.",
-    comprarTitulo: "¿Cómo comprar?",
+    comprarTitulo: "Compra en 4 simples pasos",
     comprarPasos: [
       { titulo: "Elige", texto: "Selecciona tu canasta o box." },
       { titulo: "Confirma", texto: "Indícanos la cantidad y los datos de entrega." },
@@ -170,9 +170,14 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { nombre: "Nestlé", imagen: "/imgs_general/marcas/logo-nestle.webp" },
       { nombre: "Laive", imagen: "/imgs_general/marcas/logo-laive.webp" },
       { nombre: "Winter's", imagen: "/imgs_general/marcas/logo-winters.webp" },
-      { nombre: "Paisana", imagen: "/imgs_general/marcas/logo-paisana.webp" },
       { nombre: "Primor", imagen: "/imgs_general/marcas/logo-primor.webp" },
       { nombre: "Sol del Cusco", imagen: "/imgs_general/marcas/logo-sol-del-cusco.webp" },
+      { nombre: "Costeño", imagen: "/imgs_general/marcas/logo-costeno.webp" },
+      { nombre: "Santis", imagen: "/imgs_general/marcas/logo-santis.webp" },
+      { nombre: "Valle Norte", imagen: "/imgs_general/marcas/logo-valle-norte.webp" },
+      { nombre: "Bimbo", imagen: "/imgs_general/marcas/logo-bimbo.webp" },
+      { nombre: "Dulfina", imagen: "/imgs_general/marcas/logo-dulfina.webp" },
+      { nombre: "Queirolo", imagen: "/imgs_general/marcas/logo-queirolo.webp" },
     ],
     canalesTitulo: "Haz que esta Navidad sea especial",
     canalesTexto: "Encuentra la canasta o box ideal para regalar.",
@@ -207,7 +212,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   contacto: {
     ciudad: "Lima, Perú",
     correo: "ventas@canastasperu.pe",
-    telefono: "+51 999 999 999",
+    telefono: "913 196 780",
     horario: "Lunes a sábado de 9:00 a. m. a 7:30 p. m.",
     instagram: "",
     facebook: "",

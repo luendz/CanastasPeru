@@ -54,6 +54,7 @@ export async function guardarProducto(_prev: ProductoState, fd: FormData): Promi
     stock_inicial: Number(fd.get("stock_inicial")) || 0,
     imagen: img,
     emoji: txt(fd, "emoji", 8) || "📦",
+    costo_referencia: String(fd.get("costo_referencia") ?? "").trim() === "" ? null : Math.max(0, Number(fd.get("costo_referencia")) || 0),
   };
 
   const { data, error } = id

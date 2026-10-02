@@ -480,3 +480,28 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 @media (max-width: 860px) {
   .admKpisInicio, .admCostosResumen, .admGrid3, .admTotales3 { grid-template-columns: 1fr; }
 }
+
+/* Estado de pago en Próximas entregas */
+.admBadge[data-pago="pagado"] { background: #e3f3ea; color: #1d6b45; }
+.admBadge[data-pago="pendiente"] { background: #fbe7e4; color: #a12c2c; }
+
+/* Propuesta: composición editable, buscador y costeo */
+.admLineaCampos:has(> label:nth-child(3):last-child) { grid-template-columns: 1.6fr 1.1fr .7fr; }
+.admComposicion { gap: 10px; }
+.admComposicion legend { display: flex; align-items: center; gap: 8px; }
+.admChipAviso { background: #fff1d6; color: #8a5a00; }
+.admTablaComposicion { font-size: 13px; }
+.admTablaComposicion td, .admTablaComposicion th { padding: 6px 8px; }
+.admInputCorto { width: 96px; padding: 6px 8px; text-align: right; }
+.admBuscador { position: relative; }
+.admBuscadorLista { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px); max-height: 280px; overflow-y: auto; margin: 0; padding: 6px; list-style: none; border: 1px solid var(--a-line); border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(36, 25, 21, .14); }
+.admBuscadorLista li { padding: 4px 6px; }
+.admBuscadorLista button { width: 100%; display: flex; justify-content: space-between; gap: 12px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--a-ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.admBuscadorLista button:hover, .admBuscadorLista button:focus-visible { background: #f6efe4; }
+.admBuscadorLista small { color: var(--a-muted); white-space: nowrap; }
+.admCosteoLinea { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--a-line); border-radius: 12px; background: #fbf8f2; }
+.admCosteoFila { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 0; color: var(--a-ink) !important; font-size: 13.5px !important; font-weight: 600 !important; }
+.admCosteoFila + .admCosteoFila { border-top: 1px dashed var(--a-line); }
+.admCosteoFila.admFilaFuerte { font-weight: 800 !important; }
+.admCosteoSugerido { display: inline-flex; align-items: center; gap: 10px; }
+.admNegativo { color: #a12c2c; }

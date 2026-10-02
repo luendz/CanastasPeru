@@ -26,28 +26,32 @@ export default function CatalogoLineas({ products, textos, lineas, actual, cabec
   });
   // Canastas con una categoría fuera de las líneas: se muestran al final para no perderlas.
   const otras = !actual ? products.filter((p) => !lineaDe(p)) : [];
-  const conPestanas = actual !== "boxes";
+  const esBoxes = actual === "boxes";
 
   return (
     <>
-      <section className="catalogHero">
-        <div className="shell catalogHeroInner">
-          <div>
-            <span className="eyebrow">{cabecera.etiqueta}</span>
-            <h1><SplitWords text={cabecera.titulo} immediate /></h1>
+      {/* En Canastas se va directo a las canastas; la cabecera grande queda solo en Boxes. */}
+      {esBoxes ? (
+        <section className="catalogHero">
+          <div className="shell catalogHeroInner">
+            <div>
+              <span className="eyebrow">{cabecera.etiqueta}</span>
+              <h1><SplitWords text={cabecera.titulo} immediate /></h1>
+            </div>
+            <p>{cabecera.texto}</p>
           </div>
-          <p>{cabecera.texto}</p>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <h1 className="srOnly">{cabecera.titulo.replace(/\*/g, "")}</h1>
+      )}
 
-      <section className="shell catalogBody">
-        {conPestanas && (
+      <section className={esBoxes ? "shell catalogBody" : "shell catalogBody catalogBodyDirecto"}>
+        {!esBoxes && (
           <nav className="chipRow lineasTabs" aria-label="Líneas de canastas">
             <Link className="chip" href="/canastas" aria-current={!actual ? "page" : undefined}>Todas</Link>
             {LINEAS.filter((l) => l.id !== "boxes").map((l) => (
               <Link key={l.id} className="chip" href={`/canastas/${l.id}`} aria-current={actual === l.id ? "page" : undefined}>{l.titulo}</Link>
             ))}
-            <Link className="chip" href="/boxes">Boxes navideños</Link>
           </nav>
         )}
 

@@ -14,7 +14,7 @@ type Props = {
   validaHasta: string | null;
   notas: string | null;
   extra: { asesor: string | null; forma_pago: string | null; horario_entrega: string | null; distrito: string | null };
-  porDefecto: { formaPago: string; horarioEntrega: string };
+  porDefecto: { formaPago: string };
   cliente: { contacto: string; telefono: string | null; email: string | null };
   resumen: { unidades: number; total: number };
   marca: string;
@@ -125,9 +125,6 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
         </label>
         <label>Forma de pago
           <input className="admInput" name="forma_pago" maxLength={200} value={valores.forma_pago} onChange={(e) => setValores({ ...valores, forma_pago: e.target.value })} placeholder={porDefecto.formaPago} />
-        </label>
-        <label>Horario de entrega
-          <input className="admInput" name="horario_entrega" maxLength={120} value={valores.horario_entrega} onChange={(e) => setValores({ ...valores, horario_entrega: e.target.value })} placeholder={porDefecto.horarioEntrega} />
         </label>
         <label>Notas internas
           <textarea className="admInput" name="notas" rows={3} value={valores.notas} onChange={(e) => setValores({ ...valores, notas: e.target.value })} />

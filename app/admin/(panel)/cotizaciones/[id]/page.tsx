@@ -9,7 +9,7 @@ import ConfirmButton from "../../ConfirmButton";
 import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
 import EditarDatos from "../../EditarDatos";
 import { editarDatosCotizacion } from "../actions";
-import AgregarLinea from "./AgregarLinea";
+import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
 
 export const metadata = { title: "Cotización" };
@@ -18,15 +18,17 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const { supabase } = await requireAdmin();
   const { id } = await params;
 
-  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido] = await Promise.all([
+  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
     supabase.from("productos").select("*").order("precio"),
     supabase.from("tipos_canasta").select("*").order("recargo"),
     supabase.from("ordenes").select("id,numero").eq("cotizacion_id", id).maybeSingle(),
-    supabase.from("insumos").select("id,nombre").eq("tipo", "producto").order("nombre"),
+    supabase.from("insumos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
     productosPorCanasta(supabase),
     getContenido(),
+    supabase.from("recetas").select("producto_id,insumo_id,cantidad,insumos!inner(tipo)").eq("insumos.tipo", "producto"),
+    supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
   ]);
   if (!cot) notFound();
   const c = cot as Cotizacion;
@@ -34,6 +36,25 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const total = lineas.reduce((s, it) => s + Number(it.subtotal), 0);
   const unidades = lineas.reduce((s, it) => s + it.cantidad, 0);
   const editable = c.estado !== "aprobada";
+
+  // Costo unitario: el de la última compra; si no hay compras, el de referencia.
+  const costoCompra = new Map(((costos ?? []) as { insumo_id: string; costo_actual: number | null }[]).map((x) => [x.insumo_id, x.costo_actual]));
+  const productosCosteo = ((insumos ?? []) as { id: string; nombre: string; costo_referencia: number | null }[]).map((i) => {
+    const costo = costoCompra.get(i.id) ?? i.costo_referencia;
+    return { id: i.id, nombre: i.nombre, costo: costo == null ? null : Number(costo) };
+  });
+  const recetaDe = new Map<string, { insumo_id: string; cantidad: number }[]>();
+  for (const r of (recetas ?? []) as { producto_id: string; insumo_id: string; cantidad: number }[]) {
+    recetaDe.set(r.producto_id, [...(recetaDe.get(r.producto_id) ?? []), { insumo_id: r.insumo_id, cantidad: Number(r.cantidad) }]);
+  }
+  const canastas: CanastaOpcion[] = ((productos ?? []) as Producto[]).map((p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    precio: Number(p.precio),
+    tipoBase: p.tipo_canasta_base,
+    costoPresentacion: p.costo_presentacion == null ? null : Number(p.costo_presentacion),
+    receta: recetaDe.get(p.id) ?? [],
+  }));
 
   const dato = (label: string, value: React.ReactNode) => <div><dt>{label}</dt><dd>{value || "—"}</dd></div>;
 
@@ -133,9 +154,9 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               <AgregarLinea
                 cotizacionId={c.id}
                 cantidadInicial={c.cantidad_estimada ?? 20}
-                productos={((productos ?? []) as Producto[]).map((p) => ({ id: p.id, nombre: p.nombre, precio: Number(p.precio), productos: (trae.get(p.id) ?? []).map(etiquetaProducto) }))}
-                envases={((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre }))}
-                insumos={(insumos ?? []) as { id: string; nombre: string }[]}
+                canastas={canastas}
+                envases={((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre, recargo: Number(t.recargo) }))}
+                productos={productosCosteo}
               />
             )}
           </section>
@@ -153,7 +174,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                 validaHasta={c.valida_hasta}
                 notas={c.notas}
                 extra={{ asesor: c.asesor, forma_pago: c.forma_pago, horario_entrega: c.horario_entrega, distrito: c.distrito }}
-                porDefecto={{ formaPago: contenido.cotizacion.pdfFormaPago, horarioEntrega: contenido.cotizacion.pdfHorarioEntrega }}
+                porDefecto={{ formaPago: contenido.cotizacion.pdfFormaPago }}
                 cliente={{ contacto: c.contacto, telefono: c.telefono, email: c.email }}
                 resumen={{ unidades, total }}
                 marca={contenido.marca.nombre}

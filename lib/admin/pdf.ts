@@ -19,7 +19,7 @@ export type DatosPdfCotizacion = {
   items: Linea[];
   marca: Marca;
   contacto: Contacto;
-  textos: { subtitulo: string; formaPago: string; horarioEntrega: string; condiciones: string[] };
+  textos: { subtitulo: string; formaPago: string; condiciones: string[] };
 };
 
 export type DatosPdfOrden = {
@@ -139,7 +139,7 @@ async function documentoComercial(d: Documento) {
   const M = 16;
   const ancho = W - 2 * M;
   const finY = () => (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-  const base = { font: "helvetica", fontSize: 9, textColor: TINTA, lineColor: LINEA, lineWidth: 0.2, cellPadding: { top: 3.2, bottom: 3.2, left: 4.5, right: 4.5 } };
+  const base = { font: "helvetica", fontSize: 9, textColor: TINTA, lineColor: LINEA, lineWidth: 0.2, cellPadding: { top: 2.1, bottom: 2.1, left: 4, right: 4 } };
 
   // Encabezado: logo · marca · bloque con el número.
   const altoCab = 30;
@@ -159,7 +159,7 @@ async function documentoComercial(d: Documento) {
   doc.setFont("helvetica", "bold").setFontSize(11).setTextColor(255, 255, 255).text(d.titulo, M + col * 2.5, 24.5, { align: "center" });
   doc.setFontSize(13).text(d.numero, M + col * 2.5, 32, { align: "center" });
 
-  let y = 12 + altoCab + 8;
+  let y = 12 + altoCab + 6;
 
   // Franja de estado: el pago salta a la vista para el área de producción.
   if (d.estado) {
@@ -174,14 +174,14 @@ async function documentoComercial(d: Documento) {
     doc.text("ENTREGA", M + 60, y + 5);
     doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(...TINTA).text(d.estado.pedido, M + 4.5, y + 10.2);
     doc.text(d.estado.entrega, M + 60, y + 10.2);
-    y += alto + 7;
+    y += alto + 5;
   }
 
   const barra = (titulo: string) => {
     if (y > H - 40) { doc.addPage(); y = 20; }
-    doc.setFillColor(...PINO).rect(M, y, ancho, 8, "F");
-    doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(255, 255, 255).text(titulo, M + 4.5, y + 5.4);
-    y += 11;
+    doc.setFillColor(...PINO).rect(M, y, ancho, 7, "F");
+    doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(255, 255, 255).text(titulo, M + 4.5, y + 4.9);
+    y += 8.5;
   };
   const cuadricula = (datos: Dato[]) => {
     const filas: string[][] = [];
@@ -202,7 +202,7 @@ async function documentoComercial(d: Documento) {
         2: { fillColor: CREMA, cellWidth: 40, textColor: GRIS },
       },
     });
-    y = finY() + 9;
+    y = finY() + 6;
   };
 
   barra("DATOS DEL CLIENTE");
@@ -226,10 +226,10 @@ async function documentoComercial(d: Documento) {
     y = finY();
     if (it.productos?.length) {
       autoTable(doc, {
-        startY: y + 3,
+        startY: y + 2,
         margin: { left: M, right: M },
         theme: "grid",
-        styles: { ...base, fontSize: 8.8, cellPadding: { top: 2.4, bottom: 2.4, left: 4.5, right: 4.5 }, lineColor: [226, 206, 150] },
+        styles: { ...base, fontSize: 8.8, cellPadding: { top: 1.5, bottom: 1.5, left: 4, right: 4 }, lineColor: [226, 206, 150] },
         headStyles: { fillColor: ORO, textColor: 255, fontStyle: "bold", halign: "center" },
         head: [["N.º", "PRODUCTO / PRESENTACIÓN", "CANT. POR CANASTA"]],
         body: it.productos.map((p, j) => [String(j + 1), p.nombre, String(p.cantidad)]),
@@ -238,7 +238,7 @@ async function documentoComercial(d: Documento) {
       });
       y = finY();
     }
-    y += 9;
+    y += 6;
   });
 
   // Totales.
@@ -260,21 +260,21 @@ async function documentoComercial(d: Documento) {
       }
     },
   });
-  y = finY() + 6;
+  y = finY() + 5;
   doc.setFont("helvetica", "italic").setFontSize(8.5).setTextColor(...GRIS);
   doc.text(`Son: ${montoEnLetras(d.total)}.`, W - M, y, { align: "right" });
-  y += 8;
+  y += 6.5;
 
   // Notas, sin recuadro.
   if (d.notas.length) {
     doc.setFont("helvetica", "normal").setFontSize(8.8).setTextColor(...TINTA);
     for (const n of d.notas) {
       const lineas = doc.splitTextToSize(n, ancho);
-      if (y + lineas.length * 4.5 > H - 25) { doc.addPage(); y = 20; }
+      if (y + lineas.length * 4.2 > H - 25) { doc.addPage(); y = 20; }
       doc.text(lineas, M, y);
-      y += lineas.length * 4.5 + 1.5;
+      y += lineas.length * 4.2 + 1;
     }
-    y += 5;
+    y += 3;
   }
 
   if (d.condiciones.length) {
@@ -283,12 +283,12 @@ async function documentoComercial(d: Documento) {
       startY: y - 3,
       margin: { left: M, right: M },
       theme: "plain",
-      styles: { ...base, fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 5, right: 5 } },
+      styles: { ...base, fontSize: 9, cellPadding: { top: 1.4, bottom: 1.4, left: 5, right: 5 } },
       body: d.condiciones.map((t) => [`•  ${t}`]),
       tableLineColor: LINEA,
       tableLineWidth: 0.2,
     });
-    y = finY() + 10;
+    y = finY() + 8;
   }
 
   // Firmas.
@@ -341,7 +341,7 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     detalles: [
       ["Fecha", fechaCorta(new Date().toISOString())], ["Vigencia", c.valida_hasta ? `Hasta el ${fechaCorta(c.valida_hasta)}` : null],
       ["Asesor comercial", c.asesor], ["Forma de pago", c.forma_pago || textos.formaPago],
-      ["Fecha de entrega", c.fecha_requerida ? fechaCorta(c.fecha_requerida) : "Por coordinar"], ["Horario de entrega", c.horario_entrega || textos.horarioEntrega],
+      ["Fecha de entrega", c.fecha_requerida ? fechaCorta(c.fecha_requerida) : "Por coordinar"],
     ],
     items,
     totales: [["SUBTOTAL", valor], ["IGV (18 %)", igv]],
@@ -374,13 +374,13 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
       // Las órdenes que vienen de una cotización guardan "Contacto · Empresa".
       ["Contacto", cotizacion ? o.cliente_nombre.split(" · ")[0] : o.cliente_nombre], ["Cargo", cotizacion?.cargo],
       ["Teléfono / WhatsApp", o.cliente_telefono], ["Correo", o.cliente_email],
-      ["Dirección de entrega", direccion], ["Ciudad / Distrito", o.distrito || cotizacion?.distrito],
+      ["Ciudad / Distrito", o.distrito || cotizacion?.distrito],
       ...(factura && o.direccion_fiscal ? ([["Dirección fiscal", o.direccion_fiscal]] as Dato[]) : []),
     ],
     tituloDetalles: "DETALLES DE LA ORDEN DE PEDIDO",
     detalles: [
       ["Fecha", fechaCorta(o.created_at)], ["Fecha de entrega", o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar"],
-      ["Asesor comercial", cotizacion?.asesor], ["Horario de entrega", o.horario],
+      ["Asesor comercial", cotizacion?.asesor], ["Lugar de entrega", direccion],
       ["Forma de pago", o.metodo_pago || cotizacion?.forma_pago], ["Estado de pago", o.estado_pago === "pagado" ? "Pagado" : "Pendiente"],
       ["Comprobante", factura ? "Factura" : "Boleta"], ["Recibe", recibe],
       ...(cotizacion ? ([["Cotización", cotizacion.numero]] as Dato[]) : []),
@@ -396,6 +396,7 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     etiquetaTotal: `TOTAL${unidades ? ` · ${unidades} canastas` : ""}`,
     notas: [
       `* Se emitirá ${factura ? "factura" : "boleta"} con los datos colocados en esta orden de pedido.`,
+      `* La ${factura ? "factura" : "boleta"} se le enviará por WhatsApp o correo electrónico.`,
       ...(o.dedicatoria ? [`Dedicatoria para la tarjeta: “${o.dedicatoria}”`] : []),
     ],
     condiciones: textos.condiciones,
@@ -404,7 +405,7 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     estado: {
       pagado: o.estado_pago === "pagado",
       pedido: labelEstado(o.estado),
-      entrega: [o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar", o.horario?.split(" · ").pop()].filter(Boolean).join(" · "),
+      entrega: o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar",
     },
     archivo: nombreArchivo("Orden", o.numero, o.comprobante_nombre || o.cliente_nombre),
   });

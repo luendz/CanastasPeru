@@ -25,6 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="priceRow">
           <strong>{formatPrice(product.price)}</strong>
           {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}
+          <small className="igvNota">Incluido IGV</small>
         </div>
         <Link className="btn btnDark full" href={`/producto/${product.slug}`}>Ver producto</Link>
       </div>

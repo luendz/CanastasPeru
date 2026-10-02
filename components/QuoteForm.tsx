@@ -4,12 +4,15 @@ import { useActionState, useState } from "react";
 import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
 import Icono, { type NombreIcono } from "@/components/Icono";
 import type { Contenido } from "@/lib/contenido";
+import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, fechaReparto } from "@/lib/entrega";
 import { LINEAS } from "@/lib/lineas";
 
 type Props = {
   opciones: Pick<Contenido["cotizacion"], "cantidades" | "presupuestos" | "personalizacion" | "notaEntrega">;
   lineas: Contenido["catalogo"]["lineas"];
   distritos: string[];
+  /** Días de reparto disponibles (martes, jueves y sábados, desde hoy + 5 días). */
+  fechas: string[];
 };
 
 const ICONOS_PERSONALIZACION: NombreIcono[] = ["logo", "lazo", "tarjeta", "caja"];
@@ -27,7 +30,7 @@ function Seccion({ n, titulo, nota, children }: { n: number; titulo: string; not
   );
 }
 
-export default function QuoteForm({ opciones, lineas, distritos }: Props) {
+export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props) {
   const cantidades = opciones.cantidades;
   const [tipos, setTipos] = useState<string[]>([]);
   const [cantidad, setCantidad] = useState<number | "">("");
@@ -121,7 +124,13 @@ export default function QuoteForm({ opciones, lineas, distritos }: Props) {
 
       <Seccion n={3} titulo="¿Dónde y cuándo debemos entregar?">
         <div className="cotGrid">
-          <label>Fecha requerida *<input className="input" name="fecha_requerida" type="date" required /></label>
+          <label>Fecha requerida *
+            <select className="select" name="fecha_requerida" required defaultValue="">
+              <option value="" disabled>Elige un día de reparto</option>
+              {fechas.map((f) => <option key={f} value={f}>{fechaReparto(f)}</option>)}
+            </select>
+            <small className="cotAyuda">Repartimos {DIAS_REPARTO_TEXTO}, con {DIAS_ANTICIPACION} días de anticipación como mínimo.</small>
+          </label>
           <label>Dirección de entrega *<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Calle / Jr. / Número" required maxLength={220} /></label>
           <label>Distrito *
             <select className="select" name="distrito" required defaultValue="">

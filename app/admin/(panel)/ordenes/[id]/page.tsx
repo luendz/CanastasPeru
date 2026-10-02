@@ -58,7 +58,6 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
               { clave: "comprobante_nombre", etiqueta: "Nombre / Razón social", max: 200 },
               { clave: "direccion_fiscal", etiqueta: "Dirección fiscal (factura)", ancho: true, max: 300 },
               { clave: "fecha_entrega", etiqueta: "Fecha de entrega", tipo: "fecha" },
-              { clave: "horario", etiqueta: "Horario", max: 60 },
               { clave: "distrito", etiqueta: "Distrito", max: 80 },
               { clave: "direccion", etiqueta: "Dirección de entrega", max: 300 },
               { clave: "referencia", etiqueta: "Referencia", ancho: true, max: 300 },
@@ -89,7 +88,6 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
             <h2>Detalles de entrega</h2>
             <dl className="admDl">
               {dato("Fecha de entrega", fecha(o.fecha_entrega))}
-              {dato("Horario", o.horario)}
               {dato("Distrito", o.distrito)}
               {dato("Dirección", o.direccion)}
               {dato("Referencia", o.referencia)}

@@ -138,7 +138,7 @@ export type Compra = {
   created_at: string;
 };
 
-export type Producto = { id: string; slug: string; nombre: string; categoria: string; precio: number; tipo_canasta_base: string; activo: boolean };
+export type Producto = { id: string; slug: string; nombre: string; categoria: string; precio: number; tipo_canasta_base: string; activo: boolean; costo_presentacion?: number | null };
 export type TipoCanasta = { id: string; nombre: string; recargo: number };
 export type Insumo = {
   id: string;
@@ -153,6 +153,7 @@ export type Insumo = {
   stock_minimo: number;
   imagen: string | null;
   emoji: string;
+  costo_referencia: number | null;
 };
 export type Receta = { producto_id: string; insumo_id: string; cantidad: number };
 export type CosteoCanasta = {

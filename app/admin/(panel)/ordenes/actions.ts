@@ -97,7 +97,6 @@ export async function editarDatosOrden(_prev: EstadoEdicion, fd: FormData): Prom
       direccion: campo(fd, "direccion", 300),
       referencia: campo(fd, "referencia", 300),
       fecha_entrega: campo(fd, "fecha_entrega", 10),
-      horario: campo(fd, "horario", 60),
       recibe_nombre: campo(fd, "recibe_nombre", 160),
       recibe_telefono: campo(fd, "recibe_telefono", 40),
     })
