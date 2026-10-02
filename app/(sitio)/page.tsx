@@ -82,7 +82,7 @@ export default async function HomePage() {
       <section className="hmSeccion shell">
         <Titulo titulo={t.tiposEtiqueta} />
         <Reveal className="hmTipos" threshold={0.1}>
-          {LINEAS.filter((l) => l.id !== "boxes").map((l, n) => {
+          {LINEAS.map((l, n) => {
             const texto = catalogo.lineas[n] ?? { titulo: l.titulo, texto: "", imagen: "" };
             const muestra = productosDe(products, l.id)[0];
             const href = l.id === "boxes" ? "/boxes" : `/canastas/${l.id}`;

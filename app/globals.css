@@ -666,7 +666,7 @@ del { color: #a99a8e; font-size: 13px; }
 .hmIconoCirculo { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #f7ebe3; color: var(--wine); }
 .hmIconoCirculo .icono { width: 30px; height: 30px; }
 
-.hmTipos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.hmTipos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .hmTipo { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--white); box-shadow: 0 10px 30px rgba(74, 15, 25, .06); transition: transform .25s ease, box-shadow .25s ease; }
 .hmTipo:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .hmTipoImg { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: grid; place-items: center; background: linear-gradient(180deg, #f6ead3, #fbf6ee); }
