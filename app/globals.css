@@ -1083,3 +1083,21 @@ del { color: #a99a8e; font-size: 13px; }
   .headerActions { gap: 6px; }
   .brandLogo { height: 40px; }
 }
+
+/* Compra en 4 simples pasos: sin fondo detrás de los círculos */
+.hmPasosCirculos { background: transparent; padding-inline: 0; }
+.hmPasosCirculos li { min-width: 0; }
+.hmPasoCirculo { width: 100%; max-width: 220px; }
+
+/* Banner principal: el difuminado es solo un halo pequeño detrás del texto */
+.hbBanner[data-con-imagen] .hbVelo { display: none; }
+.hbBanner[data-con-imagen] .hbTexto { position: relative; isolation: isolate; justify-self: start; width: fit-content; max-width: 600px; }
+/* Halo: de arriba abajo del banner (se pasa de largo en alto y el banner, con overflow: hidden, lo recorta),
+   centrado sobre el texto y con ancho total fijo según la pantalla; por debajo de 980 px, el ancho del texto. */
+.hbBanner[data-con-imagen] .hbTexto::before { content: ""; position: absolute; z-index: -1; top: -700px; bottom: -700px; left: 50%; width: var(--halo-ancho, 100%); translate: -50% 0; background: rgba(251, 246, 238, .84); filter: blur(30px); }
+@media (min-width: 980px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 458px; } }
+@media (min-width: 1000px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 625px; } }
+@media (min-width: 1300px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 700px; } }
+@media (min-width: 1440px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 775px; } }
+@media (min-width: 1920px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 875px; } }
+.hbBanner[data-con-imagen] .hmPuntos li { color: var(--ink); }
