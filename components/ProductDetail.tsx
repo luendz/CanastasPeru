@@ -13,7 +13,7 @@ function deltaLabel(delta: number) {
   return delta > 0 ? `+ ${formatPrice(delta)}` : `− ${formatPrice(Math.abs(delta))}`;
 }
 
-export default function ProductDetail({ product, basketTypes, beneficios }: { product: Product; basketTypes: BasketType[]; beneficios: { titulo: string; texto: string }[] }) {
+export default function ProductDetail({ product, basketTypes }: { product: Product; basketTypes: BasketType[] }) {
   const ownBasket = findBasketType(basketTypes, product);
   const [selected, setSelected] = useState<BasketType>(ownBasket);
   const [qty, setQty] = useState(1);
@@ -53,6 +53,7 @@ export default function ProductDetail({ product, basketTypes, beneficios }: { pr
         <div className="detailPrice" style={{ "--i": 3 } as React.CSSProperties}>
           <strong><AnimatedPrice value={unitPrice} /></strong>
           {savings > 0 && <><del>{formatPrice(product.oldPrice!)}</del><span className="saveTag">Ahorras {formatPrice(savings)}</span></>}
+          <small className="igvNota">Incluido IGV</small>
         </div>
         {delta !== 0 && <p className="basketNote">{delta > 0 ? `Incluye ${formatPrice(delta)} por la ${selected.label.toLowerCase()}.` : `Descuenta ${formatPrice(Math.abs(delta))} por la ${selected.label.toLowerCase()}.`}</p>}
 
@@ -74,7 +75,7 @@ export default function ProductDetail({ product, basketTypes, beneficios }: { pr
         </div>
 
         <fieldset className="basketPicker" style={{ "--i": 5 } as React.CSSProperties}>
-          <legend><span className="stepNum">1</span> Elige la canasta</legend>
+          <legend><span className="stepNum">1</span> Elige el envase</legend>
           <div className="basketGrid">
             {basketTypes.map((type) => (
               <label className="basketOption" key={type.id}>
@@ -102,6 +103,7 @@ export default function ProductDetail({ product, basketTypes, beneficios }: { pr
             <div className="buyTotal">
               <span className="buyLabel">Total</span>
               <strong><AnimatedPrice value={unitPrice * qty} /></strong>
+              <small className="igvNota">Incluido IGV</small>
             </div>
           </div>
           <button type="button" className="btn btnPrimary full addBtn" data-added={added || undefined} onClick={addToCart}>
@@ -115,11 +117,6 @@ export default function ProductDetail({ product, basketTypes, beneficios }: { pr
           {qty >= 10 && <p className="volumeHint">¿Más de 10? <Link href="/cotizacion">Pide precio por volumen →</Link></p>}
         </div>
 
-        <ul className="perks" style={{ "--i": 7 } as React.CSSProperties}>
-          {beneficios.map((b, i) => (
-            <li key={`${b.titulo}-${i}`}><span aria-hidden="true">✦</span><div><strong>{b.titulo}</strong><small>{b.texto}</small></div></li>
-          ))}
-        </ul>
       </div>
     </>
   );

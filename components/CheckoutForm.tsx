@@ -9,6 +9,7 @@ import type { DeliveryZone } from "@/lib/catalogo";
 import type { Contenido } from "@/lib/contenido";
 import { lineasCarrito } from "@/components/CartView";
 import { useCarrito } from "@/lib/carrito";
+import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis, fechaReparto } from "@/lib/entrega";
 import { formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
@@ -20,12 +21,12 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones }: { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"] }) {
-  // Horarios y métodos de pago se editan en Panel → Contenido → Checkout.
-  const timeSlots = opciones.horarios.map((h, i) => ({ id: String(i), label: h.nombre, hint: h.rango }));
+type Props = { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"]; fechas: string[] };
+
+export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones, fechas }: Props) {
+  // Los métodos de pago se editan en Panel → Contenido → Checkout.
   const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota }));
   const [district, setDistrict] = useState("");
-  const [slot, setSlot] = useState("0");
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
   const [pay, setPay] = useState("0");
@@ -36,10 +37,12 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
   const tarjetas = c.tarjetas.activa ? c.tarjetas.cantidad : 0;
   const totalTarjetas = tarjetas * opciones.tarjetaPrecio;
   const subtotal = lines.reduce((sum, l) => sum + l.precio * l.cantidad, 0) + totalTarjetas;
-  const fee = deliveryZones.find((z) => z.district === district)?.fee;
+  // Más de 100 canastas: delivery gratis (la base aplica la misma regla).
+  const gratis = deliveryGratis(units);
+  const tarifa = deliveryZones.find((z) => z.district === district)?.fee;
+  const fee = tarifa === undefined ? undefined : gratis ? 0 : tarifa;
   const total = subtotal + (fee ?? 0);
   const payNote = payMethods.find((m) => m.id === pay)?.note;
-  const slotInfo = timeSlots.find((s) => s.id === slot);
   const [state, action, pending] = useActionState<CheckoutState, FormData>(crearPedido, {});
 
   return (
@@ -48,7 +51,6 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, tipo_canasta: l.tipo.id, cantidad: l.cantidad })))} />
         <input type="hidden" name="tarjetas" value={tarjetas} />
         <input type="hidden" name="dedicatoria" value={tarjetas ? c.tarjetas.dedicatoria : ""} />
-        <input type="hidden" name="horario" value={slotInfo ? `${slotInfo.label} · ${slotInfo.hint}` : ""} />
         <input type="hidden" name="metodo_pago" value={payMethods.find((m) => m.id === pay)?.label ?? ""} />
         <input type="hidden" name="comprobante" value={doc} />
         <Section n={1} title="Datos de contacto" hint="Te enviaremos la confirmación y el seguimiento del pedido.">
@@ -60,30 +62,25 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           </div>
         </Section>
 
-        <Section n={2} title="Entrega" hint="¿Dónde y cuándo llevamos las canastas?">
+        <Section n={2} title="Entrega" hint={`Repartimos ${DIAS_REPARTO_TEXTO}, con ${DIAS_ANTICIPACION} días de anticipación para preparar tu pedido.`}>
           <div className="formGrid">
             <label>Distrito
               <select className="select" name="distrito" value={district} onChange={(e) => setDistrict(e.target.value)} required>
                 <option value="">Selecciona distrito</option>
-                {deliveryZones.map((z) => <option key={z.district} value={z.district}>{z.district} · {formatPrice(z.fee)}</option>)}
+                {deliveryZones.map((z) => <option key={z.district} value={z.district}>{z.district} · {gratis ? "Gratis" : formatPrice(z.fee)}</option>)}
               </select>
             </label>
-            <label>Fecha de entrega<input className="input" name="fecha_entrega" type="date" /></label>
+            <label>Fecha de entrega
+              <select className="select" name="fecha_entrega" required defaultValue="">
+                <option value="" disabled>Elige un día de reparto</option>
+                {fechas.map((f) => <option key={f} value={f}>{fechaReparto(f)}</option>)}
+              </select>
+            </label>
             <label className="wide">Dirección<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Jr. / Calle, número, dpto." maxLength={300} /></label>
             <label className="wide">Referencia<input className="input" name="referencia" placeholder="Frente al parque, portón negro…" maxLength={300} /></label>
           </div>
 
-          <fieldset className="fieldGroup">
-            <legend>Horario</legend>
-            <div className="choiceGrid choiceGrid3">
-              {timeSlots.map((s) => (
-                <label className="choice" key={s.id}>
-                  <input type="radio" name="slot" checked={slot === s.id} onChange={() => setSlot(s.id)} />
-                  <span><strong>{s.label}</strong><small>{s.hint}</small></span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <p className="entregaNota">{gratis ? "🎁 Tu pedido tiene delivery gratis." : `🎁 Delivery gratis en pedidos de más de ${UNIDADES_DELIVERY_GRATIS} canastas.`}</p>
 
           <label className="toggleRow">
             <input type="checkbox" checked={otherReceiver} onChange={(e) => setOtherReceiver(e.target.checked)} />
@@ -162,7 +159,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         </ul>
         <hr />
         <div><span>Subtotal ({units} {units === 1 ? "canasta" : "canastas"}{tarjetas ? ` y ${tarjetas} ${tarjetas === 1 ? "tarjeta" : "tarjetas"}` : ""})</span><strong>{formatPrice(subtotal)}</strong></div>
-        <div><span>Delivery{district && ` · ${district}`}</span>{fee !== undefined ? <strong><AnimatedPrice value={fee} duration={400} /></strong> : <span className="muted">Elige un distrito</span>}</div>
+        <div><span>Delivery{district && ` · ${district}`}</span>{fee === 0 && gratis ? <strong>Gratis</strong> : fee !== undefined ? <strong><AnimatedPrice value={fee} duration={400} /></strong> : <span className="muted">Elige un distrito</span>}</div>
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={total} /></strong></div>
         <p className="muted summaryTax">{opciones.notaImpuestos}</p>

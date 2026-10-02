@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
+import { esFechaReparto } from "@/lib/entrega";
 import { findBasketType } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -21,6 +22,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!nombre) return { error: "Escribe tu nombre para continuar." };
   if (!campo(fd, "email") && !campo(fd, "telefono")) return { error: "Déjanos un correo o un celular para confirmarte el pedido." };
   if (!campo(fd, "distrito")) return { error: "Elige el distrito de entrega." };
+  if (!esFechaReparto(campo(fd, "fecha_entrega"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado, con al menos 5 días de anticipación." };
   if (!fd.get("terminos")) return { error: "Acepta los términos para continuar." };
 
   let items: { slug: string; tipo_canasta?: string; cantidad: number }[] = [];
@@ -50,7 +52,6 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
         direccion: campo(fd, "direccion"),
         referencia: campo(fd, "referencia"),
         fecha: campo(fd, "fecha_entrega"),
-        horario: campo(fd, "horario"),
         recibe_nombre: campo(fd, "recibe_nombre"),
         recibe_telefono: campo(fd, "recibe_telefono"),
       },
@@ -83,7 +84,6 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
       lineas,
       distrito: campo(fd, "distrito"),
       fecha: campo(fd, "fecha_entrega"),
-      horario: campo(fd, "horario"),
       pago: campo(fd, "metodo_pago"),
       comprobante: factura ? "Factura" : "Boleta",
       correo: campo(fd, "email"),

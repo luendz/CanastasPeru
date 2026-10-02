@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     supabase.from("orden_items").select("producto_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
     supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]),
     supabase.from("v_inventario").select("*"),
-    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,horario,estado").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(8),
+    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,estado,estado_pago").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(8),
   ]);
 
   const ventas = (ordenesMes.data ?? []) as Pick<Orden, "id" | "total" | "estado">[];
@@ -111,15 +111,15 @@ export default async function DashboardPage() {
           <p className="admEmpty">No hay entregas programadas.</p>
         ) : (
           <table className="admTable admTablaAmplia">
-            <thead><tr><th>N.º OP</th><th>Cliente</th><th>Fecha de entrega</th><th>Horario</th><th>Distrito</th><th>Estado</th></tr></thead>
+            <thead><tr><th>N.º OP</th><th>Cliente</th><th>Fecha de entrega</th><th>Distrito</th><th>Estado de pago</th><th>Estado</th></tr></thead>
             <tbody>
               {(entregas.data as Orden[]).map((o) => (
                 <tr key={o.id}>
                   <td><Link className="admStrongLink" href={`/admin/ordenes/${o.id}`}>{o.numero}</Link></td>
                   <td className="admCeldaLarga">{o.cliente_nombre}</td>
                   <td>{fechaCorta(o.fecha_entrega)}</td>
-                  <td className="admNoWrap">{o.horario ? o.horario.split(" · ").pop() : "—"}</td>
                   <td>{o.distrito ?? "—"}</td>
+                  <td><span className="admBadge" data-pago={o.estado_pago}>{o.estado_pago === "pagado" ? "Pagado" : "Pago pendiente"}</span></td>
                   <td><span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span></td>
                 </tr>
               ))}

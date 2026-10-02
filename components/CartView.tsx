@@ -5,6 +5,7 @@ import { useState } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { carrito, unidades, useCarrito } from "@/lib/carrito";
+import { UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import type { Contenido } from "@/lib/contenido";
 import { findBasketType, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
@@ -149,7 +150,8 @@ export default function CartView({ products, basketTypes, opciones }: Props) {
         {tarjetas > 0 && <div className="summaryLine"><span>Tarjeta de dedicatoria ({tarjetas})</span><span>{formatPrice(totalTarjetas)}</span></div>}
         <hr />
         <div><span>Subtotal</span><strong><AnimatedPrice value={subtotal} /></strong></div>
-        <div><span>Delivery</span><span className="muted">Se calcula en el siguiente paso</span></div>
+        <div><span>Delivery</span>{deliveryGratis(units) ? <strong>Gratis</strong> : <span className="muted">Se calcula en el siguiente paso</span>}</div>
+        {!deliveryGratis(units) && <p className="entregaNota">🎁 Delivery gratis en pedidos de más de {UNIDADES_DELIVERY_GRATIS} canastas.</p>}
         <hr />
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={subtotal} /></strong></div>
         <p className="muted summaryTax">{opciones.notaImpuestos}</p>

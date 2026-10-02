@@ -18,19 +18,24 @@ const links = [
   { href: "/contacto", label: "Contacto" },
 ];
 
-export default function Header({ marca, contacto }: { marca: Contenido["marca"]; contacto: Contenido["contacto"] }) {
+/** Número para mostrar: 913196780 / +51 913196780 → 913 196 780. */
+function numeroVisible(tel: string) {
+  const d = tel.replace(/\D/g, "").replace(/^51(?=\d{9}$)/, "");
+  return d.length === 9 ? `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : tel;
+}
+
+export default function Header({ marca, contacto, franja }: { marca: Contenido["marca"]; contacto: Contenido["contacto"]; franja: string }) {
   const pathname = usePathname();
   const c = useCarrito();
   const count = unidades(c);
-  const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [flotante, setFlotante] = useState(false);
   const [bump, setBump] = useState(0);
   const [menu, setMenu] = useState(false);
   const [buscar, setBuscar] = useState(false);
 
-  // Se esconde al bajar, vuelve al subir y toma sombra apenas hay scroll.
+  // La cabecera queda fija; toma sombra apenas hay scroll y, al bajar, aparece el WhatsApp flotante.
   useEffect(() => {
-    let last = window.scrollY;
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -38,8 +43,7 @@ export default function Header({ marca, contacto }: { marca: Contenido["marca"];
       requestAnimationFrame(() => {
         const y = window.scrollY;
         setScrolled(y > 40);
-        setHidden((h) => (y > 260 && y > last + 4 ? true : y < last - 4 ? false : h));
-        last = y;
+        setFlotante(y > 320);
         ticking = false;
       });
     };
@@ -50,10 +54,7 @@ export default function Header({ marca, contacto }: { marca: Contenido["marca"];
 
   // Al agregar una canasta el contador salta y el header reaparece.
   useEffect(() => {
-    const onAdd = () => {
-      setBump((b) => b + 1);
-      setHidden(false);
-    };
+    const onAdd = () => setBump((b) => b + 1);
     window.addEventListener("mka:cart-add", onAdd);
     return () => window.removeEventListener("mka:cart-add", onAdd);
   }, []);
@@ -67,7 +68,8 @@ export default function Header({ marca, contacto }: { marca: Contenido["marca"];
 
   return (
     <>
-      <div className="headerSticky" data-hidden={hidden || undefined} data-scrolled={scrolled || undefined}>
+      <div className="headerSticky" data-scrolled={scrolled || undefined}>
+        {franja && <p className="franjaAnuncio">{franja}</p>}
         <div className="headerWrap">
           <header className="header shell">
             <Brand marca={marca} />
@@ -102,9 +104,9 @@ export default function Header({ marca, contacto }: { marca: Contenido["marca"];
                 <span key={bump}>{count}</span>
               </Link>
               {contacto.telefono && (
-                <a className="waBtn" href={enlaceWhatsApp(contacto.telefono)} target="_blank" rel="noopener noreferrer">
+                <a className="waBtn" href={enlaceWhatsApp(contacto.telefono)} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${numeroVisible(contacto.telefono)}`}>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Zm4.6 12.6c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.5-.3.4c-.1.1-.2.3-.1.5.2.3.7 1.1 1.4 1.8 1 .9 1.8 1.2 2.1 1.3.2.1.4.1.5 0l.8-.9c.2-.2.3-.2.6-.1l1.9.9c.2.1.4.2.4.3.1.1.1.6-.1 1.2Z" /></svg>
-                  <span>WhatsApp</span>
+                  <span>{numeroVisible(contacto.telefono)}</span>
                 </a>
               )}
               <button type="button" className="menuBtn" aria-expanded={menu} aria-controls="menuMovil" onClick={() => setMenu((m) => !m)}>
@@ -125,6 +127,18 @@ export default function Header({ marca, contacto }: { marca: Contenido["marca"];
           )}
         </div>
       </div>
+      {contacto.telefono && (
+        <a
+          className="waFlotante"
+          data-visible={flotante || undefined}
+          href={enlaceWhatsApp(contacto.telefono)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Escríbenos por WhatsApp al ${numeroVisible(contacto.telefono)}`}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Zm4.6 12.6c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.5-.3.4c-.1.1-.2.3-.1.5.2.3.7 1.1 1.4 1.8 1 .9 1.8 1.2 2.1 1.3.2.1.4.1.5 0l.8-.9c.2-.2.3-.2.6-.1l1.9.9c.2.1.4.2.4.3.1.1.1.6-.1 1.2Z" /></svg>
+        </a>
+      )}
     </>
   );
 }

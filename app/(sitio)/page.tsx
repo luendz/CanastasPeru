@@ -65,9 +65,8 @@ export default async function HomePage() {
         </div>
       </HeroBanner>
 
-      {/* ¿Por qué elegir MKA? */}
-      <section className="hmSeccion shell">
-        <Titulo titulo={t.porQueTitulo} />
+      {/* Pilares de MKA (sin título, pegados al banner) */}
+      <section className="hmSeccion hmSeccionPilares shell">
         <Reveal as="ul" className="hmPorQue" threshold={0.15}>
           {t.porQue.map((x, n) => (
             <li key={n} data-reveal-item style={i(n)}>
@@ -79,11 +78,11 @@ export default async function HomePage() {
         </Reveal>
       </section>
 
-      {/* ¿Qué estás buscando? */}
+      {/* Encuentra el regalo perfecto */}
       <section className="hmSeccion shell">
-        <Titulo titulo={t.tiposTitulo} etiqueta={t.tiposEtiqueta} />
+        <Titulo titulo={t.tiposEtiqueta} />
         <Reveal className="hmTipos" threshold={0.1}>
-          {LINEAS.map((l, n) => {
+          {LINEAS.filter((l) => l.id !== "boxes").map((l, n) => {
             const texto = catalogo.lineas[n] ?? { titulo: l.titulo, texto: "", imagen: "" };
             const muestra = productosDe(products, l.id)[0];
             const href = l.id === "boxes" ? "/boxes" : `/canastas/${l.id}`;
@@ -103,18 +102,18 @@ export default async function HomePage() {
         </Reveal>
       </section>
 
-      {/* ¿Cómo comprar? */}
+      {/* Compra en 4 simples pasos: cada paso en un círculo, primero el texto y luego el ícono */}
       <section className="hmSeccion shell">
         <Titulo titulo={t.comprarTitulo} />
-        <Reveal as="ol" className="hmPasos" threshold={0.15}>
+        <Reveal as="ol" className="hmPasos hmPasosCirculos" threshold={0.15}>
           {t.comprarPasos.map((p, n) => (
             <li key={n} data-reveal-item style={i(n)}>
-              <div className="hmPasoCabeza">
+              <div className="hmPasoCirculo">
                 <span className="hmPasoNum">{n + 1}</span>
+                <h3>{p.titulo}</h3>
+                <p>{p.texto}</p>
                 <Icono nombre={ICONOS_COMPRA[n % ICONOS_COMPRA.length]} className="hmPasoIcono" />
               </div>
-              <h3>{p.titulo}</h3>
-              <p>{p.texto}</p>
             </li>
           ))}
         </Reveal>

@@ -104,7 +104,15 @@ export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormDat
       const { data } = await supabase.rpc("precio_canasta", { p_producto_id: producto.id, p_tipo: tipo ?? producto.tipo_canasta_base });
       precio = Number(data ?? 0);
     }
-    fila = { producto_id: producto.id, producto_nombre: producto.nombre, tipo_canasta: tipo ?? producto.tipo_canasta_base, contenido: null };
+    // Canasta del catálogo con productos cambiados: se guarda su lista propia, sin tocar la receta.
+    let contenido: ContenidoLinea[] | null = null;
+    if (String(formData.get("contenido") ?? "").trim()) {
+      const r = await contenidoPersonalizado(supabase, String(formData.get("contenido")));
+      if ("error" in r) return { error: r.error };
+      contenido = r.contenido!;
+    }
+    const nombre = contenido ? txt(formData, "nombre", 120) || `${producto.nombre} (personalizada)` : producto.nombre;
+    fila = { producto_id: producto.id, producto_nombre: nombre, tipo_canasta: tipo ?? producto.tipo_canasta_base, contenido };
   }
   if (precio < 0) return { error: "Precio inválido." };
 
@@ -144,7 +152,6 @@ export async function actualizarCotizacion(_prev: EstadoForm, formData: FormData
       valida_hasta: String(formData.get("valida_hasta") ?? "") || null,
       asesor: txt(formData, "asesor", 120) || null,
       forma_pago: txt(formData, "forma_pago", 200) || null,
-      horario_entrega: txt(formData, "horario_entrega", 120) || null,
       distrito: txt(formData, "distrito", 120) || null,
       notas: String(formData.get("notas") ?? "").slice(0, 2000) || null,
     })
@@ -190,7 +197,6 @@ export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion
     textos: {
       subtitulo: contenido.cotizacion.pdfSubtitulo,
       formaPago: contenido.cotizacion.pdfFormaPago,
-      horarioEntrega: contenido.cotizacion.pdfHorarioEntrega,
       condiciones: contenido.cotizacion.pdfCondiciones,
     },
   };

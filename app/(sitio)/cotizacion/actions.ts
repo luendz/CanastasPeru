@@ -1,5 +1,6 @@
 "use server";
 
+import { esFechaReparto } from "@/lib/entrega";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,6 +14,7 @@ export async function solicitarCotizacion(_prev: CotizacionState, fd: FormData):
   const ruc = campo(fd, "ruc").replace(/\D/g, "");
   if (ruc && ruc.length !== 11) return { error: "El RUC debe tener 11 dígitos." };
   if (!campo(fd, "email") && !campo(fd, "telefono")) return { error: "Déjanos un correo o un celular para enviarte la propuesta." };
+  if (!esFechaReparto(campo(fd, "fecha_requerida"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado, con al menos 5 días de anticipación." };
 
   // Sin Supabase configurado, el formulario funciona como demostración.
   if (!supabaseConfigurado) return { enviada: true };

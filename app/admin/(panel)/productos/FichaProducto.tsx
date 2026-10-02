@@ -80,6 +80,11 @@ export default function FichaProducto({ producto: p, skuSugerido, categorias, in
           <small className="admMuted">PNG o WebP con fondo transparente. Se usa en la composición de todas las canastas que lo llevan.</small>
         </div>
 
+        <label>Costo de referencia (S/, con IGV)
+          <input className="admInput" name="costo_referencia" type="number" min={0} step="0.0001" defaultValue={p?.costo_referencia ?? ""} placeholder="Ej. 12.50" />
+          <small className="admMuted">Costo unitario para cotizar mientras no haya compras registradas; con una compra, manda la compra.</small>
+        </label>
+
         <details className="admSpan2 admAjustes">
           <summary>Ajustes de inventario</summary>
           <div className="admFormGrid">
