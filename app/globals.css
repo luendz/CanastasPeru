@@ -939,7 +939,7 @@ del { color: #a99a8e; font-size: 13px; }
 .hmCorp3Texto > p { margin: 0 0 18px; line-height: 1.55; }
 .hmCorp3Texto .hmCorpPuntos { margin-bottom: 24px; gap: 14px 24px; }
 .hmCorp3Texto .hmCorpPuntos li { gap: 12px; color: var(--ink); font-size: 15.5px; font-weight: 600; }
-.hmCorp3Texto .hmCorpPuntos .icono { width: 26px; height: 26px; }
+.hmCorp3Texto .hmCorpPuntos .icono { width: 30px; height: 30px; }
 .hmCorp3Texto .btn { justify-self: start; }
 @media (max-width: 980px) {
   .hmCorp3 { position: relative; background-position: 70% center; }
