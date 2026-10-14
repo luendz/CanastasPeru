@@ -110,7 +110,7 @@ td[data-tone="ok"] { color: var(--a-ok); font-weight: 700; }
 textarea.admInput { resize: vertical; }
 .admInputSm { width: 84px; min-height: 32px; padding: 4px 8px; text-align: right; }
 .admForm { display: grid; gap: 12px; }
-.admForm label, .admInlineForm label, .admLoginForm label { display: grid; gap: 5px; color: var(--a-muted); font-size: 12.5px; font-weight: 700; }
+.admForm label, .admInlineForm label, .admLoginForm label { display: grid; align-content: start; gap: 5px; color: var(--a-muted); font-size: 12.5px; font-weight: 700; }
 .admFormGrid { grid-template-columns: 1fr 1fr; }
 .admSpan2 { grid-column: 1 / -1; }
 .admFormFoot { display: grid; gap: 8px; }
