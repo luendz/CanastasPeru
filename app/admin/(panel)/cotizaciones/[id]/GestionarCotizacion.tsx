@@ -133,10 +133,6 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
         {resultado.error && <p className="admError" role="alert">{resultado.error}</p>}
       </form>
 
-      <button type="button" className="admLinkMuted admPdfLink" onClick={descargar} disabled={pdf === "generando"}>
-        {pdf === "generando" ? "Generando PDF…" : "⤓ Descargar PDF de la cotización"}
-      </button>
-
       <dialog ref={dialogo} className="admDialog admDialogSmall" onClose={() => setModal(false)} onClick={(e) => { if (e.target === e.currentTarget) setModal(false); }}>
         <div className="admDialogBody admExito">
           <span className="admExitoIcono" aria-hidden="true">✓</span>
