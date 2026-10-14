@@ -309,7 +309,6 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admIconBtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .admBtnBlock { width: 100%; }
 .admPdfBox { display: grid; gap: 8px; margin: 14px 0 10px; padding-top: 14px; border-top: 1px dashed var(--a-line); }
-.admPdfLink { display: block; margin-top: 12px; }
 
 /* ---------- Cotizaciones ---------- */
 .admTabs a.admTabAgregar { border-color: var(--a-pine); background: var(--a-pine); color: #fff; letter-spacing: .02em; }

@@ -10,6 +10,7 @@ import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
 import EditarDatos from "../../EditarDatos";
 import { editarDatosCotizacion } from "../actions";
 import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
+import BotonPdfCotizacion from "../BotonPdfCotizacion";
 import GestionarCotizacion from "./GestionarCotizacion";
 
 export const metadata = { title: "Cotización" };
@@ -191,6 +192,9 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
           ) : (
             <p className="admMuted">Esta cotización ya fue aprobada{orden ? <> y generó la orden <Link href={`/admin/ordenes/${orden.id}`}>{orden.numero}</Link></> : ""}.</p>
           )}
+          <div className="admPdfBox">
+            <BotonPdfCotizacion id={c.id} numero={c.numero} />
+          </div>
         </aside>
       </div>
     </>
