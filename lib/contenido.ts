@@ -271,8 +271,10 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     ],
     pdfCondicionesOrden: [
       "Cuenta corriente MN: Banco — N.º de cuenta.",
-      "La entrega se realiza en la dirección, fecha y horario indicados; cualquier cambio se coordina por WhatsApp.",
-      "Revisa las canastas al recibirlas: las observaciones se atienden dentro de las 24 horas siguientes.",
+      "Horarios de entrega: Las entregas se realizan los martes, jueves y sábados, de 1:00 p. m. a 7:00 p. m., previa coordinación con el cliente.",
+      "Coordinación: La entrega se realizará en la dirección acordada. Cualquier cambio deberá comunicarse con anticipación por WhatsApp.",
+      "Recepción del pedido: Se recomienda verificar las cantidades y el estado de los productos al recibirlos. Cualquier observación deberá comunicarse a MKA dentro de las 24 horas siguientes a la entrega.",
+      "Pago: El pago se realizará según las condiciones previamente acordadas con MKA.",
     ],
   },
   pie: {
