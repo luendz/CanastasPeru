@@ -792,7 +792,7 @@ del { color: #a99a8e; font-size: 13px; }
 .cotSeccion legend small { margin-left: auto; color: var(--muted); font-family: var(--font-sans-stack); font-size: 12px; font-weight: 500; }
 .cotSeccion legend + * { clear: both; }
 .cotGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
-.cotGrid label, .cotExacta, .cotArea { display: grid; gap: 7px; font-size: 13.5px; font-weight: 700; }
+.cotGrid label, .cotGrid .campoFecha, .cotExacta, .cotArea { display: grid; align-content: start; gap: 7px; font-size: 13.5px; font-weight: 700; }
 .cotTelefono { display: flex; align-items: center; gap: 8px; }
 .cotTelefono > span { padding: 0 10px; height: 48px; display: grid; place-items: center; border: 1px solid #d9c9b2; border-radius: 12px; font-size: 13px; white-space: nowrap; }
 .cotPregunta { margin: 4px 0 12px; font-size: 14px; font-weight: 800; }
@@ -1076,7 +1076,7 @@ del { color: #a99a8e; font-size: 13px; }
 
 /* Avisos de entrega (delivery gratis) */
 .entregaNota { margin: 12px 0 0; padding: 9px 12px; border-radius: 10px; background: #fbf1e3; color: var(--wine); font-size: 13px; font-weight: 700; }
-.cotAyuda { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 500; }
+.cotAyuda { display: block; margin: 10px 0 0; color: var(--muted); font-size: 12px; font-weight: 500; }
 
 
 @media (max-width: 640px) {
@@ -1103,3 +1103,24 @@ del { color: #a99a8e; font-size: 13px; }
 @media (min-width: 1440px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 775px; } }
 @media (min-width: 1920px) { .hbBanner[data-con-imagen] .hbTexto { --halo-ancho: 875px; } }
 .hbBanner[data-con-imagen] .hmPuntos li { color: var(--ink); }
+
+/* Calendario de fecha de entrega (checkout): solo martes, jueves y sábados. */
+.formGrid .campoFecha { display: grid; gap: 7px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.calEntrega { position: relative; }
+.calTrigger { display: flex; align-items: center; text-align: left; font-size: 15px; font-weight: 500; color: var(--ink); cursor: pointer; padding-right: 40px; background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237b1e2c' stroke-width='1.6'%3E%3Crect x='2' y='3' width='12' height='11' rx='2'/%3E%3Cpath d='M2 7h12M5 1.5v3M11 1.5v3'/%3E%3C/svg%3E") no-repeat right 14px center; }
+.calTrigger::first-letter { text-transform: uppercase; }
+.calTrigger.calVacio { color: var(--muted); }
+.calValidar { position: absolute; left: 50%; bottom: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; pointer-events: none; }
+.calPopover { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; width: 100%; max-width: 320px; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--white); box-shadow: var(--shadow); font-weight: 500; }
+.calHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.calHead strong { display: inline-block; font-size: 15px; color: var(--wine-dark); }
+.calHead strong::first-letter { text-transform: uppercase; }
+.calNav { width: 32px; height: 32px; border-radius: 99px; border: 1px solid var(--line); background: var(--white); color: var(--wine); font-size: 18px; line-height: 1; }
+.calNav:disabled { opacity: .35; cursor: default; }
+.calGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.calDow { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-bottom: 4px; }
+.calDia { aspect-ratio: 1; border-radius: 10px; border: 0; background: #fbf1e3; color: var(--wine); font-size: 14px; font-weight: 700; }
+.calDia:hover:not(:disabled) { background: var(--gold-soft); }
+.calDia:disabled { background: none; color: #c9bcab; font-weight: 500; cursor: default; }
+.calDia.calSel { background: var(--wine); color: var(--white); }
+.calNota { margin: 10px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
