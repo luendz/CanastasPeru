@@ -263,11 +263,12 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     pdfFormaPago: "50 % adelantado, 50 % un día antes de la entrega",
     pdfHorarioEntrega: "Lunes a sábado de 1:00 p. m. a 7:30 p. m.",
     pdfCondiciones: [
-      "Forma de pago: 50 % adelantado, 50 % un día antes de la entrega.",
-      "Cuenta corriente MN: Banco — N.º de cuenta.",
-      "Horario de entrega: lunes a sábado de 1:00 p. m. a 7:30 p. m.",
-      "Tiempo de entrega: mínimo de 5 a 7 días hábiles luego de recibida la orden de pedido.",
-      "Los productos pueden reemplazarse por otros de igual o mayor valor según disponibilidad.",
+      "Vigencia: La presente cotización será válida hasta la fecha indicada en el documento.",
+      "Forma de pago: 50 % de adelanto y 50 % un día antes de la entrega, según lo acordado.",
+      "Tiempo de preparación: De 5 a 7 días hábiles después de recibir la orden de pedido y el adelanto correspondiente, sujeto a disponibilidad y confirmación.",
+      "Horarios de entrega: Martes, jueves y sábados, de 1:00 p. m. a 7:00 p. m., previa coordinación con el cliente.",
+      "Disponibilidad: Los productos podrán reemplazarse por alternativas de igual o mayor valor únicamente previa coordinación y aprobación del cliente.",
+      "Confirmación: La cotización no constituye una orden de pedido confirmada. La preparación comenzará una vez aceptada la propuesta y cumplidas las condiciones acordadas.",
     ],
     pdfCondicionesOrden: [
       "Cuenta corriente MN: Banco — N.º de cuenta.",
