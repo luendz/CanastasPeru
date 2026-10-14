@@ -16,6 +16,8 @@ export type CanastaOpcion = {
 export type EnvaseOpcion = { id: string; nombre: string; recargo: number };
 export type ProductoOpcion = { id: string; nombre: string; costo: number | null };
 type Fila = { insumo_id: string; cantidad: number };
+/** Línea ya guardada que se edita (sin ella, el formulario agrega una nueva). */
+export type LineaGuardada = { id: string; productoId: string | null; nombre: string; envase: string | null; cantidad: number; precio: number; contenido: Fila[] | null };
 
 type Props = {
   cotizacionId: string;
@@ -23,6 +25,9 @@ type Props = {
   envases: EnvaseOpcion[];
   productos: ProductoOpcion[];
   cantidadInicial: number;
+  linea?: LineaGuardada;
+  /** Se llama al guardar los cambios de una línea editada. */
+  onGuardado?: () => void;
 };
 
 const redondear = (n: number) => Math.round(n * 100) / 100;
@@ -35,26 +40,42 @@ const MARGEN_PERSONALIZADA = 30;
  * otros sin crear una canasta nueva. El costeo calcula el costo total, el
  * precio sugerido según el margen y la utilidad antes de agregarla.
  */
-export default function AgregarLinea({ cotizacionId, canastas, envases, productos, cantidadInicial }: Props) {
+export default function AgregarLinea({ cotizacionId, canastas, envases, productos, cantidadInicial, linea, onGuardado }: Props) {
+  const productoDe = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
+  // Al editar, el formulario arranca con la línea guardada (si su canasta ya no está en el catálogo, como personalizada).
+  const [inicio] = useState(() => {
+    if (!linea) return null;
+    const base = canastas.find((c) => c.id === linea.productoId);
+    const filas = linea.contenido?.map((f) => ({ insumo_id: f.insumo_id, cantidad: f.cantidad })) ?? base?.receta.map((r) => ({ ...r })) ?? [];
+    const presentacion = base?.costoPresentacion ?? null;
+    const costo = filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0) + (presentacion ?? 0);
+    return {
+      canasta: base ? base.id : "personalizada",
+      filas,
+      presentacion: presentacion != null ? String(presentacion) : "",
+      margen: linea.precio > 0 && costo > 0 ? String(Math.round(((linea.precio - costo) / linea.precio) * 1000) / 10) : String(MARGEN_PERSONALIZADA),
+    };
+  });
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(agregarItemCotizacion, {});
-  const [canasta, setCanasta] = useState("");
-  const [envase, setEnvase] = useState("");
-  const [cantidad, setCantidad] = useState(cantidadInicial);
-  const [filas, setFilas] = useState<Fila[]>([]);
-  const [nombre, setNombre] = useState("");
-  const [presentacion, setPresentacion] = useState("");
-  const [margen, setMargen] = useState("");
-  const [precio, setPrecio] = useState("");
+  const [canasta, setCanasta] = useState(inicio?.canasta ?? "");
+  const [envase, setEnvase] = useState(linea?.envase ?? "");
+  const [cantidad, setCantidad] = useState(linea?.cantidad ?? cantidadInicial);
+  const [filas, setFilas] = useState<Fila[]>(inicio?.filas ?? []);
+  const [nombre, setNombre] = useState(linea?.nombre ?? "");
+  const [presentacion, setPresentacion] = useState(inicio?.presentacion ?? "");
+  const [margen, setMargen] = useState(inicio?.margen ?? "");
+  const [precio, setPrecio] = useState(linea ? String(linea.precio) : "");
   const [busqueda, setBusqueda] = useState("");
 
   const personalizada = canasta === "personalizada";
   const elegida = canastas.find((c) => c.id === canasta);
-  const productoDe = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const recargo = (id: string) => envases.find((e) => e.id === id)?.recargo ?? 0;
 
-  // Tras agregar, el formulario vuelve a "Seleccionar".
+  // Tras agregar, el formulario vuelve a "Seleccionar"; al editar, avisa para cerrar la ventana.
   useEffect(() => {
-    if (estado.ok) elegir("");
+    if (!estado.ok) return;
+    if (linea) onGuardado?.();
+    else elegir("");
   }, [estado.en, estado.ok]);
 
   const costoProductos = redondear(filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0));
@@ -121,6 +142,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   return (
     <form action={accion} className="admLineaForm">
       <input type="hidden" name="cotizacion_id" value={cotizacionId} />
+      {linea && <input type="hidden" name="item_id" value={linea.id} />}
       {enviarContenido && <input type="hidden" name="contenido" value={JSON.stringify(filas)} />}
       {enviarContenido && <input type="hidden" name="nombre" value={nombre} />}
 
@@ -233,7 +255,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
       )}
 
       <div className="admFormFootRow">
-        <button className="admBtn" type="submit" disabled={enviando || !canasta || (enviarContenido && filas.length === 0)}>{enviando ? "Agregando…" : "Agregar a la propuesta"}</button>
+        <button className="admBtn" type="submit" disabled={enviando || !canasta || (enviarContenido && filas.length === 0)}>{linea ? (enviando ? "Guardando…" : "Guardar cambios") : enviando ? "Agregando…" : "Agregar a la propuesta"}</button>
         {estado.error && <span className="admError" role="alert">{estado.error}</span>}
       </div>
     </form>
