@@ -76,9 +76,11 @@ async function contenidoPersonalizado(supabase: Awaited<ReturnType<typeof requir
   return { contenido };
 }
 
+/** Agrega una línea a la propuesta; con `item_id`, actualiza esa línea. */
 export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormData): Promise<EstadoForm> {
   const { supabase } = await requireAdmin();
   const cotizacionId = String(formData.get("cotizacion_id") ?? "");
+  const itemId = String(formData.get("item_id") ?? "");
   const productoId = String(formData.get("producto_id") ?? "");
   const tipo = String(formData.get("tipo_canasta") ?? "") || null;
   const cantidad = Math.round(Number(formData.get("cantidad")));
@@ -116,13 +118,17 @@ export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormDat
   }
   if (precio < 0) return { error: "Precio inválido." };
 
-  const { error } = await supabase.from("cotizacion_items").insert({
-    cotizacion_id: cotizacionId,
-    ...fila,
-    cantidad,
-    precio_unitario: Math.round(precio * 100) / 100,
-  });
-  if (error) return { error: error.message };
+  const datos = { ...fila, cantidad, precio_unitario: Math.round(precio * 100) / 100 };
+  if (itemId) {
+    const { data: cot } = await supabase.from("cotizaciones").select("estado").eq("id", cotizacionId).maybeSingle();
+    if (!cot || cot.estado === "aprobada") return { error: "La cotización ya fue aprobada; no se puede editar." };
+    const { data: editada, error } = await supabase.from("cotizacion_items").update(datos).eq("id", itemId).eq("cotizacion_id", cotizacionId).select("id");
+    if (error) return { error: error.message };
+    if (!editada?.length) return { error: "No se encontró la línea." };
+  } else {
+    const { error } = await supabase.from("cotizacion_items").insert({ cotizacion_id: cotizacionId, ...datos });
+    if (error) return { error: error.message };
+  }
   refrescar(cotizacionId);
   return { ok: true, en: Date.now() };
 }

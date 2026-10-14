@@ -11,6 +11,7 @@ import EditarDatos from "../../EditarDatos";
 import { editarDatosCotizacion } from "../actions";
 import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import BotonPdfCotizacion from "../BotonPdfCotizacion";
+import EditarLinea from "./EditarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
 
 export const metadata = { title: "Cotización" };
@@ -56,6 +57,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
     costoPresentacion: p.costo_presentacion == null ? null : Number(p.costo_presentacion),
     receta: recetaDe.get(p.id) ?? [],
   }));
+  const envases = ((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre, recargo: Number(t.recargo) }));
 
   const dato = (label: string, value: React.ReactNode) => <div><dt>{label}</dt><dd>{value || "—"}</dd></div>;
 
@@ -135,11 +137,20 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                       <td className="num">{soles(it.subtotal)}</td>
                       {editable && (
                         <td className="num">
-                          <form action={quitarItemCotizacion}>
-                            <input type="hidden" name="id" value={it.id} />
-                            <input type="hidden" name="cotizacion_id" value={c.id} />
-                            <button className="admLinkDanger" type="submit">Quitar</button>
-                          </form>
+                          <div className="admAccionesLinea">
+                            <EditarLinea
+                              cotizacionId={c.id}
+                              linea={{ id: it.id, productoId: it.producto_id, nombre: it.producto_nombre, envase: it.tipo_canasta, cantidad: it.cantidad, precio: Number(it.precio_unitario), contenido: it.contenido }}
+                              canastas={canastas}
+                              envases={envases}
+                              productos={productosCosteo}
+                            />
+                            <form action={quitarItemCotizacion}>
+                              <input type="hidden" name="id" value={it.id} />
+                              <input type="hidden" name="cotizacion_id" value={c.id} />
+                              <button className="admLinkDanger" type="submit">Quitar</button>
+                            </form>
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -156,7 +167,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                 cotizacionId={c.id}
                 cantidadInicial={c.cantidad_estimada ?? 20}
                 canastas={canastas}
-                envases={((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre, recargo: Number(t.recargo) }))}
+                envases={envases}
                 productos={productosCosteo}
               />
             )}
