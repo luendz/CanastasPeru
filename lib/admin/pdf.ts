@@ -8,7 +8,7 @@
 import type { jsPDF } from "jspdf";
 import { fechaCorta, soles } from "@/lib/admin/format";
 import type { ProductoCanasta } from "@/lib/admin/recetas";
-import { labelEstado, type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
+import { type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
 
 type Marca = { nombre: string; lema: string; logo: string };
 type Contacto = { telefono: string; correo: string; ciudad: string };
@@ -110,8 +110,8 @@ type Documento = {
   marca: Marca;
   contacto: Contacto;
   cliente: Dato[];
-  tituloDetalles: string;
-  detalles: Dato[];
+  /** Secciones de datos tras el cliente, cada una con su barra de título. */
+  secciones: [string, Dato[]][];
   items: Linea[];
   /** Filas previas al total (el total siempre va al final, en vino). */
   totales: [string, number][];
@@ -123,7 +123,7 @@ type Documento = {
   firmas: [string, string];
   archivo: string;
   /** Franja de estado para producción (solo en la orden de pedido). */
-  estado?: { pagado: boolean; pedido: string; entrega: string };
+  estado?: { pagado: boolean; entrega: string; metodoPago: string };
 };
 
 const nombreArchivo = (prefijo: string, numero: string, cliente: string) => {
@@ -170,10 +170,14 @@ async function documentoComercial(d: Documento) {
     doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(255, 255, 255);
     doc.text(d.estado.pagado ? "PAGADO" : "PAGO PENDIENTE", W - M - anchoPago / 2, y + 8.6, { align: "center" });
     doc.setFillColor(...CREMA).rect(M, y, ancho - anchoPago - 3, alto, "F");
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...GRIS).text("ESTADO DEL PEDIDO", M + 4.5, y + 5);
-    doc.text("ENTREGA", M + 60, y + 5);
-    doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(...TINTA).text(d.estado.pedido, M + 4.5, y + 10.2);
-    doc.text(d.estado.entrega, M + 60, y + 10.2);
+    // Fecha de entrega · método de pago · estado de pago.
+    const xMetodo = M + 45;
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...GRIS).text("FECHA DE ENTREGA", M + 4.5, y + 5);
+    doc.text("MÉTODO DE PAGO", xMetodo, y + 5);
+    doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(...TINTA).text(d.estado.entrega, M + 4.5, y + 10.2);
+    const anchoMetodo = M + ancho - anchoPago - 3 - xMetodo - 4;
+    const metodo: string[] = doc.splitTextToSize(d.estado.metodoPago, anchoMetodo);
+    doc.text(metodo.length > 1 ? `${metodo[0].replace(/\s+\S*$/, "")}…` : metodo[0], xMetodo, y + 10.2);
     y += alto + 5;
   }
 
@@ -207,8 +211,10 @@ async function documentoComercial(d: Documento) {
 
   barra("DATOS DEL CLIENTE");
   cuadricula(d.cliente);
-  barra(d.tituloDetalles);
-  cuadricula(d.detalles);
+  for (const [titulo, datos] of d.secciones) {
+    barra(titulo);
+    cuadricula(datos);
+  }
 
   // Cada canasta con su tabla de productos.
   d.items.forEach((it, i) => {
@@ -279,16 +285,34 @@ async function documentoComercial(d: Documento) {
 
   if (d.condiciones.length) {
     barra("CONDICIONES Y OBSERVACIONES");
-    autoTable(doc, {
-      startY: y - 3,
-      margin: { left: M, right: M },
-      theme: "plain",
-      styles: { ...base, fontSize: 9, cellPadding: { top: 1.4, bottom: 1.4, left: 5, right: 5 } },
-      body: d.condiciones.map((t) => [`•  ${t}`]),
-      tableLineColor: LINEA,
-      tableLineWidth: 0.2,
-    });
-    y = finY() + 8;
+    // Cada condición en su párrafo; el rótulo antes de ":" (p. ej. "Pago:") va en negrita.
+    const inicio = y - 1.5;
+    const hoja = doc.getNumberOfPages();
+    const sangria = M + 5;
+    const anchoTexto = ancho - 10;
+    doc.setFontSize(9).setTextColor(...TINTA);
+    y += 3;
+    for (const t of d.condiciones) {
+      const rotulo = /^([^:]{2,40}:)\s/.exec(t)?.[1];
+      doc.setFont("helvetica", "normal");
+      // Margen extra porque la negrita del rótulo es algo más ancha.
+      const lineas: string[] = doc.splitTextToSize(t, anchoTexto - (rotulo ? 3 : 0));
+      if (y + lineas.length * 4.1 > H - 25) { doc.addPage(); y = 20; }
+      lineas.forEach((linea, i) => {
+        if (i === 0 && rotulo && linea.startsWith(rotulo)) {
+          doc.setFont("helvetica", "bold").text(rotulo, sangria, y);
+          const x = sangria + doc.getTextWidth(rotulo);
+          doc.setFont("helvetica", "normal").text(linea.slice(rotulo.length), x, y);
+        } else {
+          doc.setFont("helvetica", "normal").text(linea, sangria, y);
+        }
+        y += 4.1;
+      });
+      y += 1.2;
+    }
+    // Recuadro solo si todas las condiciones quedaron en la misma hoja.
+    if (doc.getNumberOfPages() === hoja) doc.setDrawColor(...LINEA).setLineWidth(0.2).rect(M, inicio, ancho, y - inicio - 1.5);
+    y += 6;
   }
 
   // Firmas.
@@ -337,12 +361,11 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
       ["Teléfono / WhatsApp", c.telefono], ["Correo", c.email],
       ["Dirección de entrega", c.lugar_entrega], ["Ciudad / Distrito", c.distrito],
     ],
-    tituloDetalles: "DETALLES DE LA COTIZACIÓN",
-    detalles: [
+    secciones: [["DETALLES DE LA COTIZACIÓN", [
       ["Fecha", fechaCorta(new Date().toISOString())], ["Vigencia", c.valida_hasta ? `Hasta el ${fechaCorta(c.valida_hasta)}` : null],
       ["Asesor comercial", c.asesor], ["Forma de pago", c.forma_pago || textos.formaPago],
       ["Fecha de entrega", c.fecha_requerida ? fechaCorta(c.fecha_requerida) : "Por coordinar"],
-    ],
+    ]]],
     items,
     totales: [["SUBTOTAL", valor], ["IGV (18 %)", igv]],
     total,
@@ -360,7 +383,9 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
   const unidades = items.reduce((s, it) => s + it.cantidad, 0);
   const total = Number(o.total);
   const { valor, igv } = conIgv(total);
-  const recibe = o.recibe_nombre ? `${o.recibe_nombre}${o.recibe_telefono ? ` · ${o.recibe_telefono}` : ""}` : null;
+  // Las órdenes que vienen de una cotización guardan "Contacto · Empresa".
+  const contactoNombre = cotizacion ? o.cliente_nombre.split(" · ")[0] : o.cliente_nombre;
+  const recibe = o.recibe_nombre ? `${o.recibe_nombre}${o.recibe_telefono ? ` · ${o.recibe_telefono}` : ""}` : contactoNombre;
   const direccion = [o.direccion, o.referencia ? `Ref.: ${o.referencia}` : null].filter(Boolean).join(" · ");
 
   return documentoComercial({
@@ -369,21 +394,23 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     subtitulo: textos.subtitulo,
     marca,
     contacto,
+    // Boleta: nombre y DNI; factura: razón social y RUC.
     cliente: [
-      [factura ? "Razón social" : "Nombre", o.comprobante_nombre || o.cliente_nombre], [factura ? "RUC" : "DNI", o.comprobante_documento],
-      // Las órdenes que vienen de una cotización guardan "Contacto · Empresa".
-      ["Contacto", cotizacion ? o.cliente_nombre.split(" · ")[0] : o.cliente_nombre], ["Cargo", cotizacion?.cargo],
-      ["Teléfono / WhatsApp", o.cliente_telefono], ["Correo", o.cliente_email],
-      ["Ciudad / Distrito", o.distrito || cotizacion?.distrito],
+      ["Comprobante", factura ? "Factura" : "Boleta"], ["Contacto", contactoNombre],
+      [factura ? "Razón social" : "Nombre", o.comprobante_nombre || contactoNombre], ["Celular / WhatsApp", o.cliente_telefono],
+      [factura ? "RUC" : "DNI", o.comprobante_documento], ["Correo electrónico", o.cliente_email],
       ...(factura && o.direccion_fiscal ? ([["Dirección fiscal", o.direccion_fiscal]] as Dato[]) : []),
     ],
-    tituloDetalles: "DETALLES DE LA ORDEN DE PEDIDO",
-    detalles: [
-      ["Fecha", fechaCorta(o.created_at)], ["Fecha de entrega", o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar"],
-      ["Asesor comercial", cotizacion?.asesor], ["Lugar de entrega", direccion],
-      ["Forma de pago", o.metodo_pago || cotizacion?.forma_pago], ["Estado de pago", o.estado_pago === "pagado" ? "Pagado" : "Pendiente"],
-      ["Comprobante", factura ? "Factura" : "Boleta"], ["Recibe", recibe],
-      ...(cotizacion ? ([["Cotización", cotizacion.numero]] as Dato[]) : []),
+    secciones: [
+      ["DETALLES DE LA ENTREGA", [
+        ["Fecha de entrega", o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar"], ["Ciudad / distrito", o.distrito || cotizacion?.distrito],
+        ["Dirección de entrega", direccion], ["Recibe el pedido", recibe],
+      ]],
+      ["DETALLES DE LA ORDEN DE PEDIDO", [
+        ["Fecha", fechaCorta(o.created_at)], ["Asesor comercial", cotizacion?.asesor],
+        ["Forma de pago", o.metodo_pago || cotizacion?.forma_pago], ["Estado de pago", o.estado_pago === "pagado" ? "Pagado" : "Pendiente"],
+        ...(cotizacion ? ([["Cotización", cotizacion.numero]] as Dato[]) : []),
+      ]],
     ],
     items,
     totales: [
@@ -404,8 +431,8 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     firmas: ["Recibí conforme · cliente", `Entregado por · ${marca.nombre}`],
     estado: {
       pagado: o.estado_pago === "pagado",
-      pedido: labelEstado(o.estado),
       entrega: o.fecha_entrega ? fechaCorta(o.fecha_entrega) : "Por coordinar",
+      metodoPago: o.metodo_pago || cotizacion?.forma_pago || "Por coordinar",
     },
     archivo: nombreArchivo("Orden", o.numero, o.comprobante_nombre || o.cliente_nombre),
   });
