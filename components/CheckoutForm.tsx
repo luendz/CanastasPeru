@@ -5,11 +5,12 @@ import { useActionState, useState } from "react";
 import { crearPedido, type CheckoutState } from "@/app/(sitio)/checkout/actions";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
+import CalendarioEntrega from "@/components/CalendarioEntrega";
 import type { DeliveryZone } from "@/lib/catalogo";
 import type { Contenido } from "@/lib/contenido";
 import { lineasCarrito } from "@/components/CartView";
 import { useCarrito } from "@/lib/carrito";
-import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis, fechaReparto } from "@/lib/entrega";
+import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import { formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
@@ -70,12 +71,9 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
                 {deliveryZones.map((z) => <option key={z.district} value={z.district}>{z.district} · {gratis ? "Gratis" : formatPrice(z.fee)}</option>)}
               </select>
             </label>
-            <label>Fecha de entrega
-              <select className="select" name="fecha_entrega" required defaultValue="">
-                <option value="" disabled>Elige un día de reparto</option>
-                {fechas.map((f) => <option key={f} value={f}>{fechaReparto(f)}</option>)}
-              </select>
-            </label>
+            <div className="campoFecha">Fecha de entrega
+              <CalendarioEntrega name="fecha_entrega" fechas={fechas} />
+            </div>
             <label className="wide">Dirección<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Jr. / Calle, número, dpto." maxLength={300} /></label>
             <label className="wide">Referencia<input className="input" name="referencia" placeholder="Frente al parque, portón negro…" maxLength={300} /></label>
           </div>

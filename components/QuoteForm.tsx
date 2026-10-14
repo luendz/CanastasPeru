@@ -2,9 +2,10 @@
 
 import { useActionState, useState } from "react";
 import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
+import CalendarioEntrega from "@/components/CalendarioEntrega";
 import Icono, { type NombreIcono } from "@/components/Icono";
 import type { Contenido } from "@/lib/contenido";
-import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, fechaReparto } from "@/lib/entrega";
+import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO } from "@/lib/entrega";
 import { LINEAS } from "@/lib/lineas";
 
 type Props = {
@@ -124,13 +125,9 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props
 
       <Seccion n={3} titulo="¿Dónde y cuándo debemos entregar?">
         <div className="cotGrid">
-          <label>Fecha requerida *
-            <select className="select" name="fecha_requerida" required defaultValue="">
-              <option value="" disabled>Elige un día de reparto</option>
-              {fechas.map((f) => <option key={f} value={f}>{fechaReparto(f)}</option>)}
-            </select>
-            <small className="cotAyuda">Repartimos {DIAS_REPARTO_TEXTO}, con {DIAS_ANTICIPACION} días de anticipación como mínimo.</small>
-          </label>
+          <div className="campoFecha">Fecha requerida *
+            <CalendarioEntrega name="fecha_requerida" fechas={fechas} />
+          </div>
           <label>Dirección de entrega *<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Calle / Jr. / Número" required maxLength={220} /></label>
           <label>Distrito *
             <select className="select" name="distrito" required defaultValue="">
@@ -142,6 +139,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props
           <label>Referencia de entrega (opcional)<input className="input" name="referencia" placeholder="Ej. recepción, piso, oficina, etc." maxLength={160} /></label>
         </div>
         {opciones.notaEntrega && <p className="cotNota"><Icono nombre="camion" /> {opciones.notaEntrega}</p>}
+        <p className="cotAyuda">Repartimos {DIAS_REPARTO_TEXTO}, con {DIAS_ANTICIPACION} días de anticipación como mínimo.</p>
       </Seccion>
 
       <Seccion n={4} titulo="Personalización">
