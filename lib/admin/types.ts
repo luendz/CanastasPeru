@@ -61,6 +61,10 @@ export type Orden = {
   recibe_telefono: string | null;
   dedicatoria: string | null;
   metodo_pago: string | null;
+  /** Último pago de Mercado Pago (lo registra el webhook). */
+  mp_payment_id: string | null;
+  mp_estado: string | null;
+  mp_estado_detalle: string | null;
   subtotal: number;
   delivery: number;
   total: number;

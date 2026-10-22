@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import SelectorImagen from "../medios/SelectorImagen";
 import { guardarContenido, restaurarContenido, type EstadoContenido } from "./actions";
 
-type Columna = { clave: string; etiqueta: string; tipo?: "texto" | "numero" | "imagen"; largo?: boolean };
+type Columna = { clave: string; etiqueta: string; tipo?: "texto" | "numero" | "imagen"; largo?: boolean; opciones?: { valor: string; etiqueta: string }[] };
 
 export type Campo =
   | { tipo: "texto"; clave: string; etiqueta: string; ayuda?: string; largo?: boolean }
@@ -33,6 +33,8 @@ function serializar(campos: Campo[], estado: Record<string, unknown>) {
     if (c.tipo === "lineas") res[c.clave] = (v as string[]).map((s) => s.trim()).filter(Boolean);
     else if (c.tipo === "numero") res[c.clave] = Number(v) || 0;
     else if (c.tipo === "numeros") res[c.clave] = String(v).split(/[,\s]+/).filter(Boolean).map(Number).filter((n) => Number.isFinite(n) && n > 0);
+    // Columnas que faltan en filas guardadas antes de existir: se envían vacías.
+    else if (c.tipo === "filas") res[c.clave] = (v as Fila[]).map((f) => ({ ...Object.fromEntries(c.columnas.map((col) => [col.clave, col.tipo === "numero" ? 0 : ""])), ...f }));
     else res[c.clave] = v;
   }
   return JSON.stringify(res);
@@ -132,6 +134,12 @@ export default function EditorSeccion({ seccion, campos, valor, canastas, editad
                         <div key={col.clave} className="admField"><span className="admSmall admMuted">{col.etiqueta}</span>
                           <SelectorImagen name={`_${c.clave}_${i}_${col.clave}`} label={col.etiqueta} defaultValue={String(f[col.clave] ?? "")} onChange={(url) => cambiar(i, col.clave, url)} compacto />
                         </div>
+                      ) : col.opciones ? (
+                        <label key={col.clave}><span className="admSmall admMuted">{col.etiqueta}</span>
+                          <select className="admInput" value={String(f[col.clave] ?? "")} onChange={(e) => cambiar(i, col.clave, e.target.value)}>
+                            {col.opciones.map((o) => <option key={o.valor} value={o.valor}>{o.etiqueta}</option>)}
+                          </select>
+                        </label>
                       ) : (
                         <label key={col.clave}><span className="admSmall admMuted">{col.etiqueta}</span>
                           <input className="admInput" type={col.tipo === "numero" ? "number" : "text"} min={0} step="any"

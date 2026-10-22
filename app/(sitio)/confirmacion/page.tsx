@@ -5,7 +5,9 @@ import VaciarCarrito from "@/components/VaciarCarrito";
 import SplitWords from "@/components/motion/SplitWords";
 import { getContenido } from "@/lib/contenido";
 import { formatPrice } from "@/lib/mock-data";
+import { mercadoPagoConfigurado } from "@/lib/mercadopago";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
+import { reintentarPago } from "./actions";
 
 export const metadata = { title: "Pedido registrado" };
 
@@ -16,6 +18,8 @@ type Resumen = {
   distrito: string;
   fecha: string;
   pago: string;
+  /** El método elegido cobra con Mercado Pago. */
+  enLinea?: boolean;
   comprobante: string;
   correo: string;
 };
@@ -42,8 +46,22 @@ function leerResumen(crudo: string | undefined): Resumen | null {
 const fechaLarga = (iso: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00`).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "";
 
-export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; total?: string }> }) {
-  const [{ pedido, total: totalUrl }, jar, { contacto }] = await Promise.all([searchParams, cookies(), getContenido()]);
+/*
+ * Resultado con el que Mercado Pago devuelve al cliente (?status=…). Solo sirve
+ * para el mensaje: la orden se marca como pagada con el aviso del webhook.
+ */
+type ResultadoPago = "aprobado" | "proceso" | "fallido" | null;
+
+function resultadoPago(status: string | undefined): ResultadoPago {
+  if (status === undefined) return null;
+  if (status === "approved") return "aprobado";
+  if (status === "pending" || status === "in_process") return "proceso";
+  return "fallido";
+}
+
+export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; total?: string; status?: string; collection_status?: string }> }) {
+  const [{ pedido, total: totalUrl, status, collection_status }, jar, { contacto }] = await Promise.all([searchParams, cookies(), getContenido()]);
+  const pago = resultadoPago(status ?? collection_status);
   const r = leerResumen(jar.get("mka-pedido")?.value);
   const numero = r?.numero ?? (pedido && /^OP-\d+$/.test(pedido) ? pedido : null);
   const total = r?.total ?? (totalUrl && Number.isFinite(Number(totalUrl)) ? Number(totalUrl) : null);
@@ -51,10 +69,17 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
   const delivery = r && total != null ? Math.max(0, total - subtotal) : 0;
   const entrega = r ? fechaLarga(r.fecha) : "";
 
+  const reintentar = pago === "fallido" && Boolean(r?.enLinea) && mercadoPagoConfigurado();
+  const pasoPago = {
+    aprobado: { label: "Pago aprobado", hint: "Mercado Pago confirmó tu pago", state: "done" },
+    proceso: { label: "Pago en proceso", hint: "Te avisaremos apenas Mercado Pago lo confirme", state: "current" },
+    fallido: { label: "Pago no completado", hint: "Puedes intentarlo de nuevo o pagar con otro método", state: "current" },
+  } as const;
+
   const pasos = [
     { label: "Pedido registrado", hint: numero ? `N.º ${numero}` : "", state: "done" },
-    { label: "Confirmación del pago", hint: r?.pago ? `Método elegido: ${r.pago}` : "Te indicaremos cómo pagar", state: "current" },
-    { label: "Preparamos tus canastas", hint: "Las armamos a mano", state: "todo" },
+    pago ? pasoPago[pago] : { label: "Confirmación del pago", hint: r?.pago ? `Método elegido: ${r.pago}` : "Te indicaremos cómo pagar", state: "current" },
+    { label: "Preparamos tus canastas", hint: "Las armamos a mano", state: pago === "aprobado" ? "current" : "todo" },
     { label: "Entrega", hint: entrega || "En la fecha acordada", state: "todo" },
   ] as const;
 
@@ -73,10 +98,16 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
           <svg viewBox="0 0 52 52"><path d="m15 27 7.5 7.5L38 18.5" /></svg>
         </div>
         <div>
-          <span className="pill">Pedido registrado</span>
-          <h1><SplitWords text="¡Gracias por tu *compra*!" immediate offset={3} /></h1>
+          <span className="pill">{pago === "aprobado" ? "Pago aprobado" : pago === "fallido" ? "Pago pendiente" : "Pedido registrado"}</span>
+          <h1><SplitWords text={pago === "fallido" ? "Tu pedido está *registrado*" : "¡Gracias por tu *compra*!"} immediate offset={3} /></h1>
           <p>
-            {r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para confirmar el pago y coordinar la entrega.
+            {pago === "aprobado" ? (
+              <>Recibimos tu pago. {r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para coordinar la entrega.</>
+            ) : pago === "fallido" ? (
+              status === "error" ? "No pudimos abrir Mercado Pago. Tu pedido quedó guardado: inténtalo de nuevo en un momento." : "El pago no se completó, pero tu pedido quedó guardado. Puedes intentarlo de nuevo."
+            ) : (
+              <>{r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para confirmar el pago y coordinar la entrega.</>
+            )}
           </p>
         </div>
         {(numero || total != null) && (
@@ -107,7 +138,11 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
           </section>
 
           <div className="heroActions">
-            <Link className="btn btnPrimary" href="/canastas">Seguir comprando</Link>
+            {reintentar ? (
+              <form action={reintentarPago}><button className="btn btnPrimary" type="submit">Reintentar pago</button></form>
+            ) : (
+              <Link className="btn btnPrimary" href="/canastas">Seguir comprando</Link>
+            )}
             {contacto.telefono && numero && (
               <a className="btn btnGhost" href={enlaceWhatsApp(contacto.telefono, `Hola, acabo de registrar el pedido ${numero}.`)} target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
             )}

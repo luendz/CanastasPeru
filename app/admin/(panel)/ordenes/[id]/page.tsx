@@ -26,6 +26,10 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
   const lineas = (items ?? []) as OrdenItem[];
   const envase = new Map((tipos ?? []).map((t: { id: string; nombre: string }) => [t.id, t.nombre]));
 
+  const ESTADOS_MP: Record<string, string> = {
+    approved: "Aprobado", pending: "Pendiente", in_process: "En revisión", authorized: "Autorizado", rejected: "Rechazado",
+    cancelled: "Cancelado", refunded: "Reembolsado", charged_back: "Contracargo", in_mediation: "En mediación",
+  };
   const dato = (label: string, value: React.ReactNode) => (
     <div><dt>{label}</dt><dd>{value || "—"}</dd></div>
   );
@@ -81,6 +85,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
               {dato(o.comprobante_tipo === "factura" ? "Razón social" : "Nombre", o.comprobante_nombre)}
               {o.comprobante_tipo === "factura" && dato("Dirección fiscal", o.direccion_fiscal)}
               {dato("Método de pago", o.metodo_pago)}
+              {o.mp_payment_id && dato("Mercado Pago", `${ESTADOS_MP[o.mp_estado ?? ""] ?? o.mp_estado} · pago ${o.mp_payment_id}`)}
             </dl>
           </section>
 
