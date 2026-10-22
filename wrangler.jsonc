@@ -5,6 +5,9 @@
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-09-24",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	// Las variables (p. ej. MP_MODO_PRUEBA) se manejan en el panel de Cloudflare:
+	// sin esto, cada despliegue borraría las que no estén en este archivo.
+	"keep_vars": true,
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
