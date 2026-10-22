@@ -22,11 +22,12 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
   );
 }
 
-type Props = { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"]; fechas: string[] };
+/** pagoEnLinea: Mercado Pago está configurado en el servidor. */
+type Props = { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"]; fechas: string[]; pagoEnLinea: boolean };
 
-export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones, fechas }: Props) {
+export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones, fechas, pagoEnLinea }: Props) {
   // Los métodos de pago se editan en Panel → Contenido → Checkout.
-  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota }));
+  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota, enLinea: pagoEnLinea && m.pasarela === "mercadopago" }));
   const [district, setDistrict] = useState("");
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
@@ -43,7 +44,9 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
   const tarifa = deliveryZones.find((z) => z.district === district)?.fee;
   const fee = tarifa === undefined ? undefined : gratis ? 0 : tarifa;
   const total = subtotal + (fee ?? 0);
-  const payNote = payMethods.find((m) => m.id === pay)?.note;
+  const metodo = payMethods.find((m) => m.id === pay);
+  const enLinea = payMethods.filter((m) => m.enLinea).map((m) => m.label);
+  const payNote = metodo?.note;
   const [state, action, pending] = useActionState<CheckoutState, FormData>(crearPedido, {});
 
   return (
@@ -52,7 +55,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, tipo_canasta: l.tipo.id, cantidad: l.cantidad })))} />
         <input type="hidden" name="tarjetas" value={tarjetas} />
         <input type="hidden" name="dedicatoria" value={tarjetas ? c.tarjetas.dedicatoria : ""} />
-        <input type="hidden" name="metodo_pago" value={payMethods.find((m) => m.id === pay)?.label ?? ""} />
+        <input type="hidden" name="metodo_pago" value={metodo?.label ?? ""} />
         <input type="hidden" name="comprobante" value={doc} />
         <Section n={1} title="Datos de contacto" hint="Te enviaremos la confirmación y el seguimiento del pedido.">
           <div className="formGrid">
@@ -118,7 +121,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           )}
         </Section>
 
-        <Section n={4} title="Método de pago" hint="Vista previa: todavía no se procesa ningún pago.">
+        <Section n={4} title="Método de pago" hint={enLinea.length ? `Con ${enLinea.join(" o ")} pagas en línea en Mercado Pago${enLinea.length < payMethods.length ? "; los demás métodos los confirmamos contigo" : ""}.` : "Te indicaremos cómo completar el pago al registrar el pedido."}>
           <div className="choiceGrid choiceGrid3">
             {payMethods.map((m) => (
               <label className="choice" key={m.id}>
@@ -167,9 +170,9 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         </label>
         {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
         <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending || lines.length === 0}>
-          {pending ? "Registrando pedido…" : <>Pagar&nbsp;<AnimatedPrice value={total} /></>}
+          {pending ? (metodo?.enLinea ? "Yendo a Mercado Pago…" : "Registrando pedido…") : <>{metodo?.enLinea ? "Pagar" : "Confirmar pedido"}&nbsp;<AnimatedPrice value={total} /></>}
         </button>
-        <p className="muted summaryFoot">Prototipo: se registra el pedido pero todavía no se cobra.</p>
+        <p className="muted summaryFoot">{metodo?.enLinea ? "Pago seguro con Mercado Pago: aquí no se ingresan datos de tarjeta." : "Registramos tu pedido y te contactamos para confirmar el pago."}</p>
       </aside>
     </div>
   );

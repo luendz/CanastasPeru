@@ -4,6 +4,7 @@ import CheckoutForm from "@/components/CheckoutForm";
 import CheckoutSteps from "@/components/CheckoutSteps";
 import SplitWords from "@/components/motion/SplitWords";
 import { fechasReparto } from "@/lib/entrega";
+import { mercadoPagoConfigurado } from "@/lib/mercadopago";
 
 export default async function CheckoutPage() {
   const [{ products, basketTypes, deliveryZones }, { checkout }] = await Promise.all([getCatalogo(), getContenido()]);
@@ -14,7 +15,7 @@ export default async function CheckoutPage() {
         <span className="eyebrow">Finalizar compra</span>
         <h1><SplitWords text="Casi *listo*" immediate /></h1>
       </div>
-      <CheckoutForm products={products} basketTypes={basketTypes} deliveryZones={deliveryZones} opciones={checkout} fechas={fechasReparto()} />
+      <CheckoutForm products={products} basketTypes={basketTypes} deliveryZones={deliveryZones} opciones={checkout} fechas={fechasReparto()} pagoEnLinea={mercadoPagoConfigurado()} />
     </section>
   );
 }

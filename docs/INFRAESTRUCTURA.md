@@ -43,6 +43,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
   - `20260924000001_panel_admin.sql`: tablas, RLS, funciones, vistas y catálogo inicial.
   - `20260924000002_endurecer_funciones.sql`: `es_admin` y `precio_canasta` pasan a `SECURITY INVOKER`.
   - `20260925000003_catalogo_web.sql`: el catálogo de la web (descripción, precio tachado, insignia, composición, imágenes de tipos de canasta, orden) y la función pública `catalogo_web()`.
+  - `20261018000013_pago_mercado_pago.sql`: columnas `mp_*` en `ordenes` y la función `registrar_pago_mp`, que solo ejecuta `service_role`.
 - **Administradores:** tabla `public.admins`. Para dar acceso a alguien:
   1. Crear el usuario en Supabase → Authentication → Add user, con "Auto Confirm".
   2. Insertarlo en `admins`:
@@ -51,6 +52,25 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
      select id, 'Nombre' from auth.users where lower(email) = lower('correo@ejemplo.com');
      ```
   - Administrador actual: `ledzenrique1896@gmail.com`.
+
+## Mercado Pago (pago en línea)
+
+- **Integración:** Checkout Pro con la API REST (sin SDK), en `lib/mercadopago.ts`. El cliente paga en la página de Mercado Pago; la web nunca ve datos de tarjeta.
+- **Flujo:**
+  1. El checkout crea la orden con `crear_orden_web`.
+  2. Si el método elegido tiene **Cobro = Mercado Pago** (Panel → Contenido → Pago y entrega), se crea una preferencia con el total de la orden y el número `OP-XXXX` como referencia externa, y se lleva al cliente a pagar.
+  3. Mercado Pago avisa a `/api/mercadopago/webhook`. La web valida la firma, consulta el pago en la API y llama a `registrar_pago_mp`, que marca la orden como **pagada** solo si el pago está aprobado y cubre el total.
+  4. El cliente vuelve a `/confirmacion`, que muestra el resultado y permite reintentar si el pago falló.
+- **Secrets del Worker** (Cloudflare → Worker → Settings → Variables and Secrets, o `npx wrangler secret put`):
+  - `MP_ACCESS_TOKEN`: access token de la aplicación de Mercado Pago (primero el de prueba).
+  - `MP_WEBHOOK_SECRET`: clave secreta de las notificaciones.
+  - `SUPABASE_SECRET_KEY`: secret key de Supabase; solo la usa el webhook.
+  - `SITIO_URL` (opcional): URL pública, por ejemplo la del dominio propio.
+  - `MP_MODO_PRUEBA=1` (variable, no secreta) mientras se usen credenciales de prueba: la web no envía el correo del cliente, porque un correo real con un vendedor de prueba hace fallar el pago. **Quitarla al pasar a producción**, para que Mercado Pago reciba correo y nombre (mejora la aprobación antifraude).
+- **Probar con credenciales de prueba:** pagar en una ventana de incógnito con el **comprador de prueba** (usuario `TESTUSER…` o un correo `@testuser.com`), nunca con una cuenta real de Mercado Pago.
+- **Notificaciones:** en Mercado Pago → tu aplicación → Webhooks, URL `https://<sitio>/api/mercadopago/webhook` con el evento **Pagos**. La web también la envía en cada preferencia.
+- **Sin `MP_ACCESS_TOKEN`:** todos los métodos se comportan como pagos manuales.
+- **En local:** Mercado Pago no puede llamar a `localhost`, así que el webhook solo se prueba con el sitio publicado o con un túnel.
 
 ### Cómo está protegida la base
 

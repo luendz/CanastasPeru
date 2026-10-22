@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { esFechaReparto } from "@/lib/entrega";
+import { PASARELA_MP, crearPreferencia, mercadoPagoConfigurado } from "@/lib/mercadopago";
 import { findBasketType } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -76,6 +77,9 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   });
   const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));
   if (tarjetas) lineas.push({ nombre: "Tarjeta de dedicatoria", detalle: "", cantidad: tarjetas, precio: checkout.tarjetaPrecio });
+  // El método se busca en el contenido del servidor: el navegador solo envía su nombre.
+  const metodo = checkout.metodosPago.find((m) => m.nombre === campo(fd, "metodo_pago"));
+  const enLinea = metodo?.pasarela === PASARELA_MP && mercadoPagoConfigurado();
   (await cookies()).set(
     "mka-pedido",
     JSON.stringify({
@@ -85,10 +89,24 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
       distrito: campo(fd, "distrito"),
       fecha: campo(fd, "fecha_entrega"),
       pago: campo(fd, "metodo_pago"),
+      enLinea,
       comprobante: factura ? "Factura" : "Boleta",
       correo: campo(fd, "email"),
+      nombre,
     }),
     { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 3600, path: "/confirmacion" },
   );
-  redirect(`/confirmacion?pedido=${encodeURIComponent(numero)}&total=${Number(total).toFixed(2)}`);
+
+  const confirmacion = `/confirmacion?pedido=${encodeURIComponent(numero)}&total=${Number(total).toFixed(2)}`;
+  if (!enLinea) redirect(confirmacion);
+
+  // La orden ya existe: si Mercado Pago falla, la confirmación ofrece reintentar el pago.
+  let urlPago: string;
+  try {
+    urlPago = await crearPreferencia({ numero, total: Number(total), email: campo(fd, "email"), nombre });
+  } catch (e) {
+    console.error("No se pudo crear la preferencia de Mercado Pago.", e);
+    redirect(`${confirmacion}&status=error`);
+  }
+  redirect(urlPago);
 }

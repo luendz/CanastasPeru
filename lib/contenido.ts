@@ -12,7 +12,8 @@ import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigurado } from "@/lib/supabase/
 export type Paso = { titulo: string; texto: string };
 export type Cifra = { valor: string; texto: string };
 export type Horario = { nombre: string; rango: string };
-export type MetodoPago = { nombre: string; detalle: string; nota: string };
+/** pasarela: "mercadopago" lleva al cliente a pagar en línea; vacío es un pago manual. */
+export type MetodoPago = { nombre: string; detalle: string; nota: string; pasarela: string };
 export type Presupuesto = { etiqueta: string; min: number; max: number };
 export type Marca = { nombre: string; imagen: string };
 export type LineaTexto = { titulo: string; texto: string; imagen: string };
@@ -225,9 +226,9 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
       { nombre: "Noche", rango: "18:00 – 21:00" },
     ],
     metodosPago: [
-      { nombre: "Tarjeta", detalle: "Visa, Mastercard, Amex", nota: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta." },
-      { nombre: "Yape / Plin", detalle: "Pago con QR", nota: "Te mostraremos el QR y el monto exacto en el siguiente paso." },
-      { nombre: "Transferencia", detalle: "BCP, Interbank, BBVA", nota: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono." },
+      { nombre: "Tarjeta", detalle: "Visa, Mastercard, Amex", nota: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta.", pasarela: "mercadopago" },
+      { nombre: "Yape / Plin", detalle: "Pago con QR", nota: "Te mostraremos el QR y el monto exacto en el siguiente paso.", pasarela: "" },
+      { nombre: "Transferencia", detalle: "BCP, Interbank, BBVA", nota: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono.", pasarela: "" },
     ],
     notaImpuestos: "Precios incluyen IGV.",
     tarjetaPrecio: 2,
