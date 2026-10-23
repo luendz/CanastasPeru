@@ -2,22 +2,28 @@ import { firmaValida, obtenerPago } from "@/lib/mercadopago";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /*
- * Notificaciones de Mercado Pago. Se valida la firma, se consulta el pago en
- * la API (lo que llega en el aviso no se toma como cierto) y se registra en la
- * orden cuyo número viene como referencia externa.
+ * Notificaciones de Mercado Pago. Llegan en dos formatos:
+ * - Webhooks (?type=payment&data.id=…): firmados con x-signature; se valida la firma.
+ * - IPN / Feed v2 (?topic=payment&id=…): su firma no sigue la fórmula de los
+ *   Webhooks, así que no se puede validar.
+ * En ambos casos el aviso no se toma como cierto: se consulta el pago en la API
+ * con el access token y la base solo lo marca como pagado si está aprobado y
+ * cubre el total. Un aviso falso, a lo sumo, vuelve a leer datos verdaderos.
  *
  * Responder 200 confirma el aviso; con 5xx Mercado Pago lo reintenta más tarde.
  */
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const cuerpo = (await request.json().catch(() => null)) as { type?: string; data?: { id?: string | number } } | null;
+  const webhook = url.searchParams.has("data.id") || Boolean(cuerpo?.data?.id);
   const tipo = url.searchParams.get("type") ?? url.searchParams.get("topic") ?? cuerpo?.type;
-  const dataId = url.searchParams.get("data.id") ?? url.searchParams.get("id") ?? String(cuerpo?.data?.id ?? "");
+  const pagoId = url.searchParams.get("data.id") ?? url.searchParams.get("id") ?? String(cuerpo?.data?.id ?? "");
 
   // Otros avisos (órdenes comerciales, contracargos en revisión…) no cambian la orden.
-  if (tipo !== "payment" || !dataId) return new Response(null, { status: 200 });
+  if (tipo !== "payment" || !/^\d+$/.test(pagoId)) return new Response(null, { status: 200 });
 
-  if (!(await firmaValida({ firma: request.headers.get("x-signature"), requestId: request.headers.get("x-request-id"), dataId }))) {
+  if (webhook && !(await firmaValida({ firma: request.headers.get("x-signature"), requestId: request.headers.get("x-request-id"), dataId: pagoId }))) {
+    console.warn(`Aviso de Mercado Pago con firma inválida (pago ${pagoId}): revisa MP_WEBHOOK_SECRET.`);
     return new Response("Firma inválida", { status: 401 });
   }
 
@@ -28,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const pago = await obtenerPago(dataId);
+    const pago = await obtenerPago(pagoId);
     if (!pago.external_reference) return new Response(null, { status: 200 });
     if (pago.currency_id !== "PEN") {
       console.error(`Pago ${pago.id} en ${pago.currency_id}: se esperaba PEN.`);
