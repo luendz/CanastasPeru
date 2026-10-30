@@ -9,9 +9,10 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 | Pieza | Dónde | Notas |
 |---|---|---|
 | Código | GitHub `luendz/CanastasPeru` | Rama principal `main` |
-| Web pública | Cloudflare Workers, Worker `mka-canastas` | https://mka-canastas.ledzenrique1896.workers.dev |
+| Web pública | Cloudflare Workers, Worker `mka-canastas`, cuenta `mkacanastas@gmail.com` | **https://mkacanastas.com** (también `www.` y https://mka-canastas.mkacanastas.workers.dev) |
 | Base de datos y login | Supabase, proyecto **MKA Canastas** | Cuenta/organización **`mkacanastas`** |
-| Panel de gestión | Ruta `/admin`, rama `panel-admin` | Solo local por ahora; **no está publicado** |
+| Panel de gestión | Ruta `/admin` | Publicado con la web: https://mkacanastas.com/admin |
+| Dominio | `mkacanastas.com`, comprado en Cloudflare Registrar (misma cuenta) | DNS y certificado los maneja Cloudflare |
 
 ## Publicación (Cloudflare Workers)
 
@@ -19,12 +20,17 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 - **Comandos configurados en Cloudflare:**
   - build: `npx opennextjs-cloudflare build`
   - deploy: `npx opennextjs-cloudflare deploy`
-  - preview (ramas que no son `main`): `npx opennextjs-cloudflare upload`
+  - preview: desactivado; solo se publica al mergear a `main`.
+- **Cuenta de Cloudflare:** `mkacanastas@gmail.com`. La cuenta anterior (`ledzenrique1896`, URL `mka-canastas.ledzenrique1896.workers.dev`) ya no se usa: su Worker debe quedar borrado o desconectado de GitHub, o cada merge se publicaría en las dos.
+- **Variables en dos lugares distintos:**
+  - **Build** (Settings → Builds → Variables): `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, porque se incrustan al compilar.
+  - **Runtime** (Settings → Variables and Secrets): los secretos y variables que la web lee al funcionar (ver Mercado Pago). Puestos en Build, la web **no** los ve.
+  - `wrangler.jsonc` tiene `keep_vars: true` para que los despliegues no borren las variables del panel.
 - **Nombre del Worker:** `mka-canastas`. Debe coincidir con `name` en `wrangler.jsonc`, o el build falla.
 - **Configuración mínima:** sin caché en R2 ni optimización de imágenes, porque el sitio no usa ISR ni `next/image`. Así funciona en el plan gratuito.
 - **Tamaño:** el Worker pesa ~1,1 MB comprimido. El límite del plan gratuito es de 3 MB.
 - **Probar localmente en el runtime de Workers:** `npm run preview`.
-- **Dominio propio:** todavía no hay. Se conecta en el panel del Worker → Settings → Domains & Routes.
+- **Dominio propio:** `mkacanastas.com` y `www.mkacanastas.com`, conectados como Custom domains en el Worker → Domains. Renovación automática activada en Domains → Registrations.
 
 ## Supabase
 
@@ -53,6 +59,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
      select id, 'Nombre' from auth.users where lower(email) = lower('correo@ejemplo.com');
      ```
   - Administrador actual: `ledzenrique1896@gmail.com`.
+- **URLs de autenticación** (Authentication → URL Configuration): Site URL `https://mkacanastas.com` y Redirect URLs `https://mkacanastas.com/**` y `https://www.mkacanastas.com/**`.
 
 ## Mercado Pago (pago en línea)
 
@@ -66,10 +73,13 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
   - `MP_ACCESS_TOKEN`: access token de la aplicación de Mercado Pago (primero el de prueba).
   - `MP_WEBHOOK_SECRET`: clave secreta de las notificaciones.
   - `SUPABASE_SECRET_KEY`: secret key de Supabase; solo la usa el webhook.
-  - `SITIO_URL` (opcional): URL pública, por ejemplo la del dominio propio.
+  - `SITIO_URL` = `https://mkacanastas.com` (variable): URL a la que Mercado Pago devuelve al cliente y avisa los pagos.
   - `MP_MODO_PRUEBA=1` (variable, no secreta) mientras se usen credenciales de prueba: la web no envía el correo del cliente, porque un correo real con un vendedor de prueba hace fallar el pago. **Quitarla al pasar a producción**, para que Mercado Pago reciba correo y nombre (mejora la aprobación antifraude).
 - **Probar con credenciales de prueba:** pagar en una ventana de incógnito con el **comprador de prueba** (usuario `TESTUSER…` o un correo `@testuser.com`), nunca con una cuenta real de Mercado Pago.
-- **Notificaciones:** en Mercado Pago → tu aplicación → Webhooks, URL `https://<sitio>/api/mercadopago/webhook` con el evento **Pagos**. La web también la envía en cada preferencia.
+- **Notificaciones:** en Mercado Pago → tu aplicación → Webhooks (pestañas de prueba y productiva), URL `https://mkacanastas.com/api/mercadopago/webhook` con el evento **Pagos (legacy)**. La web también la envía en cada preferencia.
+  - Mercado Pago avisa en dos formatos: Webhooks (`?type=payment&data.id=…`, con firma que se valida) e IPN (`?topic=payment&id=…`, sin firma validable). Ambos se aceptan porque el pago siempre se consulta en la API antes de registrarlo.
+  - Los usuarios de prueba con token `APP_USR-` generan pagos "live": su firma usa la clave del **Modo productivo**.
+  - Para reprocesar un pago a mano: `curl -X POST "https://mkacanastas.com/api/mercadopago/webhook?topic=payment&id=<id del pago>"`.
 - **Sin `MP_ACCESS_TOKEN`:** todos los métodos se comportan como pagos manuales.
 - **En local:** Mercado Pago no puede llamar a `localhost`, así que el webhook solo se prueba con el sitio publicado o con un túnel.
 
@@ -97,7 +107,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 ### Reglas
 
 1. **No mergear el panel a `main` sin confirmarlo con el usuario.** `main` se publica sola y es pública.
-2. **Antes de publicar el panel:** definir en Cloudflare (Settings → Variables) `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Ya no hay rutas internas públicas: el editor de composición vive dentro del panel.
+2. **El panel está publicado** junto con la web. Necesita `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en las variables de **Build** de Cloudflare. No hay rutas internas públicas: el editor de composición vive dentro del panel.
 3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Precios, descripciones, insignias, visibilidad, tipos de canasta y tarifas se editan en **Panel → Catálogo** y se ven al instante, sin redeploy. Las canastas nuevas se crean ocultas: primero se arma su receta (Costeo) y su composición (editor), y después se activan.
    - "Lo que trae" cada canasta sale de su **receta** (insumos de tipo producto), la misma del costeo.
    - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Composición visual** (`/admin/catalogo/[id]/composicion`).
