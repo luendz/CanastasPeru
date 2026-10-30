@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm from "../CanastaForm";
+import { LINEAS } from "@/lib/lineas";
 
 export const metadata = { title: "Nueva canasta" };
 
@@ -40,7 +41,7 @@ export default async function NuevaCanastaPage() {
             activo: false,
           }}
           tipos={listaTipos}
-          categorias={[...new Set(filas.map((f) => f.categoria))]}
+          categorias={[...new Set([...LINEAS.map((l) => l.categoria), ...filas.map((f) => f.categoria)])]}
         />
       </section>
     </>

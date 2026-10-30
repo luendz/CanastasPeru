@@ -30,14 +30,15 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
   const costoDe = new Map(((costeo ?? []) as { producto_id: string; costo: number; margen_pct: number | null }[]).map((c) => [c.producto_id, c]));
   const imagenDe = new Map(listaTipos.map((t) => [t.id, t.imagen]));
 
-  // Una categoría sin canastas no se muestra; las de categoría desconocida van en "Otras" para no perderlas.
+  // Las líneas se muestran siempre, aunque no tengan canastas; las de categoría desconocida van en "Otras" para no perderlas.
+  const sinLinea = lista.filter((p) => !lineaDe({ category: p.categoria }));
   const categorias = [
-    ...LINEAS.map((l) => ({ id: l.id as string, titulo: l.titulo, canastas: lista.filter((p) => lineaDe({ category: p.categoria })?.id === l.id) })),
-    { id: "otras", titulo: "Otras canastas", canastas: lista.filter((p) => !lineaDe({ category: p.categoria })) },
-  ].filter((c) => c.canastas.length > 0);
+    ...LINEAS.map((l) => ({ id: l.id as string, titulo: l.titulo, categoria: l.categoria, canastas: lista.filter((p) => lineaDe({ category: p.categoria })?.id === l.id) })),
+    ...(sinLinea.length ? [{ id: "otras", titulo: "Otras canastas", categoria: "", canastas: sinLinea }] : []),
+  ];
   const actual = categorias.find((c) => c.id === linea) ?? categorias[0];
-  const canastas = actual?.canastas ?? [];
-  const verCategoria = actual?.id === "otras";
+  const canastas = actual.canastas;
+  const verCategoria = actual.id === "otras";
 
   return (
     <>
@@ -57,9 +58,9 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
 
       <nav className="admCategorias" aria-label="Categorías de canastas">
         {categorias.map((c) => {
-          const imagen = imagenDe.get(c.canastas[0].tipo_canasta_base);
+          const imagen = c.canastas[0] && imagenDe.get(c.canastas[0].tipo_canasta_base);
           return (
-            <Link key={c.id} className="admCategoria" data-linea={c.id} href={`/admin/catalogo?linea=${c.id}`} scroll={false} aria-current={c.id === actual?.id ? "true" : undefined}>
+            <Link key={c.id} className="admCategoria" data-linea={c.id} href={`/admin/catalogo?linea=${c.id}`} scroll={false} aria-current={c.id === actual.id ? "true" : undefined}>
               {imagen && <img src={imagen} alt="" />}
               <span><strong>{c.titulo}</strong><small>{c.canastas.length} {c.canastas.length === 1 ? "modelo" : "modelos"}</small></span>
               <span className="admCategoriaFlecha" aria-hidden="true">›</span>
@@ -69,10 +70,13 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
       </nav>
 
       <section className="admCard admCardFlush" id="canastas">
-        <div className="admCardHead admPad"><h2>{actual?.titulo ?? "Canastas"}</h2><span className="admMuted">{canastas.filter((p) => p.activo).length} visibles de {canastas.length}</span></div>
+        <div className="admCardHead admPad"><h2>{actual.titulo}</h2><span className="admMuted">{canastas.filter((p) => p.activo).length} visibles de {canastas.length}</span></div>
         <table className="admTable">
           <thead><tr><th>Orden</th><th>Canasta</th>{verCategoria && <th>Categoría</th>}<th className="num">Precio</th><th className="num">Tachado</th><th className="num">Margen</th><th>Tienda</th><th /></tr></thead>
           <tbody>
+            {canastas.length === 0 && (
+              <tr><td colSpan={7} className="admMuted">Todavía no hay canastas aquí. Créalas con <Link className="admStrongLink" href="/admin/catalogo/nueva">+ Nueva canasta</Link>, con la categoría «{actual.categoria}».</td></tr>
+            )}
             {canastas.map((p) => {
               const c = costoDe.get(p.id);
               return (

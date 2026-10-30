@@ -246,6 +246,7 @@ textarea.admInput { resize: vertical; }
 .admCategoria[data-linea="economicas"] { --tono: #fbe3e2; }
 .admCategoria[data-linea="premium"] { --tono: #e8ecdf; }
 .admCategoria[data-linea="ejecutivas"] { --tono: #fbead9; }
+.admCategoria[data-linea="boxes"] { --tono: #e7e9f3; }
 .admCategoria:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
 .admCategoria[aria-current] { border-color: var(--a-wine); }
 .admCategoria img { flex: none; width: 64px; height: 64px; object-fit: contain; }

@@ -23,7 +23,7 @@ export default async function CosteoPage() {
   const infoDe = new Map(((prods ?? []) as { id: string; categoria: string; activo: boolean }[]).map((x) => [x.id, x]));
   const normal = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const grupos = [
-    ...LINEAS.filter((l) => l.id !== "boxes").map((l) => ({
+    ...LINEAS.map((l) => ({
       titulo: l.titulo,
       id: l.id,
       canastas: canastas.filter((c) => normal(infoDe.get(c.producto_id)?.categoria ?? "").startsWith(normal(l.categoria).slice(0, 6))),

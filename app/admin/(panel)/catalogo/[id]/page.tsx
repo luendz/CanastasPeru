@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm, { type CanastaEditable } from "../CanastaForm";
+import { LINEAS } from "@/lib/lineas";
 
 export const metadata = { title: "Editar canasta" };
 
@@ -20,7 +21,7 @@ export default async function EditarCanastaPage({ params }: { params: Promise<{ 
   ]);
   if (!producto) notFound();
   const p = producto as CanastaEditable & { slug: string; composicion: unknown[] };
-  const categorias = [...new Set(((todos ?? []) as { categoria: string }[]).map((t) => t.categoria))];
+  const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...((todos ?? []) as { categoria: string }[]).map((t) => t.categoria)])];
 
   return (
     <>
