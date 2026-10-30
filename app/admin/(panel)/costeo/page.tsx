@@ -1,9 +1,9 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { CostoInsumo, CosteoCanasta, Insumo, Receta } from "@/lib/admin/types";
 import { LINEAS } from "@/lib/lineas";
-import { guardarCostosCanasta, guardarRecetaItem, quitarRecetaItem } from "./actions";
-import OrdenReceta from "./OrdenReceta";
+import { guardarCostosCanasta } from "./actions";
 
 export const metadata = { title: "Costeo por canasta" };
 
@@ -72,54 +72,27 @@ export default async function CosteoPage() {
 
       {canastas.map((c) => {
         const items = lista.filter((r) => r.producto_id === c.producto_id);
-        const disponibles = todos.filter((i) => !items.some((r) => r.insumo_id === i.id));
         return (
           <section className="admCard" id={`receta-${c.slug}`} key={c.producto_id}>
-            <div className="admCardHead"><h2>Receta · {c.nombre}</h2><span className="admMuted">Costo {soles(c.costo)} · precio {soles(c.precio)}</span></div>
+            <div className="admCardHead"><h2>Receta · {c.nombre}</h2><span className="admMuted">Costo {soles(c.costo)} · precio {soles(c.precio)} · <Link href={`/admin/catalogo/${c.producto_id}?seccion=receta`}>Editar receta</Link></span></div>
             <table className="admTable admTableCompact">
-              <thead><tr><th>Orden</th><th>Insumo</th><th className="num">Cantidad</th><th className="num">Costo prom.</th><th className="num">Subtotal</th><th /></tr></thead>
+              <thead><tr><th>N.°</th><th>Insumo</th><th className="num">Cantidad</th><th className="num">Costo prom.</th><th className="num">Subtotal</th></tr></thead>
               <tbody>
                 {items.map((r, i) => {
                   const insumo = todos.find((i) => i.id === r.insumo_id);
                   const costo = costoDe.get(r.insumo_id)?.costo_actual;
                   return (
                     <tr key={r.insumo_id}>
-                      <td><OrdenReceta productoId={c.producto_id} insumoId={r.insumo_id} posicion={i + 1} total={items.length} nombre={insumo?.nombre ?? "insumo"} /></td>
+                      <td>{i + 1}</td>
                       <td>{insumo?.nombre}<small className="admMuted"> · {insumo?.unidad}</small></td>
-                      <td className="num">
-                        <form action={guardarRecetaItem} className="admCellForm">
-                          <input type="hidden" name="producto_id" value={c.producto_id} />
-                          <input type="hidden" name="insumo_id" value={r.insumo_id} />
-                          <input className="admInput admInputSm" type="number" name="cantidad" min="0.01" step="0.01" defaultValue={r.cantidad} aria-label={`Cantidad de ${insumo?.nombre}`} />
-                          <button className="admLinkMuted" type="submit">Guardar</button>
-                        </form>
-                      </td>
+                      <td className="num">{numero(r.cantidad, 2)}</td>
                       <td className="num">{costo == null ? <span className="admWarn">sin compras</span> : soles(costo)}</td>
                       <td className="num">{costo == null ? "—" : soles(Number(costo) * Number(r.cantidad))}</td>
-                      <td className="num">
-                        <form action={quitarRecetaItem}>
-                          <input type="hidden" name="producto_id" value={c.producto_id} />
-                          <input type="hidden" name="insumo_id" value={r.insumo_id} />
-                          <button className="admLinkDanger" type="submit">Quitar</button>
-                        </form>
-                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-            {disponibles.length > 0 && (
-              <form action={guardarRecetaItem} className="admInlineForm">
-                <input type="hidden" name="producto_id" value={c.producto_id} />
-                <label>Agregar insumo
-                  <select className="admInput" name="insumo_id">
-                    {disponibles.map((i) => <option key={i.id} value={i.id}>{i.nombre}</option>)}
-                  </select>
-                </label>
-                <label>Cantidad<input className="admInput" type="number" name="cantidad" min="0.01" step="0.01" defaultValue={1} /></label>
-                <button className="admBtn" type="submit">Agregar</button>
-              </form>
-            )}
           </section>
         );
       })}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import CampoOrden from "../CampoOrden";
-import { moverRecetaItem } from "./actions";
+import CampoOrden from "../../CampoOrden";
+import { moverRecetaItem } from "../../costeo/actions";
 
 type Props = { productoId: string; insumoId: string; posicion: number; total: number; nombre: string };
 

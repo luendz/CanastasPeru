@@ -84,7 +84,7 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
         <input className="admInput" name="orden" type="number" step="1" defaultValue={canasta.orden} />
       </label>
 
-      <label className="admSpan2">Descripción
+      <label className="admSpan2">Descripción corta
         <textarea className="admInput" name="descripcion" rows={3} maxLength={400} defaultValue={canasta.descripcion} />
       </label>
 
