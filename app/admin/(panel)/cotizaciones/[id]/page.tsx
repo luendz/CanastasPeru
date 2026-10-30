@@ -29,7 +29,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
     supabase.from("insumos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
     productosPorCanasta(supabase),
     getContenido(),
-    supabase.from("recetas").select("producto_id,insumo_id,cantidad,insumos!inner(tipo)").eq("insumos.tipo", "producto"),
+    supabase.from("recetas").select("producto_id,insumo_id,cantidad,insumos!inner(tipo)").eq("insumos.tipo", "producto").order("orden"),
     supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
   ]);
   if (!cot) notFound();

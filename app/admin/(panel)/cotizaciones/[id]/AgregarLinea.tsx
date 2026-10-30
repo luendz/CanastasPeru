@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import CampoOrden from "../../CampoOrden";
 import { soles } from "@/lib/admin/format";
+import { insertarProducto, moverProducto } from "@/lib/admin/recetas";
 import { agregarItemCotizacion, type EstadoForm } from "../actions";
 
 export type CanastaOpcion = {
@@ -87,11 +89,11 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   const utilidad = redondear(precioVenta - costoTotal);
   const margenReal = precioVenta > 0 ? Math.round((utilidad / precioVenta) * 1000) / 10 : 0;
 
-  // ¿Se cambió la receta de la canasta del catálogo?
+  // ¿Se cambió la receta de la canasta del catálogo (productos, cantidades u orden)?
   const modificada = useMemo(() => {
     if (!elegida) return false;
     if (elegida.receta.length !== filas.length) return true;
-    return elegida.receta.some((r) => filas.find((f) => f.insumo_id === r.insumo_id)?.cantidad !== r.cantidad);
+    return elegida.receta.some((r, i) => filas[i].insumo_id !== r.insumo_id || filas[i].cantidad !== r.cantidad);
   }, [elegida, filas]);
   const enviarContenido = personalizada || modificada;
 
@@ -135,7 +137,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   }, [busqueda, productos, filas]);
 
   function agregarProducto(id: string) {
-    setFilas((fs) => [...fs, { insumo_id: id, cantidad: 1 }]);
+    setFilas((fs) => insertarProducto(fs, { insumo_id: id, cantidad: 1 }, (f) => productoDe.get(f.insumo_id)?.nombre ?? ""));
     setBusqueda("");
   }
 
@@ -177,12 +179,13 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
 
             {filas.length > 0 ? (
               <table className="admTable admTablaComposicion">
-                <thead><tr><th>Producto</th><th className="num">Costo unit.</th><th className="num">Cant.</th><th className="num">Costo</th><th /></tr></thead>
+                <thead><tr><th>Orden</th><th>Producto</th><th className="num">Costo unit.</th><th className="num">Cant.</th><th className="num">Costo</th><th /></tr></thead>
                 <tbody>
                   {filas.map((f, i) => {
                     const p = productoDe.get(f.insumo_id);
                     return (
                       <tr key={f.insumo_id}>
+                        <td><CampoOrden key={i} posicion={i + 1} total={filas.length} etiqueta={`Orden de ${p?.nombre ?? "producto"}`} onCambiar={(n) => setFilas(moverProducto(filas, i, n))} /></td>
                         <td>{p?.nombre ?? "—"}</td>
                         <td className="num">{p?.costo != null ? soles(p.costo) : <span className="admMuted">Sin costo</span>}</td>
                         <td className="num">
