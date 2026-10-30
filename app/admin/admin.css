@@ -492,6 +492,7 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admTablaComposicion { font-size: 13px; }
 .admTablaComposicion td, .admTablaComposicion th { padding: 6px 8px; }
 .admInputCorto { width: 96px; padding: 6px 8px; text-align: right; }
+.admInputOrden { width: 60px; min-height: 32px; padding: 4px 6px; text-align: center; }
 .admBuscador { position: relative; }
 .admBuscadorLista { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 4px); max-height: 280px; overflow-y: auto; margin: 0; padding: 6px; list-style: none; border: 1px solid var(--a-line); border-radius: 12px; background: #fff; box-shadow: 0 12px 30px rgba(36, 25, 21, .14); }
 .admBuscadorLista li { padding: 4px 6px; }

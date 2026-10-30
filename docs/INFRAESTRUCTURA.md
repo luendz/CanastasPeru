@@ -44,6 +44,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
   - `20260924000002_endurecer_funciones.sql`: `es_admin` y `precio_canasta` pasan a `SECURITY INVOKER`.
   - `20260925000003_catalogo_web.sql`: el catálogo de la web (descripción, precio tachado, insignia, composición, imágenes de tipos de canasta, orden) y la función pública `catalogo_web()`.
   - `20261018000013_pago_mercado_pago.sql`: columnas `mp_*` en `ordenes` y la función `registrar_pago_mp`, que solo ejecuta `service_role`.
+  - `20261030000014_orden_productos_canasta.sql`: columna `recetas.orden`. El orden se edita en Panel → Costeo y lo siguen el panel, los PDF y "lo que trae" en la web. El panetón entra primero al agregarlo, y el campo Orden puede moverlo.
 - **Administradores:** tabla `public.admins`. Para dar acceso a alguien:
   1. Crear el usuario en Supabase → Authentication → Add user, con "Auto Confirm".
   2. Insertarlo en `admins`:

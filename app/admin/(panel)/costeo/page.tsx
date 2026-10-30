@@ -3,6 +3,7 @@ import { numero, soles } from "@/lib/admin/format";
 import type { CostoInsumo, CosteoCanasta, Insumo, Receta } from "@/lib/admin/types";
 import { LINEAS } from "@/lib/lineas";
 import { guardarCostosCanasta, guardarRecetaItem, quitarRecetaItem } from "./actions";
+import OrdenReceta from "./OrdenReceta";
 
 export const metadata = { title: "Costeo por canasta" };
 
@@ -11,7 +12,7 @@ export default async function CosteoPage() {
   const [{ data: costeo }, { data: prods }, { data: recetas }, { data: costos }, { data: insumos }] = await Promise.all([
     supabase.from("v_costeo_canastas").select("*").order("precio"),
     supabase.from("productos").select("id,categoria,activo"),
-    supabase.from("recetas").select("*"),
+    supabase.from("recetas").select("*").order("orden"),
     supabase.from("v_costo_insumos").select("*"),
     supabase.from("insumos").select("*").order("tipo").order("nombre"),
   ]);
@@ -76,13 +77,14 @@ export default async function CosteoPage() {
           <section className="admCard" id={`receta-${c.slug}`} key={c.producto_id}>
             <div className="admCardHead"><h2>Receta · {c.nombre}</h2><span className="admMuted">Costo {soles(c.costo)} · precio {soles(c.precio)}</span></div>
             <table className="admTable admTableCompact">
-              <thead><tr><th>Insumo</th><th className="num">Cantidad</th><th className="num">Costo prom.</th><th className="num">Subtotal</th><th /></tr></thead>
+              <thead><tr><th>Orden</th><th>Insumo</th><th className="num">Cantidad</th><th className="num">Costo prom.</th><th className="num">Subtotal</th><th /></tr></thead>
               <tbody>
-                {items.map((r) => {
+                {items.map((r, i) => {
                   const insumo = todos.find((i) => i.id === r.insumo_id);
                   const costo = costoDe.get(r.insumo_id)?.costo_actual;
                   return (
                     <tr key={r.insumo_id}>
+                      <td><OrdenReceta productoId={c.producto_id} insumoId={r.insumo_id} posicion={i + 1} total={items.length} nombre={insumo?.nombre ?? "insumo"} /></td>
                       <td>{insumo?.nombre}<small className="admMuted"> · {insumo?.unidad}</small></td>
                       <td className="num">
                         <form action={guardarRecetaItem} className="admCellForm">

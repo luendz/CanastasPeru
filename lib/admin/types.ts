@@ -159,7 +159,7 @@ export type Insumo = {
   emoji: string;
   costo_referencia: number | null;
 };
-export type Receta = { producto_id: string; insumo_id: string; cantidad: number };
+export type Receta = { producto_id: string; insumo_id: string; cantidad: number; orden: number };
 export type CosteoCanasta = {
   producto_id: string;
   slug: string;
