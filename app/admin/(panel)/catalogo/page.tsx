@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
+import { LINEAS, lineaDe } from "@/lib/lineas";
 import SelectorImagen from "../medios/SelectorImagen";
 import { alternarCanasta, crearZona, guardarTipo, guardarZona } from "./actions";
 
@@ -14,8 +15,9 @@ type ProductoFila = {
 type TipoFila = TipoCanasta & { imagen: string | null; descripcion: string | null; orden: number };
 type ZonaFila = { distrito: string; tarifa: number; activo: boolean; orden: number };
 
-export default async function CatalogoAdminPage() {
+export default async function CatalogoAdminPage({ searchParams }: { searchParams: Promise<{ linea?: string }> }) {
   const { supabase } = await requireAdmin();
+  const { linea } = await searchParams;
   const [{ data: productos }, { data: tipos }, { data: zonas }, { data: costeo }] = await Promise.all([
     supabase.from("productos").select("*").order("orden").order("precio"),
     supabase.from("tipos_canasta").select("*").order("orden").order("recargo"),
@@ -26,6 +28,16 @@ export default async function CatalogoAdminPage() {
   const listaTipos = (tipos ?? []) as TipoFila[];
   const listaZonas = (zonas ?? []) as ZonaFila[];
   const costoDe = new Map(((costeo ?? []) as { producto_id: string; costo: number; margen_pct: number | null }[]).map((c) => [c.producto_id, c]));
+  const imagenDe = new Map(listaTipos.map((t) => [t.id, t.imagen]));
+
+  // Una categoría sin canastas no se muestra; las de categoría desconocida van en "Otras" para no perderlas.
+  const categorias = [
+    ...LINEAS.map((l) => ({ id: l.id as string, titulo: l.titulo, canastas: lista.filter((p) => lineaDe({ category: p.categoria })?.id === l.id) })),
+    { id: "otras", titulo: "Otras canastas", canastas: lista.filter((p) => !lineaDe({ category: p.categoria })) },
+  ].filter((c) => c.canastas.length > 0);
+  const actual = categorias.find((c) => c.id === linea) ?? categorias[0];
+  const canastas = actual?.canastas ?? [];
+  const verCategoria = actual?.id === "otras";
 
   return (
     <>
@@ -43,12 +55,25 @@ export default async function CatalogoAdminPage() {
         <a href="#delivery">Delivery</a>
       </nav>
 
+      <nav className="admCategorias" aria-label="Categorías de canastas">
+        {categorias.map((c) => {
+          const imagen = imagenDe.get(c.canastas[0].tipo_canasta_base);
+          return (
+            <Link key={c.id} className="admCategoria" data-linea={c.id} href={`/admin/catalogo?linea=${c.id}`} scroll={false} aria-current={c.id === actual?.id ? "true" : undefined}>
+              {imagen && <img src={imagen} alt="" />}
+              <span><strong>{c.titulo}</strong><small>{c.canastas.length} {c.canastas.length === 1 ? "modelo" : "modelos"}</small></span>
+              <span className="admCategoriaFlecha" aria-hidden="true">›</span>
+            </Link>
+          );
+        })}
+      </nav>
+
       <section className="admCard admCardFlush" id="canastas">
-        <div className="admCardHead admPad"><h2>Canastas</h2><span className="admMuted">{lista.filter((p) => p.activo).length} visibles de {lista.length}</span></div>
+        <div className="admCardHead admPad"><h2>{actual?.titulo ?? "Canastas"}</h2><span className="admMuted">{canastas.filter((p) => p.activo).length} visibles de {canastas.length}</span></div>
         <table className="admTable">
-          <thead><tr><th>Orden</th><th>Canasta</th><th>Categoría</th><th className="num">Precio</th><th className="num">Tachado</th><th className="num">Margen</th><th>Tienda</th><th /></tr></thead>
+          <thead><tr><th>Orden</th><th>Canasta</th>{verCategoria && <th>Categoría</th>}<th className="num">Precio</th><th className="num">Tachado</th><th className="num">Margen</th><th>Tienda</th><th /></tr></thead>
           <tbody>
-            {lista.map((p) => {
+            {canastas.map((p) => {
               const c = costoDe.get(p.id);
               return (
                 <tr key={p.id} data-inactivo={!p.activo || undefined}>
@@ -58,7 +83,7 @@ export default async function CatalogoAdminPage() {
                     {p.insignia && <> <span className="admBadge">{p.insignia}</span></>}
                     {p.composicion.length === 0 && <small className="admWarn admBlock">Sin composición visual</small>}
                   </td>
-                  <td>{p.categoria}</td>
+                  {verCategoria && <td>{p.categoria}</td>}
                   <td className="num"><strong>{soles(p.precio)}</strong></td>
                   <td className="num">{p.precio_anterior ? <del>{soles(p.precio_anterior)}</del> : "—"}</td>
                   <td className="num">{c?.margen_pct == null ? "—" : `${numero(c.margen_pct, 1)} %`}</td>
