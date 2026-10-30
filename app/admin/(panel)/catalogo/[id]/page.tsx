@@ -4,23 +4,33 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm, { type CanastaEditable } from "../CanastaForm";
+import { LINEAS } from "@/lib/lineas";
+import SeccionImagenes from "./SeccionImagenes";
+import SeccionReceta from "./SeccionReceta";
 
 export const metadata = { title: "Editar canasta" };
 
-export default async function EditarCanastaPage({ params }: { params: Promise<{ id: string }> }) {
+const SECCIONES = [
+  { id: "datos", titulo: "Datos generales" },
+  { id: "receta", titulo: "Receta de productos" },
+  { id: "imagenes", titulo: "Imágenes" },
+];
+
+export default async function EditarCanastaPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ seccion?: string }> }) {
   const { supabase } = await requireAdmin();
   const { id } = await params;
+  const { seccion } = await searchParams;
+  const actual = SECCIONES.find((s) => s.id === seccion)?.id ?? "datos";
 
-  const [{ data: producto }, { data: tipos }, { data: todos }, { data: costeo }, { count: recetaCount }] = await Promise.all([
+  const [{ data: producto }, { data: tipos }, { data: todos }, { data: costeo }] = await Promise.all([
     supabase.from("productos").select("*").eq("id", id).maybeSingle(),
     supabase.from("tipos_canasta").select("*").order("orden"),
     supabase.from("productos").select("categoria"),
     supabase.from("v_costeo_canastas").select("costo,margen,margen_pct,costo_viveres,costo_presentacion,fuente").eq("producto_id", id).maybeSingle(),
-    supabase.from("recetas").select("insumo_id", { count: "exact", head: true }).eq("producto_id", id),
   ]);
   if (!producto) notFound();
   const p = producto as CanastaEditable & { slug: string; composicion: unknown[] };
-  const categorias = [...new Set(((todos ?? []) as { categoria: string }[]).map((t) => t.categoria))];
+  const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...((todos ?? []) as { categoria: string }[]).map((t) => t.categoria)])];
 
   return (
     <>
@@ -32,9 +42,18 @@ export default async function EditarCanastaPage({ params }: { params: Promise<{ 
         {p.activo && <Link className="admBtn" href={`/producto/${p.slug}`} target="_blank">Ver en la tienda ↗</Link>}
       </header>
 
-      <div className="admGrid2 admGridDetail">
+      <nav className="admTabs" aria-label="Secciones de la canasta">
+        {SECCIONES.map((s) => (
+          <Link key={s.id} href={`/admin/catalogo/${id}?seccion=${s.id}`} scroll={false} aria-current={s.id === actual ? "page" : undefined}>{s.titulo}</Link>
+        ))}
+      </nav>
+
+      {actual === "receta" && <SeccionReceta productoId={id} />}
+      {actual === "imagenes" && <SeccionImagenes id={id} />}
+
+      {actual === "datos" && <div className="admGrid2 admGridDetail">
         <section className="admCard">
-          <h2>Datos de la canasta</h2>
+          <h2>Datos generales</h2>
           <CanastaForm canasta={p} tipos={(tipos ?? []) as TipoCanasta[]} categorias={categorias} />
         </section>
 
@@ -60,21 +79,8 @@ export default async function EditarCanastaPage({ params }: { params: Promise<{ 
               </table>
             ) : <p className="admMuted">Sin datos.</p>}
           </section>
-          <section className="admCard">
-            <h2>Contenido</h2>
-            <ul className="admChecklist">
-              <li data-ok={(recetaCount ?? 0) > 0 || undefined}>
-                Receta: {recetaCount ?? 0} insumos · <Link href={`/admin/costeo#receta-${p.slug}`}>editar</Link>
-                <small className="admMuted admBlock">Define “Lo que trae” en la tienda y el costo.</small>
-              </li>
-              <li data-ok={p.composicion.length > 0 || undefined}>
-                Composición visual: {p.composicion.length} productos · <Link href={`/admin/catalogo/${id}/composicion`}>editar</Link>
-                <small className="admMuted admBlock">Dónde va cada producto sobre la canasta.</small>
-              </li>
-            </ul>
-          </section>
         </aside>
-      </div>
+      </div>}
     </>
   );
 }

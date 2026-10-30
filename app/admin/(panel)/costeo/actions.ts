@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
 import { insertarProducto, moverProducto } from "@/lib/admin/recetas";
 
-const refrescar = () => {
+const refrescar = (productoId?: string) => {
+  if (productoId) revalidatePath(`/admin/catalogo/${productoId}`);
   revalidatePath("/admin/costeo");
   revalidatePath("/admin/produccion");
   revalidatePath("/admin");
@@ -50,7 +51,7 @@ export async function guardarRecetaItem(formData: FormData) {
     if (error) throw new Error(error.message);
     await numerar(supabase, productoId, lista);
   }
-  refrescar();
+  refrescar(productoId);
 }
 
 /** Cambia la posición de un insumo en la receta y reacomoda los demás. */
@@ -60,18 +61,19 @@ export async function moverRecetaItem(productoId: string, insumoId: string, posi
   const desde = filas.findIndex((f) => f.insumo_id === insumoId);
   if (desde < 0 || !Number.isFinite(posicion)) throw new Error("Faltan datos");
   await numerar(supabase, productoId, moverProducto(filas, desde, Math.round(posicion)));
-  refrescar();
+  refrescar(productoId);
 }
 
 export async function quitarRecetaItem(formData: FormData) {
   const { supabase } = await requireAdmin();
+  const productoId = String(formData.get("producto_id") ?? "");
   const { error } = await supabase
     .from("recetas")
     .delete()
-    .eq("producto_id", String(formData.get("producto_id") ?? ""))
+    .eq("producto_id", productoId)
     .eq("insumo_id", String(formData.get("insumo_id") ?? ""));
   if (error) throw new Error(error.message);
-  refrescar();
+  refrescar(productoId);
 }
 
 /** Costos de víveres y presentación de una canasta (como la tabla del cliente). */

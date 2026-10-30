@@ -44,7 +44,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
   - `20260924000002_endurecer_funciones.sql`: `es_admin` y `precio_canasta` pasan a `SECURITY INVOKER`.
   - `20260925000003_catalogo_web.sql`: el catálogo de la web (descripción, precio tachado, insignia, composición, imágenes de tipos de canasta, orden) y la función pública `catalogo_web()`.
   - `20261018000013_pago_mercado_pago.sql`: columnas `mp_*` en `ordenes` y la función `registrar_pago_mp`, que solo ejecuta `service_role`.
-  - `20261030000014_orden_productos_canasta.sql`: columna `recetas.orden`. El orden se edita en Panel → Costeo y lo siguen el panel, los PDF y "lo que trae" en la web. El panetón entra primero al agregarlo, y el campo Orden puede moverlo.
+  - `20261030000014_orden_productos_canasta.sql`: columna `recetas.orden`. El orden se edita en Panel → Catálogo → (canasta) → Receta de productos y lo siguen el panel, los PDF y "lo que trae" en la web. El panetón entra primero al agregarlo, y el campo Orden puede moverlo.
 - **Administradores:** tabla `public.admins`. Para dar acceso a alguien:
   1. Crear el usuario en Supabase → Authentication → Add user, con "Auto Confirm".
   2. Insertarlo en `admins`:
@@ -100,7 +100,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 2. **Antes de publicar el panel:** definir en Cloudflare (Settings → Variables) `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Ya no hay rutas internas públicas: el editor de composición vive dentro del panel.
 3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Precios, descripciones, insignias, visibilidad, tipos de canasta y tarifas se editan en **Panel → Catálogo** y se ven al instante, sin redeploy. Las canastas nuevas se crean ocultas: primero se arma su receta (Costeo) y su composición (editor), y después se activan.
    - "Lo que trae" cada canasta sale de su **receta** (insumos de tipo producto), la misma del costeo.
-   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Composición visual** (`/admin/catalogo/[id]/composicion`).
+   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Imágenes** (`/admin/catalogo/[id]?seccion=imagenes`).
    - La **foto y el emoji** de cada producto son del insumo (`insumos.imagen`, `insumos.emoji`), en **Catálogo → Fotos de productos**: `catalogo_web()` los aplica a todas las canastas que lo llevan.
    - `lib/mock-data.ts` solo se usa como **modo demostración** si faltan las variables de Supabase; ya no es la fuente de verdad.
 
