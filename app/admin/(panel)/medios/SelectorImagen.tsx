@@ -5,6 +5,8 @@ import Biblioteca from "./Biblioteca";
 
 type Props = {
   name: string;
+  /** Id del formulario al que pertenece, si el selector está fuera de él (por ejemplo, en una celda de tabla). */
+  form?: string;
   defaultValue?: string | null;
   label?: string;
   /** Aviso cuando cambia la imagen (por ejemplo, para enviar el formulario). */
@@ -16,7 +18,7 @@ type Props = {
  * Campo de formulario para elegir una imagen de la biblioteca (o subir una
  * nueva). Guarda la dirección en un input oculto con el nombre indicado.
  */
-export default function SelectorImagen({ name, defaultValue, label = "Imagen", onChange, compacto }: Props) {
+export default function SelectorImagen({ name, form, defaultValue, label = "Imagen", onChange, compacto }: Props) {
   const [url, setUrl] = useState(defaultValue ?? "");
   const dialogo = useRef<HTMLDialogElement>(null);
   const [abierto, setAbierto] = useState(false);
@@ -36,7 +38,7 @@ export default function SelectorImagen({ name, defaultValue, label = "Imagen", o
 
   return (
     <div className={`admPicker${compacto ? " admPickerCompacto" : ""}`}>
-      <input type="hidden" name={name} value={url} />
+      <input type="hidden" name={name} form={form} value={url} />
       <button type="button" className="admPickerThumb" onClick={() => setAbierto(true)} aria-label={`${label}: ${url ? "cambiar" : "elegir"}`}>
         {url ? <img src={url} alt="" /> : <span>+</span>}
       </button>
