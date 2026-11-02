@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { connection } from "next/server";
 import { cache } from "react";
 import {
+  type AjusteEnvase,
   basketTypes as demoBasketTypes,
   deliveryZones as demoZones,
   products as demoProducts,
@@ -34,6 +35,7 @@ type CatalogoWeb = {
     descripcion_completa?: string;
     tipo_canasta_base: string;
     imagen_base: string | null;
+    ajuste_envase?: Record<string, AjusteEnvase>;
     envases: { id: string; precio: number }[];
     composicion: ProductVisualItem[];
     contenido: string[];
@@ -61,6 +63,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
   }
 
   const c = data as CatalogoWeb;
+  const fotoEnvase = new Map(c.tipos_canasta.map((t) => [t.id, t.imagen]));
   return {
     fuente: "base",
     products: c.productos.map((p) => ({
@@ -72,6 +75,10 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       badge: p.insignia ?? undefined,
       emoji: p.emoji,
       baseImage: p.imagen_base ?? undefined,
+      ajustesEnvase: Object.fromEntries(Object.entries(p.ajuste_envase ?? {}).flatMap(([id, ajuste]) => {
+        const foto = fotoEnvase.get(id);
+        return foto ? [[foto, ajuste]] : [];
+      })),
       baseType: p.tipo_canasta_base,
       envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,

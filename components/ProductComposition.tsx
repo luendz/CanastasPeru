@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Product, ProductVisualItem } from "@/lib/mock-data";
+import type { AjusteEnvase, Product, ProductVisualItem } from "@/lib/mock-data";
 import styles from "./ProductComposition.module.css";
 
 /**
@@ -11,17 +11,41 @@ import styles from "./ProductComposition.module.css";
  */
 const anchoProducto = (size: number) => `${size * 0.2}cqw`;
 
+const LIENZO = 0.75; // Alto del lienzo respecto a su ancho (4:3).
+
+export const AJUSTE_NEUTRO: AjusteEnvase = { x: 0, y: 0, escala: 100, giro: 0 };
+
+/**
+ * Lo que ocupa a la vista el envase, en % del lienzo. Sin ajuste va de 18.5 a 81.5
+ * de ancho y de 15 a 90 de alto; la forma real depende de cada foto, así que el alto
+ * es aproximado y gira alrededor de un centro también aproximado.
+ */
+function limitesEnvase({ x, y, escala, giro }: AjusteEnvase) {
+  const e = escala / 100;
+  const coseno = Math.abs(Math.cos((giro * Math.PI) / 180));
+  const seno = Math.abs(Math.sin((giro * Math.PI) / 180));
+  const centro = 57;
+  const [ancho, arriba, abajo] = [31.5 * e, (centro - 15) * e, (90 - centro) * e];
+  const lado = ancho * coseno + Math.max(arriba, abajo) * LIENZO * seno;
+  return {
+    izquierda: 50 + x - lado,
+    derecha: 50 + x + lado,
+    arriba: centro + y - (arriba * coseno + (ancho / LIENZO) * seno),
+    abajo: centro + y + (abajo * coseno + (ancho / LIENZO) * seno),
+  };
+}
+
 /**
  * Encuadre de la tienda: amplía el lienzo y lo centra en lo que ocupa la canasta
  * con sus productos, para aprovechar el recuadro sin cortar nada. Las proporciones
- * no cambian. Todo va en % del lienzo; la canasta llega a 18.5–81.5 de ancho.
+ * no cambian. Todo va en % del lienzo.
  */
-function encuadre(items: ProductVisualItem[], proporcion: number) {
-  const LIENZO = 0.75; // Alto del lienzo respecto a su ancho (4:3).
-  const izquierda = Math.min(18.5, ...items.map((i) => i.left - i.size * 0.1));
-  const derecha = Math.max(81.5, ...items.map((i) => i.left + i.size * 0.1));
-  const arriba = 15;
-  const abajo = Math.max(90, ...items.map((i) => i.top + i.size * 0.133));
+function encuadre(items: ProductVisualItem[], proporcion: number, ajuste: AjusteEnvase) {
+  const envase = limitesEnvase(ajuste);
+  const izquierda = Math.min(envase.izquierda, ...items.map((i) => i.left - i.size * 0.1));
+  const derecha = Math.max(envase.derecha, ...items.map((i) => i.left + i.size * 0.1));
+  const arriba = envase.arriba;
+  const abajo = Math.max(envase.abajo, ...items.map((i) => i.top + i.size * 0.133));
 
   const escala = Math.min(1.45, 96 / (derecha - izquierda), (proporcion * 96) / (LIENZO * (abajo - arriba)));
   const altoRelativo = (LIENZO * escala) / proporcion;
@@ -105,6 +129,7 @@ export { anchoProducto };
 export default function ProductComposition({ product, variant = "card", baseImage, assemble = false, proporcion = 1, encuadrar = true }: ProductCompositionProps) {
   const isDetail = variant === "detail";
   const base = baseImage ?? product.baseImage;
+  const ajuste = (base && product.ajustesEnvase?.[base]) || AJUSTE_NEUTRO;
 
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState<number | null>(null);
@@ -136,10 +161,16 @@ export default function ProductComposition({ product, variant = "card", baseImag
       onPointerLeave={isDetail ? () => setActive(null) : undefined}
       style={encuadrar ? { aspectRatio: `1 / ${proporcion}` } : undefined}
     >
-      <div className={encuadrar ? `${styles.lienzo} ${styles.lienzoEncuadrado}` : styles.lienzo} style={encuadrar ? encuadre(product.visualItems, proporcion) : undefined}>
+      <div className={encuadrar ? `${styles.lienzo} ${styles.lienzoEncuadrado}` : styles.lienzo} style={encuadrar ? encuadre(product.visualItems, proporcion, ajuste) : undefined}>
       <div className={styles.baseLayer}>
         {base ? (
-          <img key={base} className={styles.baseImage} src={base} alt={`Base de ${product.name}`} />
+          <img
+            key={base}
+            className={styles.baseImage}
+            src={base}
+            alt={`Base de ${product.name}`}
+            style={{ transform: `translate(${ajuste.x}cqw, ${ajuste.y * LIENZO}cqw) rotate(${ajuste.giro}deg) scale(${ajuste.escala / 100})` }}
+          />
         ) : (
           <span className={styles.baseEmoji} aria-hidden="true">{product.emoji}</span>
         )}
