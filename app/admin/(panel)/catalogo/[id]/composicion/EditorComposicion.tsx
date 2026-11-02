@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
-import ProductComposition from "@/components/ProductComposition";
+import ProductComposition, { anchoProducto } from "@/components/ProductComposition";
 import type { BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
 import { guardarComposicion, type GuardarState } from "./actions";
 
@@ -27,7 +27,6 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ index: number; offsetX: number; offsetY: number } | null>(null);
 
-  const multiplier = variant === "detail" ? 1.65 : 1;
   const draft = { ...product, visualItems: items };
   const current = items[selected];
 
@@ -115,8 +114,8 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
         <label>
           Vista
           <select className="select" onChange={(event) => setVariant(event.target.value as Variant)} value={variant}>
-            <option value="detail">Página de producto</option>
-            <option value="card">Tarjeta del catálogo</option>
+            <option value="detail">Grande</option>
+            <option value="card">Tamaño de tarjeta</option>
           </select>
         </label>
         <button className="btn btnGhost" onClick={restablecer} type="button" disabled={!cambios}>Deshacer cambios</button>
@@ -139,8 +138,8 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                   style={{
                     top: `${item.top}%`,
                     left: `${item.left}%`,
-                    width: `${item.size * multiplier}px`,
-                    height: `${item.size * multiplier}px`,
+                    width: anchoProducto(item.size),
+                    height: anchoProducto(item.size),
                     transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
                   }}
                   type="button"
@@ -177,7 +176,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             <div className="devControls">
               <h3>{current.name} <button className="devRemove" type="button" onClick={() => quitar(selected)}>Quitar</button></h3>
               <label>
-                Tamaño <strong>{current.size}px</strong>
+                Tamaño <strong>{current.size}</strong>
                 <input max="160" min="20" onChange={(event) => patch(selected, { size: Number(event.target.value) })} step="1" type="range" value={current.size} />
               </label>
               <label>

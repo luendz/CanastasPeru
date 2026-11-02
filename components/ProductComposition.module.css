@@ -1,16 +1,10 @@
 .composition {
   position: relative;
   width: 100%;
+  aspect-ratio: 4 / 3;
+  container-type: inline-size;
   overflow: hidden;
   isolation: isolate;
-}
-
-.card {
-  min-height: 260px;
-}
-
-.detail {
-  min-height: 610px;
 }
 
 .baseLayer {
@@ -25,26 +19,18 @@
 }
 
 .baseEmoji {
-  font-size: 118px;
+  font-size: 34cqw;
   line-height: 1;
   filter: drop-shadow(0 18px 16px rgba(0, 0, 0, .12));
   transform: scaleX(1.08);
 }
 
-.detail .baseEmoji {
-  font-size: 220px;
-}
-
 .baseImage {
-  width: min(78%, 360px);
+  width: 63%;
   max-height: 82%;
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 16px rgba(0, 0, 0, .12));
-}
-
-.detail .baseImage {
-  width: min(82%, 520px);
 }
 
 /* En el catálogo la canasta es la unidad seleccionable: crece, se desplaza
@@ -133,16 +119,6 @@
 
   .card:hover .baseLayer {
     transform: none;
-  }
-}
-
-@media (max-width: 720px) {
-  .detail {
-    min-height: 430px;
-  }
-
-  .detail .baseEmoji {
-    font-size: 165px;
   }
 }
 

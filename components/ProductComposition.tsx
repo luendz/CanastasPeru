@@ -4,6 +4,13 @@ import { useRef, useState } from "react";
 import type { Product } from "@/lib/mock-data";
 import styles from "./ProductComposition.module.css";
 
+/**
+ * Todas las vistas usan el mismo lienzo proporcional: el tamaño guardado de cada
+ * producto es relativo al ancho del lienzo, igual que su posición. Así lo que se
+ * arma en el editor se ve igual en la tarjeta o el carrito, solo a otra escala.
+ */
+const anchoProducto = (size: number) => `${size * 0.2}cqw`;
+
 type ProductCompositionProps = {
   product: Product;
   variant?: "card" | "detail";
@@ -68,9 +75,10 @@ function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, c
   return mask.data[(y * mask.width + x) * 4 + 3] > ALPHA_THRESHOLD;
 }
 
+export { anchoProducto };
+
 export default function ProductComposition({ product, variant = "card", baseImage, assemble = false }: ProductCompositionProps) {
   const isDetail = variant === "detail";
-  const sizeMultiplier = isDetail ? 1.65 : 1;
   const base = baseImage ?? product.baseImage;
 
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -121,8 +129,8 @@ export default function ProductComposition({ product, variant = "card", baseImag
             zIndex: item.zIndex ?? 5,
             transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
             // Hacia dónde se abre cada producto al pasar el mouse por la tarjeta.
-            "--ex": `${(item.left - 50) * 2.4}px`,
-            "--ey": `${(item.top - 70) * 2 - 14}px`,
+            "--ex": `${(item.left - 50) * 0.78}cqw`,
+            "--ey": `${(item.top - 70) * 0.65 - 4.6}cqw`,
             "--order": dropOrder.indexOf(index),
           } as React.CSSProperties}
         >
@@ -131,14 +139,14 @@ export default function ProductComposition({ product, variant = "card", baseImag
               className={styles.itemImage}
               src={item.image}
               alt={item.name}
-              style={{ width: `${item.size * sizeMultiplier}px` }}
+              style={{ width: anchoProducto(item.size) }}
             />
           ) : (
             <span
               className={styles.itemEmoji}
               aria-label={item.name}
               role="img"
-              style={{ fontSize: `${item.size * sizeMultiplier}px` }}
+              style={{ fontSize: anchoProducto(item.size) }}
             >
               {item.emoji}
             </span>
