@@ -124,7 +124,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
       <div className="devLayout">
         <div className={variant === "card" ? "devStageWrap devStageCard" : "devStageWrap"}>
           <div className="devStage" ref={stageRef}>
-            <ProductComposition baseImage={basketImage} product={draft} variant={variant} />
+            <ProductComposition baseImage={basketImage} product={draft} variant={variant} encuadrar={false} />
             <div className="devOverlay">
               {items.map((item, index) => (
                 <button
