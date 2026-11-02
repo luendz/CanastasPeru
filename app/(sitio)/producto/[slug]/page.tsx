@@ -1,16 +1,21 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
+import { SLUGS_ANTIGUOS } from "@/lib/slugs-antiguos";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { products, basketTypes } = await getCatalogo();
   const product = products.find((item) => item.slug === slug);
-  if (!product) notFound();
+  if (!product) {
+    const nuevo = SLUGS_ANTIGUOS[slug];
+    if (nuevo && products.some((item) => item.slug === nuevo)) permanentRedirect(`/producto/${nuevo}`);
+    notFound();
+  }
 
   const related = products.filter((item) => item.slug !== product.slug).slice(0, 3);
 
