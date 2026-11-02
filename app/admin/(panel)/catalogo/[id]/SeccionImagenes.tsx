@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import type { BasketType, ProductVisualItem } from "@/lib/mock-data";
+import type { AjusteEnvase, BasketType, ProductVisualItem } from "@/lib/mock-data";
 import EditorComposicion, { type InsumoVisual } from "./composicion/EditorComposicion";
 
 type Fila = {
   slug: string; nombre: string; categoria: string; precio: number; emoji: string; descripcion: string;
-  tipo_canasta_base: string; composicion: ProductVisualItem[] | null;
+  tipo_canasta_base: string; composicion: ProductVisualItem[] | null; ajuste_envase?: Record<string, AjusteEnvase>;
 };
 type TipoFila = { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number };
 
@@ -13,7 +13,7 @@ type TipoFila = { id: string; nombre: string; imagen: string | null; descripcion
 export default async function SeccionImagenes({ id }: { id: string }) {
   const { supabase } = await requireAdmin();
   const [{ data: producto }, { data: tipos }, { data: insumos }] = await Promise.all([
-    supabase.from("productos").select("slug,nombre,categoria,precio,emoji,descripcion,tipo_canasta_base,composicion").eq("id", id).maybeSingle(),
+    supabase.from("productos").select("*").eq("id", id).maybeSingle(),
     supabase.from("tipos_canasta").select("id,nombre,imagen,descripcion,recargo").order("orden"),
     supabase.from("insumos").select("nombre,emoji,imagen").eq("tipo", "producto").order("nombre"),
   ]);
@@ -39,7 +39,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
 
   return (
     <section className="admCard admComposicion">
-      <p className="admMuted">Arrastra cada producto sobre la canasta. Así se verá en el catálogo y en la página del producto.</p>
+      <p className="admMuted">Arrastra el envase y cada producto. Así se verá en el catálogo y en la página del producto.</p>
       <EditorComposicion
         id={id}
         basketTypes={basketTypes}
@@ -51,6 +51,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
           price: Number(p.precio),
           emoji: p.emoji,
           baseImage: base?.image,
+          ajustesEnvase: Object.fromEntries(basketTypes.flatMap((t) => (p.ajuste_envase?.[t.id] ? [[t.image, p.ajuste_envase[t.id]]] : []))),
           baseType: p.tipo_canasta_base,
           description: p.descripcion,
           items: [],

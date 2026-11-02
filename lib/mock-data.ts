@@ -9,6 +9,9 @@ export type ProductVisualItem = {
   zIndex?: number;
 };
 
+/** Ajuste del envase sobre el lienzo: desplazamiento en % del lienzo, tamaño en % y giro en grados. */
+export type AjusteEnvase = { x: number; y: number; escala: number; giro: number };
+
 export type Product = {
   slug: string;
   name: string;
@@ -18,6 +21,8 @@ export type Product = {
   badge?: string;
   emoji: string;
   baseImage?: string;
+  /** Ajuste de cada envase en esta canasta, según la foto del envase. */
+  ajustesEnvase?: Record<string, AjusteEnvase>;
   /** Tipo de canasta con el que se vende por defecto (id de tipos_canasta). */
   baseType?: string;
   /** Información adicional, debajo de la foto en la página del producto. */

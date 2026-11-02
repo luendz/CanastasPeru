@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, useTransition } from "react";
-import ProductComposition, { anchoProducto } from "@/components/ProductComposition";
-import type { BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import ProductComposition, { AJUSTE_NEUTRO, anchoProducto } from "@/components/ProductComposition";
+import type { AjusteEnvase, BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
 import { guardarComposicion, type GuardarState } from "./actions";
 
 type Variant = "card" | "detail";
@@ -11,6 +11,8 @@ export type InsumoVisual = { nombre: string; emoji: string; imagen: string | nul
 
 const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
+/** En la selección, el envase va aparte de los productos. */
+const SEL_ENVASE = -1;
 
 type Props = { id: string; product: Product; basketTypes: BasketType[]; insumos: InsumoVisual[] };
 
@@ -22,14 +24,35 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const [cambios, setCambios] = useState(false);
   const [guardando, startGuardar] = useTransition();
   const [basketImage, setBasketImage] = useState(product.baseImage ?? basketTypes[0]?.image ?? "");
+  const [ajustes, setAjustes] = useState(product.ajustesEnvase ?? {});
+  // Recuadro de la foto del envase sin ajustar, en % del lienzo: depende de la forma de cada foto.
+  const [cajaEnvase, setCajaEnvase] = useState({ left: 18.5, top: 26, width: 63, height: 63 });
   const [busqueda, setBusqueda] = useState("");
   const [desplegado, setDesplegado] = useState(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ index: number; offsetX: number; offsetY: number } | null>(null);
 
-  const draft = { ...product, visualItems: items };
+  const draft = { ...product, visualItems: items, ajustesEnvase: ajustes };
   const current = items[selected];
+  const ajuste = ajustes[basketImage] ?? AJUSTE_NEUTRO;
+  const nombreEnvase = basketTypes.find((t) => t.image === basketImage)?.label ?? "Envase";
+  const centroEnvase = { left: cajaEnvase.left + cajaEnvase.width / 2, top: cajaEnvase.top + cajaEnvase.height / 2 };
+  const centro = (index: number) => (index === SEL_ENVASE ? { left: centroEnvase.left + ajuste.x, top: centroEnvase.top + ajuste.y } : items[index]);
+
+  useEffect(() => {
+    const foto = stageRef.current?.querySelector("img");
+    const lienzo = foto?.parentElement;
+    if (!foto || !lienzo) return;
+    const medir = () => setCajaEnvase({
+      left: (foto.offsetLeft / lienzo.offsetWidth) * 100,
+      top: (foto.offsetTop / lienzo.offsetHeight) * 100,
+      width: (foto.offsetWidth / lienzo.offsetWidth) * 100,
+      height: (foto.offsetHeight / lienzo.offsetHeight) * 100,
+    });
+    if (foto.complete) requestAnimationFrame(medir);
+    else foto.addEventListener("load", medir, { once: true });
+  }, [basketImage]);
 
   const marcar = () => { setGuardado(null); setCambios(true); };
 
@@ -38,12 +61,22 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     marcar();
   }
 
+  function patchEnvase(changes: Partial<AjusteEnvase>) {
+    setAjustes((prev) => ({ ...prev, [basketImage]: { ...(prev[basketImage] ?? AJUSTE_NEUTRO), ...changes } }));
+    marcar();
+  }
+
+  function mover(index: number, left: number, top: number) {
+    if (index === SEL_ENVASE) patchEnvase({ x: clamp(left) - centroEnvase.left, y: clamp(top) - centroEnvase.top });
+    else patch(index, { left: clamp(left), top: clamp(top) });
+  }
+
   function onPointerDown(event: React.PointerEvent<HTMLButtonElement>, index: number) {
     const stage = stageRef.current;
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
-    const centerX = rect.left + (items[index].left / 100) * rect.width;
-    const centerY = rect.top + (items[index].top / 100) * rect.height;
+    const centerX = rect.left + (centro(index).left / 100) * rect.width;
+    const centerY = rect.top + (centro(index).top / 100) * rect.height;
     dragRef.current = { index, offsetX: event.clientX - centerX, offsetY: event.clientY - centerY };
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelected(index);
@@ -54,10 +87,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     const stage = stageRef.current;
     if (!drag || !stage) return;
     const rect = stage.getBoundingClientRect();
-    patch(drag.index, {
-      left: clamp(((event.clientX - drag.offsetX - rect.left) / rect.width) * 100),
-      top: clamp(((event.clientY - drag.offsetY - rect.top) / rect.height) * 100),
-    });
+    mover(drag.index, ((event.clientX - drag.offsetX - rect.left) / rect.width) * 100, ((event.clientY - drag.offsetY - rect.top) / rect.height) * 100);
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -66,13 +96,15 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     const move = moves[event.key];
     if (!move) return;
     event.preventDefault();
-    patch(index, { left: clamp(items[index].left + move[0]), top: clamp(items[index].top + move[1]) });
+    mover(index, centro(index).left + move[0], centro(index).top + move[1]);
   }
 
   function guardar() {
     setGuardado(null);
     startGuardar(async () => {
-      const r = await guardarComposicion(id, items);
+      // En la base el ajuste va por tipo de envase, no por foto.
+      const porTipo = Object.fromEntries(basketTypes.flatMap((t) => (ajustes[t.image] ? [[t.id, ajustes[t.image]]] : [])));
+      const r = await guardarComposicion(id, items, porTipo);
       setGuardado(r);
       if (r.ok) setCambios(false);
     });
@@ -80,6 +112,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
 
   function restablecer() {
     setItems(product.visualItems);
+    setAjustes(product.ajustesEnvase ?? {});
     setSelected(0);
     setGuardado(null);
     setCambios(false);
@@ -139,6 +172,23 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
           <div className="devStage" ref={stageRef}>
             <ProductComposition baseImage={basketImage} product={draft} variant={variant} encuadrar={false} />
             <div className="devOverlay">
+              {/* Va primero para quedar debajo de los productos, como en la imagen. */}
+              <button
+                aria-label={`Mover envase ${nombreEnvase}`}
+                className={selected === SEL_ENVASE ? "devHandle devHandleEnvase devHandleActive" : "devHandle devHandleEnvase"}
+                onKeyDown={(event) => onKeyDown(event, SEL_ENVASE)}
+                onPointerDown={(event) => onPointerDown(event, SEL_ENVASE)}
+                onPointerMove={onPointerMove}
+                onPointerUp={() => { dragRef.current = null; }}
+                style={{
+                  top: `${centro(SEL_ENVASE).top}%`,
+                  left: `${centro(SEL_ENVASE).left}%`,
+                  width: `${cajaEnvase.width * ajuste.escala / 100}%`,
+                  height: `${cajaEnvase.height * ajuste.escala / 100}%`,
+                  transform: `translate(-50%, -50%) rotate(${ajuste.giro}deg)`,
+                }}
+                type="button"
+              />
               {items.map((item, index) => (
                 <button
                   aria-label={`Mover ${item.name}`}
@@ -177,6 +227,22 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             </div>
           </div>
         </div>
+          {selected === SEL_ENVASE && (
+            <div className="devControls">
+              <h3>Envase: {nombreEnvase} <button className="devRemove" type="button" onClick={() => patchEnvase(AJUSTE_NEUTRO)}>Restablecer</button></h3>
+              <div className="devSliders">
+                <label>
+                  Tamaño <strong>{ajuste.escala}%</strong>
+                  <input max="200" min="40" onChange={(event) => patchEnvase({ escala: Number(event.target.value) })} step="1" type="range" value={ajuste.escala} />
+                </label>
+                <label>
+                  Giro <strong>{ajuste.giro}°</strong>
+                  <input max="45" min="-45" onChange={(event) => patchEnvase({ giro: Number(event.target.value) })} step="1" type="range" value={ajuste.giro} />
+                </label>
+              </div>
+              <p className="devHint">Arrastra sobre la imagen, o usa las flechas con el recuadro enfocado. Este ajuste vale solo para este envase en esta canasta.</p>
+            </div>
+          )}
           {current && (
             <div className="devControls">
               <h3>{current.name} <button className="devRemove" type="button" onClick={() => quitar(selected)}>Quitar</button></h3>
@@ -200,6 +266,12 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
         </div>
 
         <aside className="devPanel">
+          <h3>Envase</h3>
+          <div className="devList">
+            <button className={selected === SEL_ENVASE ? "devListItem devListItemActive" : "devListItem"} onClick={() => setSelected(SEL_ENVASE)} type="button">
+              <span>🧺 {nombreEnvase}</span>
+            </button>
+          </div>
           <h3>Productos</h3>
           {items.length === 0 && <p className="devHint">Esta canasta aún no tiene composición. Agrega sus productos.</p>}
           <div className="devList">

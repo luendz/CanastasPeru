@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
-import type { ProductVisualItem } from "@/lib/mock-data";
+import type { AjusteEnvase, ProductVisualItem } from "@/lib/mock-data";
 
 export type GuardarState = { ok?: boolean; error?: string };
 
@@ -15,7 +15,7 @@ const numero = (v: unknown, min: number, max: number) => {
  * Guarda la composición visual de una canasta. La foto no se guarda aquí:
  * la web la toma del insumo con el mismo nombre (Productos → ficha del producto).
  */
-export async function guardarComposicion(id: string, items: ProductVisualItem[]): Promise<GuardarState> {
+export async function guardarComposicion(id: string, items: ProductVisualItem[], ajustes: Record<string, AjusteEnvase>): Promise<GuardarState> {
   const { supabase } = await requireAdmin();
 
   if (!Array.isArray(items) || items.length > 20) return { error: "Composición inválida." };
@@ -36,7 +36,17 @@ export async function guardarComposicion(id: string, items: ProductVisualItem[])
     });
   }
 
-  const { error, count } = await supabase.from("productos").update({ composicion: limpio }, { count: "exact" }).eq("id", id);
+  const ajusteEnvase: Record<string, AjusteEnvase> = {};
+  for (const [tipo, a] of Object.entries(ajustes ?? {}).slice(0, 50)) {
+    const x = numero(a?.x, -50, 50);
+    const y = numero(a?.y, -50, 50);
+    const escala = numero(a?.escala, 40, 200);
+    const giro = numero(a?.giro, -45, 45);
+    if (x === null || y === null || escala === null || giro === null) return { error: "El ajuste del envase no es válido." };
+    ajusteEnvase[tipo.slice(0, 80)] = { x, y, escala, giro };
+  }
+
+  const { error, count } = await supabase.from("productos").update({ composicion: limpio, ajuste_envase: ajusteEnvase }, { count: "exact" }).eq("id", id);
   if (error) return { error: error.message };
   if (!count) return { error: "No se encontró la canasta." };
   revalidatePath(`/admin/catalogo/${id}`);
