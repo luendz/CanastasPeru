@@ -33,7 +33,7 @@ export default async function SeccionReceta({ productoId }: { productoId: string
     .map((i) => ({ id: i.id, nombre: i.nombre, costo: costoDe(i.id, i.costo_referencia) }));
 
   return (
-    <section className="admCard admCardFlush">
+    <section className="admCard admCardFlush admCardAbierta">
       <div className="admCardHead admPad">
         <h2>Receta de productos</h2>
         <span className="admMuted">{filas.length} {filas.length === 1 ? "producto" : "productos"}</span>

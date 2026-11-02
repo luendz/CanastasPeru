@@ -7,7 +7,7 @@ import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { carrito, unidades, useCarrito } from "@/lib/carrito";
 import { UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import type { Contenido } from "@/lib/contenido";
-import { findBasketType, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
+import { envaseElegido, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 type Props = {
   products: Product[];
@@ -15,20 +15,14 @@ type Props = {
   opciones: Pick<Contenido["checkout"], "notaImpuestos" | "tarjetaPrecio" | "tarjetaTitulo" | "tarjetaTexto" | "tarjetaImagen">;
 };
 
-/** Precio de una canasta con el tipo de canasta elegido (igual que en la base). */
-export function precioCon(product: Product, tipo: BasketType | undefined, basketTypes: BasketType[]) {
-  const propia = findBasketType(basketTypes, product);
-  return product.price + (tipo ? tipo.priceDelta - propia.priceDelta : 0);
-}
-
 /** Líneas del carrito con su canasta y precio actuales (se ignoran las que ya no existen). */
 export function lineasCarrito(lineas: { slug: string; tipo: string; cantidad: number }[], products: Product[], basketTypes: BasketType[]) {
   return lineas.flatMap((l) => {
     const product = products.find((p) => p.slug === l.slug);
     if (!product) return [];
-    const tipo = basketTypes.find((t) => t.id === l.tipo) ?? findBasketType(basketTypes, product);
+    const tipo = envaseElegido(basketTypes, product, l.tipo);
     // tipoId es el guardado en el carrito (para editar la línea); tipo, la canasta a mostrar.
-    return [{ slug: l.slug, cantidad: l.cantidad, tipoId: l.tipo, product, tipo, precio: precioCon(product, tipo, basketTypes) }];
+    return [{ slug: l.slug, cantidad: l.cantidad, tipoId: l.tipo, product, tipo, precio: tipo.precio }];
   });
 }
 

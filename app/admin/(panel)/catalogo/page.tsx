@@ -3,8 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import { LINEAS, lineaDe } from "@/lib/lineas";
-import SelectorImagen from "../medios/SelectorImagen";
-import { alternarCanasta, crearZona, guardarTipo, guardarZona } from "./actions";
+import { alternarCanasta, crearZona, guardarZona } from "./actions";
 
 export const metadata = { title: "Catálogo" };
 
@@ -12,7 +11,7 @@ type ProductoFila = {
   id: string; slug: string; nombre: string; categoria: string; precio: number; precio_anterior: number | null;
   insignia: string | null; tipo_canasta_base: string; orden: number; activo: boolean; composicion: unknown[];
 };
-type TipoFila = TipoCanasta & { imagen: string | null; descripcion: string | null; orden: number };
+type TipoFila = TipoCanasta & { imagen: string | null };
 type ZonaFila = { distrito: string; tarifa: number; activo: boolean; orden: number };
 
 export default async function CatalogoAdminPage({ searchParams }: { searchParams: Promise<{ linea?: string }> }) {
@@ -52,7 +51,6 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
 
       <nav className="admTabs" aria-label="Secciones del catálogo">
         <a href="#canastas">Canastas</a>
-        <a href="#tipos">Tipos de canasta</a>
         <a href="#delivery">Delivery</a>
       </nav>
 
@@ -101,34 +99,6 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
                     </form>
                   </td>
                   <td className="num"><Link className="admLinkMuted" href={`/admin/catalogo/${p.id}`}>Editar</Link></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="admCard" id="tipos">
-        <div className="admCardHead"><h2>Tipos de canasta</h2><span className="admMuted">El recargo se suma o resta frente al tipo propio de cada canasta.</span></div>
-        <table className="admTable admTableCompact">
-          <thead><tr><th>Imagen</th><th>Tipo</th><th>Descripción</th><th className="num">Recargo</th><th className="num">Orden</th><th /></tr></thead>
-          <tbody>
-            {listaTipos.map((t) => {
-              // Cada campo va en su celda y se une a la fila con el atributo form, para que coincida con su cabecera.
-              const form = `tipo-${t.id}`;
-              return (
-                <tr key={t.id}>
-                  <td><SelectorImagen name="imagen" form={form} defaultValue={t.imagen} label={`Imagen de ${t.nombre}`} compacto /></td>
-                  <td><input className="admInput" form={form} name="nombre" defaultValue={t.nombre} aria-label="Nombre" required /></td>
-                  <td><input className="admInput" form={form} name="descripcion" defaultValue={t.descripcion ?? ""} aria-label="Descripción" placeholder="Descripción" /></td>
-                  <td className="num"><input className="admInput admInputSm" form={form} name="recargo" type="number" min="0" step="0.01" defaultValue={t.recargo} aria-label="Recargo en soles" /></td>
-                  <td className="num"><input className="admInput admInputSm" form={form} name="orden" type="number" step="1" defaultValue={t.orden} aria-label="Orden" /></td>
-                  <td className="num">
-                    <form id={form} action={guardarTipo}>
-                      <input type="hidden" name="id" value={t.id} />
-                      <button className="admLinkMuted" type="submit">Guardar</button>
-                    </form>
-                  </td>
                 </tr>
               );
             })}

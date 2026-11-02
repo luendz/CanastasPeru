@@ -12,8 +12,6 @@ export type CanastaEditable = {
   categoria: string;
   precio: number | null;
   precio_anterior: number | null;
-  costo_viveres: number | null;
-  costo_presentacion: number | null;
   insignia: string | null;
   descripcion: string;
   emoji: string;
@@ -33,8 +31,6 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
   const [slugTocado, setSlugTocado] = useState(false);
   const [precio, setPrecio] = useState(canasta.precio?.toString() ?? "");
   const [anterior, setAnterior] = useState(canasta.precio_anterior?.toString() ?? "");
-  const [viveres, setViveres] = useState(canasta.costo_viveres?.toString() ?? "");
-  const [presentacion, setPresentacion] = useState(canasta.costo_presentacion?.toString() ?? "");
   const [insignia, setInsignia] = useState(canasta.insignia ?? "");
 
   const p = Number(precio);
@@ -64,15 +60,17 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
         <input className="admInput" name="categoria" required maxLength={60} defaultValue={canasta.categoria} list="categorias" />
         <datalist id="categorias">{categorias.map((c) => <option key={c} value={c} />)}</datalist>
       </label>
-      <label>Tipo de canasta
+      <label>{nueva ? "Envase" : "Envase principal"}
         <select className="admInput" name="tipo_canasta_base" defaultValue={canasta.tipo_canasta_base} required>
           {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
         </select>
       </label>
 
-      <label>Precio (S/)
-        <input className="admInput" name="precio" type="number" min="0.01" step="0.01" required value={precio} onChange={(e) => setPrecio(e.target.value)} />
-      </label>
+      {nueva && (
+        <label>Precio de ese envase (S/)
+          <input className="admInput" name="precio" type="number" min="0.01" step="0.01" required value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        </label>
+      )}
       <label>Precio tachado (opcional)
         <input className="admInput" name="precio_anterior" type="number" min="0.01" step="0.01" value={anterior} onChange={(e) => setAnterior(e.target.value)} placeholder="Ej. 179.90" />
       </label>
@@ -97,27 +95,6 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
           <span>Visible en la tienda</span>
         </label>
       )}
-
-      <fieldset className="admSpan2 admCostosCanasta">
-        <legend>Costos de la canasta <small>para calcular tu margen (no se muestran en la tienda)</small></legend>
-        <label>Costo total de víveres (S/)
-          <input className="admInput" name="costo_viveres" type="number" min="0" step="0.01" value={viveres} onChange={(e) => setViveres(e.target.value)} placeholder="Ej. 22.95" />
-        </label>
-        <label>Costo de presentación (S/)
-          <input className="admInput" name="costo_presentacion" type="number" min="0" step="0.01" value={presentacion} onChange={(e) => setPresentacion(e.target.value)} placeholder="Ej. 3.70" />
-        </label>
-        {(viveres || presentacion) && p > 0 && (() => {
-          const costo = (Number(viveres) || 0) + (Number(presentacion) || 0);
-          const utilidad = p - costo;
-          return (
-            <dl className="admCostosResumen2">
-              <div><dt>Costo total</dt><dd>{soles(costo)}</dd></div>
-              <div><dt>Margen</dt><dd data-tone={utilidad >= 0 ? "ok" : "bad"}>{((utilidad / p) * 100).toFixed(1)} %</dd></div>
-              <div><dt>Utilidad</dt><dd data-tone={utilidad >= 0 ? "ok" : "bad"}>{soles(utilidad)}</dd></div>
-            </dl>
-          );
-        })()}
-      </fieldset>
 
       <div className="admSpan2 admPreview" aria-label="Vista previa del precio">
         {insignia && <span className="admBadge">{insignia}</span>}

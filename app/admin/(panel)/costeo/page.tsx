@@ -3,7 +3,6 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { CostoInsumo, CosteoCanasta, Insumo, Receta } from "@/lib/admin/types";
 import { LINEAS } from "@/lib/lineas";
-import { guardarCostosCanasta } from "./actions";
 
 export const metadata = { title: "Costeo por canasta" };
 
@@ -38,7 +37,7 @@ export default async function CosteoPage() {
       <header className="admHead">
         <div>
           <h1>Costeo por canasta</h1>
-          <p className="admMuted">Costo de cada canasta (víveres + presentación), margen y utilidad sobre su valor de venta. Edita los costos aquí o en la ficha de la canasta. Si una canasta no tiene costos cargados, se calcula con su receta y la última compra de cada producto.</p>
+          <p className="admMuted">Costo de cada canasta (víveres + presentación), margen y utilidad sobre su valor de venta. Se calcula con la receta y el envase principal de cada canasta; se edita en Catálogo → la canasta → Receta de productos.</p>
         </div>
       </header>
 
@@ -47,13 +46,12 @@ export default async function CosteoPage() {
           <h2>{g.titulo}</h2>
           <div className="admCosteoGrid">
             {g.canastas.map((c) => (
-              <form key={c.producto_id} action={guardarCostosCanasta} className="admCosteoCard">
-                <input type="hidden" name="producto_id" value={c.producto_id} />
+              <div key={c.producto_id} className="admCosteoCard">
                 <h3>{c.nombre}{infoDe.get(c.producto_id)?.activo === false && <small> · oculta</small>}</h3>
                 <table>
                   <tbody>
-                    <tr><td>Costo total de víveres</td><td><input className="admInput admInputSm" name="costo_viveres" type="number" min="0" step="0.01" defaultValue={c.costo_viveres ?? ""} placeholder={c.fuente === "receta" ? String(c.costo_receta) : ""} aria-label={`Costo de víveres de ${c.nombre}`} /></td></tr>
-                    <tr><td>Costo de presentación</td><td><input className="admInput admInputSm" name="costo_presentacion" type="number" min="0" step="0.01" defaultValue={c.costo_presentacion ?? ""} aria-label={`Costo de presentación de ${c.nombre}`} /></td></tr>
+                    <tr><td>Costo total de víveres</td><td>{soles(c.costo_viveres ?? 0)}</td></tr>
+                    <tr><td>Costo de presentación</td><td>{soles(c.costo_presentacion ?? 0)}</td></tr>
                     <tr className="admFilaFuerte"><td>Costo total de canasta</td><td>{soles(c.costo)}</td></tr>
                     <tr><td>Margen</td><td data-tone={Number(c.margen_pct ?? 0) >= 30 ? "ok" : Number(c.margen_pct ?? 0) >= 10 ? "warn" : "bad"}>{c.margen_pct === null ? "—" : `${numero(c.margen_pct, 1)} %`}</td></tr>
                     <tr><td>Valor venta</td><td>{soles(c.precio)}</td></tr>
@@ -61,10 +59,10 @@ export default async function CosteoPage() {
                   </tbody>
                 </table>
                 <div className="admCosteoPie">
-                  <small className="admMuted">{c.fuente === "tabla" ? "Costos cargados a mano" : Number(c.insumos_sin_costo) > 0 ? `Según receta · ${c.insumos_sin_costo} insumos sin compras` : "Según receta"}</small>
-                  <button className="admLinkMuted" type="submit">Guardar</button>
+                  <small className="admMuted">{Number(c.insumos_sin_costo) > 0 ? `${c.insumos_sin_costo} productos sin costo` : "Según receta y envase"}</small>
+                  <Link className="admLinkMuted" href={`/admin/catalogo/${c.producto_id}?seccion=receta`}>Editar</Link>
                 </div>
-              </form>
+              </div>
             ))}
           </div>
         </section>

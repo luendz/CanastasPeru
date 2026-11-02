@@ -172,8 +172,6 @@ export type CosteoCanasta = {
   costo_viveres: number | null;
   costo_presentacion: number | null;
   costo_receta: number;
-  /** "tabla": costos cargados a mano (víveres + presentación); "receta": suma de la receta. */
-  fuente: "tabla" | "receta";
 };
 export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null; costo_actual: number | null };
 export type InventarioFila = { insumo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };

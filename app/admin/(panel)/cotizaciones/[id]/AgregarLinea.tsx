@@ -13,6 +13,8 @@ export type CanastaOpcion = {
   tipoBase: string;
   /** Costo de presentación (empaque, cinta, tarjeta…) de la tabla de costos. */
   costoPresentacion: number | null;
+  /** Envases de la canasta con su precio y costo de presentación. */
+  envases: { id: string; precio: number; costo: number | null }[];
   receta: Fila[];
 };
 export type EnvaseOpcion = { id: string; nombre: string; recargo: number };
@@ -49,7 +51,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
     if (!linea) return null;
     const base = canastas.find((c) => c.id === linea.productoId);
     const filas = linea.contenido?.map((f) => ({ insumo_id: f.insumo_id, cantidad: f.cantidad })) ?? base?.receta.map((r) => ({ ...r })) ?? [];
-    const presentacion = base?.costoPresentacion ?? null;
+    const presentacion = base?.envases.find((e) => e.id === linea.envase)?.costo ?? base?.costoPresentacion ?? null;
     const costo = filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0) + (presentacion ?? 0);
     return {
       canasta: base ? base.id : "personalizada",
@@ -121,8 +123,12 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   }
 
   function cambiarEnvase(id: string) {
-    // En canastas del catálogo, el precio sigue la diferencia de recargo del envase.
-    if (elegida) setPrecio(String(redondear(elegida.precio + recargo(id) - recargo(elegida.tipoBase))));
+    // En canastas del catálogo, el precio y el costo son los de ese envase; si no lo tiene, sigue la diferencia de recargo.
+    if (elegida) {
+      const propio = elegida.envases.find((e) => e.id === id);
+      setPrecio(String(propio ? propio.precio : redondear(elegida.precio + recargo(id) - recargo(elegida.tipoBase))));
+      if (propio?.costo != null) setPresentacion(String(propio.costo));
+    }
     setEnvase(id);
   }
 

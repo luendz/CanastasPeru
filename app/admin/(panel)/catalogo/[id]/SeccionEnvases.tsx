@@ -1,0 +1,28 @@
+import { requireAdmin } from "@/lib/admin/auth";
+import EnvasesPrecios, { type FilaEnvase, type OpcionEnvase } from "./EnvasesPrecios";
+
+type Tipo = { id: string; nombre: string; descripcion: string | null; insumo_id: string | null };
+type Empaque = { id: string; nombre: string; imagen: string | null };
+
+/** Envases de la canasta con el cálculo de cada uno, y los que se le pueden agregar. */
+export default async function SeccionEnvases({ productoId }: { productoId: string }) {
+  const { supabase } = await requireAdmin();
+  const [{ data: envases }, { data: tipos }, { data: empaques }] = await Promise.all([
+    supabase.from("v_envases_canasta").select("*").eq("producto_id", productoId).order("orden").order("tipo_canasta"),
+    supabase.from("tipos_canasta").select("id,nombre,descripcion,insumo_id").order("orden"),
+    supabase.from("insumos").select("id,nombre,imagen").eq("tipo", "empaque").order("nombre"),
+  ]);
+  const listaTipos = (tipos ?? []) as Tipo[];
+  const descripcionDe = new Map(listaTipos.map((t) => [t.id, t.descripcion]));
+  const filas = ((envases ?? []) as Omit<FilaEnvase, "descripcion">[]).map((f) => ({ ...f, descripcion: descripcionDe.get(f.tipo_canasta) ?? null }));
+  const listaEmpaques = (empaques ?? []) as Empaque[];
+  const relacionados = new Set(listaTipos.map((t) => t.insumo_id));
+
+  // Se elige del listado de productos (con foto, porque la web la muestra) o de los envases que ya vende la web.
+  const opciones: OpcionEnvase[] = [
+    ...listaTipos.filter((t) => !filas.some((f) => f.tipo_canasta === t.id)).map((t) => ({ valor: `tipo:${t.id}`, etiqueta: t.nombre })),
+    ...listaEmpaques.filter((e) => e.imagen && !relacionados.has(e.id)).map((e) => ({ valor: `insumo:${e.id}`, etiqueta: e.nombre })),
+  ];
+
+  return <EnvasesPrecios productoId={productoId} filas={filas} opciones={opciones} productos={listaEmpaques.map((e) => ({ id: e.id, nombre: e.nombre }))} />;
+}

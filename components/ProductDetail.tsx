@@ -6,7 +6,7 @@ import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
 import { carrito } from "@/lib/carrito";
-import { BasketType, Product, findBasketType, formatPrice } from "@/lib/mock-data";
+import { BasketType, EnvaseProducto, Product, envaseElegido, envasesDe, formatPrice } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
   if (delta === 0) return "Incluida";
@@ -14,8 +14,9 @@ function deltaLabel(delta: number) {
 }
 
 export default function ProductDetail({ product, basketTypes }: { product: Product; basketTypes: BasketType[] }) {
-  const ownBasket = findBasketType(basketTypes, product);
-  const [selected, setSelected] = useState<BasketType>(ownBasket);
+  const envases = envasesDe(basketTypes, product);
+  const ownBasket = envaseElegido(basketTypes, product);
+  const [selected, setSelected] = useState<EnvaseProducto>(ownBasket);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -26,8 +27,8 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
     window.setTimeout(() => setAdded(false), 2600);
   }
 
-  const delta = selected.priceDelta - ownBasket.priceDelta;
-  const unitPrice = product.price + delta;
+  const delta = selected.precio - ownBasket.precio;
+  const unitPrice = selected.precio;
   const savings = delta === 0 && product.oldPrice ? product.oldPrice - product.price : 0;
   const imageFor = (name: string) => product.visualItems.find((item) => item.name === name);
 
@@ -77,14 +78,14 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
         <fieldset className="basketPicker" style={{ "--i": 5 } as React.CSSProperties}>
           <legend><span className="stepNum">1</span> Elige el envase</legend>
           <div className="basketGrid">
-            {basketTypes.map((type) => (
+            {envases.map((type) => (
               <label className="basketOption" key={type.id}>
                 <input checked={type.id === selected.id} name="tipoCanasta" onChange={() => setSelected(type)} type="radio" value={type.id} />
                 <span className="basketCheck" aria-hidden="true">✓</span>
                 <img alt="" className="basketThumb" src={type.image} />
                 <span className="basketLabel">{type.label}</span>
                 <small className="basketHint">{type.hint}</small>
-                <small className="basketPrice">{deltaLabel(type.priceDelta - ownBasket.priceDelta)}</small>
+                <small className="basketPrice">{deltaLabel(type.precio - ownBasket.precio)}</small>
               </label>
             ))}
           </div>
