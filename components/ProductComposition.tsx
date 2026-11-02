@@ -1,8 +1,36 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Product } from "@/lib/mock-data";
+import type { Product, ProductVisualItem } from "@/lib/mock-data";
 import styles from "./ProductComposition.module.css";
+
+/**
+ * Todas las vistas usan el mismo lienzo proporcional: el tamaño guardado de cada
+ * producto es relativo al ancho del lienzo, igual que su posición. Así lo que se
+ * arma en el editor se ve igual en la tarjeta o el carrito, solo a otra escala.
+ */
+const anchoProducto = (size: number) => `${size * 0.2}cqw`;
+
+/**
+ * Encuadre de la tienda: amplía el lienzo y lo centra en lo que ocupa la canasta
+ * con sus productos, para aprovechar el recuadro sin cortar nada. Las proporciones
+ * no cambian. Todo va en % del lienzo; la canasta llega a 18.5–81.5 de ancho.
+ */
+function encuadre(items: ProductVisualItem[], proporcion: number) {
+  const LIENZO = 0.75; // Alto del lienzo respecto a su ancho (4:3).
+  const izquierda = Math.min(18.5, ...items.map((i) => i.left - i.size * 0.1));
+  const derecha = Math.max(81.5, ...items.map((i) => i.left + i.size * 0.1));
+  const arriba = 15;
+  const abajo = Math.max(90, ...items.map((i) => i.top + i.size * 0.133));
+
+  const escala = Math.min(1.45, 96 / (derecha - izquierda), (proporcion * 96) / (LIENZO * (abajo - arriba)));
+  const altoRelativo = (LIENZO * escala) / proporcion;
+  return {
+    width: `${escala * 100}%`,
+    left: `${50 - ((izquierda + derecha) / 2) * escala}%`,
+    top: `${(100 - (abajo - arriba) * altoRelativo) / 2 - arriba * altoRelativo}%`,
+  };
+}
 
 type ProductCompositionProps = {
   product: Product;
@@ -11,6 +39,10 @@ type ProductCompositionProps = {
   baseImage?: string;
   /** Los productos caen uno a uno dentro de la canasta al montarse. */
   assemble?: boolean;
+  /** Alto del recuadro respecto a su ancho. */
+  proporcion?: number;
+  /** En el editor se muestra el lienzo completo, con margen para mover productos. */
+  encuadrar?: boolean;
 };
 
 // Máscara de transparencia de cada imagen, calculada una sola vez por archivo.
@@ -68,9 +100,10 @@ function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, c
   return mask.data[(y * mask.width + x) * 4 + 3] > ALPHA_THRESHOLD;
 }
 
-export default function ProductComposition({ product, variant = "card", baseImage, assemble = false }: ProductCompositionProps) {
+export { anchoProducto };
+
+export default function ProductComposition({ product, variant = "card", baseImage, assemble = false, proporcion = 1, encuadrar = true }: ProductCompositionProps) {
   const isDetail = variant === "detail";
-  const sizeMultiplier = isDetail ? 1.65 : 1;
   const base = baseImage ?? product.baseImage;
 
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -101,7 +134,9 @@ export default function ProductComposition({ product, variant = "card", baseImag
       title={activeItem?.name}
       onPointerMove={isDetail ? onPointerMove : undefined}
       onPointerLeave={isDetail ? () => setActive(null) : undefined}
+      style={encuadrar ? { aspectRatio: `1 / ${proporcion}` } : undefined}
     >
+      <div className={encuadrar ? `${styles.lienzo} ${styles.lienzoEncuadrado}` : styles.lienzo} style={encuadrar ? encuadre(product.visualItems, proporcion) : undefined}>
       <div className={styles.baseLayer}>
         {base ? (
           <img key={base} className={styles.baseImage} src={base} alt={`Base de ${product.name}`} />
@@ -121,8 +156,8 @@ export default function ProductComposition({ product, variant = "card", baseImag
             zIndex: item.zIndex ?? 5,
             transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
             // Hacia dónde se abre cada producto al pasar el mouse por la tarjeta.
-            "--ex": `${(item.left - 50) * 2.4}px`,
-            "--ey": `${(item.top - 70) * 2 - 14}px`,
+            "--ex": `${(item.left - 50) * 0.78}cqw`,
+            "--ey": `${(item.top - 70) * 0.65 - 4.6}cqw`,
             "--order": dropOrder.indexOf(index),
           } as React.CSSProperties}
         >
@@ -131,20 +166,21 @@ export default function ProductComposition({ product, variant = "card", baseImag
               className={styles.itemImage}
               src={item.image}
               alt={item.name}
-              style={{ width: `${item.size * sizeMultiplier}px` }}
+              style={{ width: anchoProducto(item.size) }}
             />
           ) : (
             <span
               className={styles.itemEmoji}
               aria-label={item.name}
               role="img"
-              style={{ fontSize: `${item.size * sizeMultiplier}px` }}
+              style={{ fontSize: anchoProducto(item.size) }}
             >
               {item.emoji}
             </span>
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 }

@@ -84,7 +84,6 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
                 <span className="basketCheck" aria-hidden="true">✓</span>
                 <img alt="" className="basketThumb" src={type.image} />
                 <span className="basketLabel">{type.label}</span>
-                <small className="basketHint">{type.hint}</small>
                 <small className="basketPrice">{deltaLabel(type.precio - ownBasket.precio)}</small>
               </label>
             ))}

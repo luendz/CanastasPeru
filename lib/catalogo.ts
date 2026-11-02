@@ -72,7 +72,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       emoji: p.emoji,
       baseImage: p.imagen_base ?? undefined,
       baseType: p.tipo_canasta_base,
-      envases: p.envases.map((e) => ({ id: e.id, precio: Number(e.precio) })),
+      envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,
       items: p.contenido,
       visualItems: p.composicion ?? [],
