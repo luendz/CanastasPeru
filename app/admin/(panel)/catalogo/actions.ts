@@ -56,6 +56,7 @@ function datosCanasta(fd: FormData, precio: number | null) {
       precio_anterior: precioAnterior,
       insignia: txt(fd, "insignia", 40) || null,
       descripcion: txt(fd, "descripcion", 400),
+      descripcion_completa: txt(fd, "descripcion_completa", 2000),
       emoji: txt(fd, "emoji", 8) || "🧺",
       tipo_canasta_base: tipo,
       orden: entero(fd, "orden"),

@@ -31,6 +31,7 @@ type CatalogoWeb = {
     insignia: string | null;
     emoji: string;
     descripcion: string;
+    descripcion_completa?: string;
     tipo_canasta_base: string;
     imagen_base: string | null;
     envases: { id: string; precio: number }[];
@@ -74,6 +75,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       baseType: p.tipo_canasta_base,
       envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,
+      fullDescription: p.descripcion_completa || undefined,
       items: p.contenido,
       visualItems: p.composicion ?? [],
     })),

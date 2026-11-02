@@ -20,6 +20,8 @@ export type Product = {
   baseImage?: string;
   /** Tipo de canasta con el que se vende por defecto (id de tipos_canasta). */
   baseType?: string;
+  /** Información adicional, debajo de la foto en la página del producto. */
+  fullDescription?: string;
   /** Envases que ofrece, con su precio (de la base). */
   envases?: { id: string; precio: number }[];
   description: string;

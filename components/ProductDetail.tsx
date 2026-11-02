@@ -44,6 +44,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           </ViewTransition>
           <span className="detailHint">Pasa el cursor sobre cada producto</span>
         </div>
+        {product.fullDescription && <p className="detailDescripcion">{product.fullDescription}</p>}
       </div>
 
       <div className="detailInfo">
