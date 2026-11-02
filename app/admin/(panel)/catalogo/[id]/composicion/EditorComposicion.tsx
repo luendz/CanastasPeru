@@ -158,6 +158,22 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                   type="button"
                 />
               ))}
+              {/* Van después de todos los recuadros para que ninguno tape una ✕. */}
+              {items.map((item, index) => (
+                <div
+                  className="devQuitarCaja"
+                  key={item.name}
+                  style={{
+                    top: `${item.top}%`,
+                    left: `${item.left}%`,
+                    width: anchoProducto(item.size),
+                    height: anchoProducto(item.size),
+                    transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
+                  }}
+                >
+                  <button className="devQuitar" type="button" aria-label={`Quitar ${item.name}`} title={`Quitar ${item.name}`} onClick={() => quitar(index)}>✕</button>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -461,6 +461,10 @@ del { color: #a99a8e; font-size: 13px; }
 .devHandle:hover { background: rgba(123, 30, 44, .14); }
 .devHandleActive { border: 2px solid var(--green); background: rgba(123, 30, 44, .18); }
 .devHandle:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.devQuitarCaja { position: absolute; pointer-events: none; }
+.devQuitar { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 2px solid #fff; border-radius: 50%; background: var(--wine); color: #fff; font-size: 10px; line-height: 1; cursor: pointer; pointer-events: auto; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); }
+.devQuitar:hover { transform: scale(1.15); }
+.devQuitar:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .devPanel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); }
 .devPanel h3 { margin: 0; font-size: 14px; }
 .devList { display: grid; gap: 4px; }
