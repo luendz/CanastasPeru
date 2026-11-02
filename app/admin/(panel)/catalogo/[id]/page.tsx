@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm, { type CanastaEditable } from "../CanastaForm";
 import { LINEAS } from "@/lib/lineas";
+import { separarInsignias } from "@/lib/mock-data";
 import SeccionEnvases from "./SeccionEnvases";
 import SeccionImagenes from "./SeccionImagenes";
 import SeccionReceta from "./SeccionReceta";
@@ -25,12 +26,14 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
   const [{ data: producto }, { data: tipos }, { data: todos }, { data: envases }] = await Promise.all([
     supabase.from("productos").select("*").eq("id", id).maybeSingle(),
     supabase.from("tipos_canasta").select("*").order("orden"),
-    supabase.from("productos").select("categoria"),
+    supabase.from("productos").select("categoria,insignia"),
     supabase.from("canasta_envases").select("tipo_canasta").eq("producto_id", id),
   ]);
   if (!producto) notFound();
   const p = producto as CanastaEditable & { slug: string };
-  const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...((todos ?? []) as { categoria: string }[]).map((t) => t.categoria)])];
+  const filas = (todos ?? []) as { categoria: string; insignia: string | null }[];
+  const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...filas.map((t) => t.categoria)])];
+  const insignias = [...new Set(filas.flatMap((t) => separarInsignias(t.insignia)))];
   // El envase principal se elige entre los que tiene la canasta.
   const propios = new Set(((envases ?? []) as { tipo_canasta: string }[]).map((e) => e.tipo_canasta));
   const tiposPropios = ((tipos ?? []) as TipoCanasta[]).filter((t) => propios.has(t.id));
@@ -54,7 +57,7 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
       {actual === "datos" && (
         <section className="admCard">
           <h2>Datos generales</h2>
-          <CanastaForm canasta={p} tipos={tiposPropios} categorias={categorias} />
+          <CanastaForm canasta={p} tipos={tiposPropios} categorias={categorias} insignias={insignias} />
         </section>
       )}
       {actual === "receta" && (

@@ -156,6 +156,9 @@ export const formatPrice = (value: number) =>
 export const findBasketType = (types: BasketType[], product: Pick<Product, "baseType" | "baseImage">) =>
   types.find((t) => t.id === product.baseType) ?? types.find((t) => t.image === product.baseImage) ?? types[0];
 
+/** Una canasta puede tener varias insignias: se guardan separadas por comas. */
+export const separarInsignias = (texto?: string | null) => (texto ?? "").split(",").map((i) => i.trim()).filter(Boolean);
+
 export type EnvaseProducto = BasketType & { precio: number };
 
 /** Envases que ofrece una canasta, cada uno con su precio. Sin lista propia (demostración), todos con su recargo. */

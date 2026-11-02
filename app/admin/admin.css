@@ -519,6 +519,12 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admEliminarError { max-width: 280px; margin-top: 4px; white-space: normal; text-align: right; }
 .admCanastaAcciones > span { margin: 0 8px; color: var(--a-line); }
 .admMasAcciones { display: inline-block; padding: 0 4px; font-size: 16px; line-height: 1; }
+.admTagCampo input { flex: 1 1 120px; min-width: 0; padding: 4px; border: 0; outline: 0; background: none; color: var(--a-ink); font: inherit; font-weight: 500; }
+.admTagCampo:focus-within { border-color: var(--a-wine); }
+.admTagCampo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 40px; padding: 4px 8px; border: 1px solid var(--a-line); border-radius: 12px; background: #fff; }
+.admTag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px 3px 12px; border-radius: 99px; background: #f1e9dc; color: var(--a-ink); font-size: 13px; font-weight: 700; }
+.admTag button { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--a-muted); font-size: 16px; line-height: 1; cursor: pointer; }
+.admTag button:hover { background: rgba(0, 0, 0, .08); color: var(--a-ink); }
 .admFormColumna { display: grid; align-content: start; gap: 14px; min-width: 0; }
 .admFormColumna .admToggle { justify-self: start; }
 .admInputCorto { width: 96px; padding: 6px 8px; text-align: right; }

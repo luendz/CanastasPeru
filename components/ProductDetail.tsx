@@ -6,7 +6,7 @@ import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
 import { carrito } from "@/lib/carrito";
-import { BasketType, EnvaseProducto, Product, envaseElegido, envasesDe, formatPrice } from "@/lib/mock-data";
+import { BasketType, EnvaseProducto, Product, envaseElegido, envasesDe, formatPrice, separarInsignias } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
   if (delta === 0) return "Incluida";
@@ -36,7 +36,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
     <>
       <div className="detailMedia">
         <div className="detailVisual">
-          {product.badge && <span className="badge">{product.badge}</span>}
+          {product.badge && <span className="badges">{separarInsignias(product.badge).map((b) => <span className="badge" key={b}>{b}</span>)}</span>}
           <ViewTransition name={`basket-${product.slug}`} share="basketMorph" default="none">
             <div className="detailBasket">
               <ProductComposition baseImage={selected.image} product={product} variant="detail" />
