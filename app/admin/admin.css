@@ -516,6 +516,7 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admEnvaseAcciones { white-space: nowrap; }
 .admEnvaseAcciones button { font-size: 16px; }
 .admEnvaseAcciones button + button { margin-left: 14px; }
+.admEliminarError { max-width: 280px; margin-top: 4px; white-space: normal; text-align: right; }
 .admInputCorto { width: 96px; padding: 6px 8px; text-align: right; }
 .admInputOrden { width: 60px; min-height: 32px; padding: 4px 6px; text-align: center; }
 .admBuscador { position: relative; }
