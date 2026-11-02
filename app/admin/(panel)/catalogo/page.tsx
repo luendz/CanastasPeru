@@ -113,21 +113,25 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
         <table className="admTable admTableCompact">
           <thead><tr><th>Imagen</th><th>Tipo</th><th>Descripción</th><th className="num">Recargo</th><th className="num">Orden</th><th /></tr></thead>
           <tbody>
-            {listaTipos.map((t) => (
-              <tr key={t.id}>
-                <td colSpan={6}>
-                  <form action={guardarTipo} className="admRowForm">
-                    <input type="hidden" name="id" value={t.id} />
-                    <SelectorImagen name="imagen" defaultValue={t.imagen} label={`Imagen de ${t.nombre}`} compacto />
-                    <input className="admInput" name="nombre" defaultValue={t.nombre} aria-label="Nombre" required />
-                    <input className="admInput" name="descripcion" defaultValue={t.descripcion ?? ""} aria-label="Descripción" placeholder="Descripción" />
-                    <input className="admInput admInputSm" name="recargo" type="number" min="0" step="0.01" defaultValue={t.recargo} aria-label="Recargo en soles" />
-                    <input className="admInput admInputSm" name="orden" type="number" step="1" defaultValue={t.orden} aria-label="Orden" />
-                    <button className="admLinkMuted" type="submit">Guardar</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
+            {listaTipos.map((t) => {
+              // Cada campo va en su celda y se une a la fila con el atributo form, para que coincida con su cabecera.
+              const form = `tipo-${t.id}`;
+              return (
+                <tr key={t.id}>
+                  <td><SelectorImagen name="imagen" form={form} defaultValue={t.imagen} label={`Imagen de ${t.nombre}`} compacto /></td>
+                  <td><input className="admInput" form={form} name="nombre" defaultValue={t.nombre} aria-label="Nombre" required /></td>
+                  <td><input className="admInput" form={form} name="descripcion" defaultValue={t.descripcion ?? ""} aria-label="Descripción" placeholder="Descripción" /></td>
+                  <td className="num"><input className="admInput admInputSm" form={form} name="recargo" type="number" min="0" step="0.01" defaultValue={t.recargo} aria-label="Recargo en soles" /></td>
+                  <td className="num"><input className="admInput admInputSm" form={form} name="orden" type="number" step="1" defaultValue={t.orden} aria-label="Orden" /></td>
+                  <td className="num">
+                    <form id={form} action={guardarTipo}>
+                      <input type="hidden" name="id" value={t.id} />
+                      <button className="admLinkMuted" type="submit">Guardar</button>
+                    </form>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>
@@ -137,20 +141,23 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
         <table className="admTable admTableCompact">
           <thead><tr><th>Distrito</th><th className="num">Tarifa (S/)</th><th className="num">Orden</th><th>Cobertura</th><th /></tr></thead>
           <tbody>
-            {listaZonas.map((z) => (
-              <tr key={z.distrito}>
-                <td colSpan={5}>
-                  <form action={guardarZona} className="admRowForm admRowFormZona">
-                    <input type="hidden" name="distrito" value={z.distrito} />
-                    <strong>{z.distrito}</strong>
-                    <input className="admInput admInputSm" name="tarifa" type="number" min="0" step="0.5" defaultValue={z.tarifa} aria-label={`Tarifa de ${z.distrito}`} />
-                    <input className="admInput admInputSm" name="orden" type="number" step="1" defaultValue={z.orden} aria-label={`Orden de ${z.distrito}`} />
-                    <label className="admCheck"><input type="checkbox" name="activo" defaultChecked={z.activo} /><span>Con cobertura</span></label>
-                    <button className="admLinkMuted" type="submit">Guardar</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
+            {listaZonas.map((z, i) => {
+              const form = `zona-${i}`;
+              return (
+                <tr key={z.distrito}>
+                  <td><strong>{z.distrito}</strong></td>
+                  <td className="num"><input className="admInput admInputSm" form={form} name="tarifa" type="number" min="0" step="0.5" defaultValue={z.tarifa} aria-label={`Tarifa de ${z.distrito}`} /></td>
+                  <td className="num"><input className="admInput admInputSm" form={form} name="orden" type="number" step="1" defaultValue={z.orden} aria-label={`Orden de ${z.distrito}`} /></td>
+                  <td><label className="admCheck"><input type="checkbox" form={form} name="activo" defaultChecked={z.activo} /><span>Con cobertura</span></label></td>
+                  <td className="num">
+                    <form id={form} action={guardarZona}>
+                      <input type="hidden" name="distrito" value={z.distrito} />
+                      <button className="admLinkMuted" type="submit">Guardar</button>
+                    </form>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <form action={crearZona} className="admInlineForm">
