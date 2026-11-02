@@ -444,28 +444,39 @@ del { color: #a99a8e; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .basketOption { transition: none; } .basketOption:hover { transform: none; } }
 
 /* Editor de composición (herramienta interna) */
-.devToolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin-bottom: 24px; }
+.devToolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 12px; }
+.devDesplegable .admInput { padding-right: 32px; cursor: pointer; }
+.devDesplegable::after { content: ""; position: absolute; top: 50%; right: 13px; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.devGuardar { display: flex; align-items: center; gap: 12px; margin-left: auto; }
 .devToolbar label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: var(--muted); }
-.devToolbar .select { min-width: 200px; }
-.devLayout { display: grid; grid-template-columns: 1fr 290px; gap: 28px; align-items: start; }
-.devStageWrap { border: 1px solid var(--line); border-radius: var(--radius); background: #f7f7f3; padding: 14px; }
+.devToolbar .select { min-width: 170px; min-height: 40px; padding-block: 6px; }
+.devLayout { display: grid; grid-template-columns: calc((100% - 274px) * .8) minmax(260px, 1fr); gap: 14px; align-items: start; }
+.devColumna { display: grid; gap: 10px; min-width: 0; }
+/* Se oculta el margen superior del lienzo, donde no llega ninguna canasta. Las posiciones no cambian. */
+.devStageWrap { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #f7f7f3; padding: 0 8px 8px; }
 .devStageCard { max-width: 320px; }
-.devStage { position: relative; container-type: inline-size; }
+.devStage { position: relative; margin-top: -9%; container-type: inline-size; }
 .devOverlay { position: absolute; inset: 0; z-index: 60; pointer-events: none; }
 .devHandle { position: absolute; padding: 0; border: 1px dashed rgba(123, 30, 44, .5); border-radius: 8px; background: rgba(123, 30, 44, .06); cursor: grab; pointer-events: auto; touch-action: none; }
 .devHandle:hover { background: rgba(123, 30, 44, .14); }
 .devHandleActive { border: 2px solid var(--green); background: rgba(123, 30, 44, .18); }
 .devHandle:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.devPanel { display: grid; gap: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); }
+.devQuitarCaja { position: absolute; pointer-events: none; }
+.devQuitar { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 2px solid #fff; border-radius: 50%; background: var(--wine); color: #fff; font-size: 10px; line-height: 1; cursor: pointer; pointer-events: auto; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); }
+.devQuitar:hover { transform: scale(1.15); }
+.devQuitar:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.devPanel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); }
 .devPanel h3 { margin: 0; font-size: 14px; }
-.devList { display: grid; gap: 6px; }
-.devListItem { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: 13px; text-align: left; }
+.devList { display: grid; gap: 4px; }
+.devListItem { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 5px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 12px; line-height: 1.25; text-align: left; }
 .devListItem small { color: var(--muted); font-variant-numeric: tabular-nums; }
 .devListItemActive { border-color: var(--green); background: rgba(123, 30, 44, .06); font-weight: 700; }
-.devControls { display: grid; gap: 14px; padding-top: 4px; border-top: 1px solid var(--line); }
-.devControls label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.devControls { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.devControls h3 { display: flex; justify-content: space-between; gap: 12px; margin: 0; font-size: 14px; }
+.devSliders { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.devControls label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
 .devControls strong { color: var(--ink); font-variant-numeric: tabular-nums; }
-.devControls input[type="range"] { width: 100%; }
+.devControls input[type="range"] { grid-column: 1 / -1; width: 100%; }
 .devHint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .devOutputWrap { margin-top: 28px; }
 .devOutputHead { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -473,6 +484,7 @@ del { color: #a99a8e; font-size: 13px; }
 .devOutputHead code { padding: 2px 6px; border-radius: 6px; background: #eef1ec; font-size: 13px; }
 .devOutput { margin: 0; padding: 18px; border-radius: 14px; background: var(--ink); color: #e7efe7; font-size: 12.5px; line-height: 1.7; overflow-x: auto; }
 @media (max-width: 980px) { .devLayout { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .devSliders { grid-template-columns: 1fr; gap: 8px; } .devGuardar { flex-wrap: wrap; margin-left: 0; } }
 
 @media (max-width: 980px) {
   .catalogHeroInner { grid-template-columns: 1fr; gap: 18px; }
@@ -1159,3 +1171,4 @@ del { color: #a99a8e; font-size: 13px; }
   .buyBox > p { grid-column: 1 / -1; }
   .buyTotal .igvNota { display: none; }
 }
+.detailDescripcion { margin: 14px 2px 0; color: var(--muted); font-size: 14px; line-height: 1.55; white-space: pre-line; }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import ProductComposition, { anchoProducto } from "@/components/ProductComposition";
 import type { BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
 import { guardarComposicion, type GuardarState } from "./actions";
@@ -9,8 +9,8 @@ import { guardarComposicion, type GuardarState } from "./actions";
 type Variant = "card" | "detail";
 export type InsumoVisual = { nombre: string; emoji: string; imagen: string | null };
 
+const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
-const round = (value: number) => Math.round(value * 10) / 10;
 
 type Props = { id: string; product: Product; basketTypes: BasketType[]; insumos: InsumoVisual[] };
 
@@ -22,7 +22,8 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const [cambios, setCambios] = useState(false);
   const [guardando, startGuardar] = useTransition();
   const [basketImage, setBasketImage] = useState(product.baseImage ?? basketTypes[0]?.image ?? "");
-  const [aAgregar, setAAgregar] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const [desplegado, setDesplegado] = useState(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ index: number; offsetX: number; offsetY: number } | null>(null);
@@ -85,14 +86,19 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   }
 
   // Cualquier insumo registrado se puede sumar; la foto sale de la ficha en Productos.
-  const disponibles = insumos.filter((ins) => !items.some((x) => x.name === ins.nombre));
+  // Sin texto muestra todos; al escribir filtra por cualquier parte del nombre (sin tildes ni mayúsculas, varias palabras).
+  const resultados = useMemo(() => {
+    const palabras = normalizar(busqueda).split(/\s+/).filter(Boolean);
+    return insumos
+      .filter((ins) => !items.some((x) => x.name === ins.nombre))
+      .filter((ins) => palabras.every((w) => normalizar(ins.nombre).includes(w)));
+  }, [busqueda, insumos, items]);
 
-  function agregar() {
-    const ins = disponibles.find((x) => x.nombre === aAgregar);
-    if (!ins) return;
+  function agregar(ins: InsumoVisual) {
     setItems((prev) => [...prev, { name: ins.nombre, emoji: ins.emoji, ...(ins.imagen ? { image: ins.imagen } : {}), top: 60, left: 50, size: 90, rotate: 0, zIndex: 20 }]);
     setSelected(items.length);
-    setAAgregar("");
+    setBusqueda("");
+    setDesplegado(false);
     marcar();
   }
 
@@ -118,10 +124,17 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             <option value="card">Tamaño de tarjeta</option>
           </select>
         </label>
-        <button className="btn btnGhost" onClick={restablecer} type="button" disabled={!cambios}>Deshacer cambios</button>
+        <button className="admBtn" onClick={restablecer} type="button" disabled={!cambios}>Deshacer cambios</button>
+        <div className="devGuardar">
+          {cambios && !guardando && <span className="admMuted admSmall">Cambios sin guardar</span>}
+          {guardado?.ok && <span className="admSuccess" role="status">Publicado en la tienda.</span>}
+          {guardado?.error && <span className="admError" role="alert">{guardado.error}</span>}
+          <button className="admBtn admBtnPrimary" onClick={guardar} type="button" disabled={guardando || !cambios}>{guardando ? "Guardando…" : "Guardar y publicar"}</button>
+        </div>
       </div>
 
       <div className="devLayout">
+        <div className="devColumna">
         <div className={variant === "card" ? "devStageWrap devStageCard" : "devStageWrap"}>
           <div className="devStage" ref={stageRef}>
             <ProductComposition baseImage={basketImage} product={draft} variant={variant} encuadrar={false} />
@@ -145,8 +158,45 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                   type="button"
                 />
               ))}
+              {/* Van después de todos los recuadros para que ninguno tape una ✕. */}
+              {items.map((item, index) => (
+                <div
+                  className="devQuitarCaja"
+                  key={item.name}
+                  style={{
+                    top: `${item.top}%`,
+                    left: `${item.left}%`,
+                    width: anchoProducto(item.size),
+                    height: anchoProducto(item.size),
+                    transform: `translate(-50%, -50%) rotate(${item.rotate ?? 0}deg)`,
+                  }}
+                >
+                  <button className="devQuitar" type="button" aria-label={`Quitar ${item.name}`} title={`Quitar ${item.name}`} onClick={() => quitar(index)}>✕</button>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+          {current && (
+            <div className="devControls">
+              <h3>{current.name} <button className="devRemove" type="button" onClick={() => quitar(selected)}>Quitar</button></h3>
+              <div className="devSliders">
+                <label>
+                  Tamaño <strong>{current.size}</strong>
+                  <input max="160" min="20" onChange={(event) => patch(selected, { size: Number(event.target.value) })} step="1" type="range" value={current.size} />
+                </label>
+                <label>
+                  Giro <strong>{current.rotate ?? 0}°</strong>
+                  <input max="45" min="-45" onChange={(event) => patch(selected, { rotate: Number(event.target.value) })} step="1" type="range" value={current.rotate ?? 0} />
+                </label>
+                <label>
+                  Capa (adelante / atrás) <strong>{current.zIndex ?? 5}</strong>
+                  <input max="30" min="1" onChange={(event) => patch(selected, { zIndex: Number(event.target.value) })} step="1" type="range" value={current.zIndex ?? 5} />
+                </label>
+              </div>
+              <p className="devHint">Arrastra sobre la imagen, o usa las flechas con el recuadro enfocado. Shift acelera el paso.</p>
+            </div>
+          )}
         </div>
 
         <aside className="devPanel">
@@ -156,49 +206,52 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             {items.map((item, index) => (
               <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={item.name} onClick={() => setSelected(index)} type="button">
                 <span>{item.emoji} {item.name}</span>
-                <small>{round(item.left)} · {round(item.top)}</small>
               </button>
             ))}
           </div>
 
-          {disponibles.length > 0 && (
-            <div className="devAdd">
-              <select className="select" value={aAgregar} onChange={(e) => setAAgregar(e.target.value)} aria-label="Producto a agregar">
-                <option value="">Agregar producto…</option>
-                {disponibles.map((it) => <option key={it.nombre} value={it.nombre}>{it.emoji} {it.nombre}{it.imagen ? "" : " (sin foto)"}</option>)}
-              </select>
-              <button className="btn btnGhost" type="button" onClick={agregar} disabled={!aAgregar}>Agregar</button>
-            </div>
-          )}
+          <div className="admBuscador devDesplegable">
+            <input
+              className="admInput"
+              type="text"
+              role="combobox"
+              aria-expanded={desplegado}
+              aria-label="Agregar producto: elige de la lista o escribe para buscar"
+              placeholder="Agregar producto…"
+              autoComplete="off"
+              value={busqueda}
+              onChange={(e) => { setBusqueda(e.target.value); setDesplegado(true); }}
+              onClick={() => setDesplegado((d) => !d)}
+              onBlur={() => setDesplegado(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (desplegado && resultados[0]) agregar(resultados[0]);
+                  else setDesplegado(true);
+                }
+                if (e.key === "Escape") setDesplegado(false);
+                if (e.key === "ArrowDown") setDesplegado(true);
+              }}
+            />
+            {desplegado && (
+              <ul className="admBuscadorLista" role="listbox">
+                {resultados.length ? resultados.map((ins) => (
+                  <li key={ins.nombre}>
+                    {/* onMouseDown evita que el campo pierda el foco y cierre la lista antes del clic. */}
+                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => agregar(ins)}>
+                      <span>{ins.emoji} {ins.nombre}</span>
+                      {!ins.imagen && <small>sin foto</small>}
+                    </button>
+                  </li>
+                )) : <li className="admMuted admSmall">Sin resultados.</li>}
+              </ul>
+            )}
+          </div>
           <p className="devHint">¿Falta una foto o un producto? Agrégalo en <Link href="/admin/productos">Productos</Link>.</p>
 
-          {current && (
-            <div className="devControls">
-              <h3>{current.name} <button className="devRemove" type="button" onClick={() => quitar(selected)}>Quitar</button></h3>
-              <label>
-                Tamaño <strong>{current.size}</strong>
-                <input max="160" min="20" onChange={(event) => patch(selected, { size: Number(event.target.value) })} step="1" type="range" value={current.size} />
-              </label>
-              <label>
-                Giro <strong>{current.rotate ?? 0}°</strong>
-                <input max="45" min="-45" onChange={(event) => patch(selected, { rotate: Number(event.target.value) })} step="1" type="range" value={current.rotate ?? 0} />
-              </label>
-              <label>
-                Capa (adelante / atrás) <strong>{current.zIndex ?? 5}</strong>
-                <input max="30" min="1" onChange={(event) => patch(selected, { zIndex: Number(event.target.value) })} step="1" type="range" value={current.zIndex ?? 5} />
-              </label>
-              <p className="devHint">Arrastra sobre la imagen, o usa las flechas con el recuadro enfocado. Shift acelera el paso.</p>
-            </div>
-          )}
         </aside>
       </div>
 
-      <div className="admFormFootRow">
-        <button className="admBtn admBtnPrimary" onClick={guardar} type="button" disabled={guardando || !cambios}>{guardando ? "Guardando…" : "Guardar y publicar"}</button>
-        {cambios && !guardando && <span className="admMuted admSmall">Cambios sin guardar</span>}
-        {guardado?.ok && <span className="admSuccess" role="status">Publicado en la tienda.</span>}
-        {guardado?.error && <span className="admError" role="alert">{guardado.error}</span>}
-      </div>
     </div>
   );
 }

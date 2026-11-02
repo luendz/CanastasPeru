@@ -517,6 +517,10 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admEnvaseAcciones button { font-size: 16px; }
 .admEnvaseAcciones button + button { margin-left: 14px; }
 .admEliminarError { max-width: 280px; margin-top: 4px; white-space: normal; text-align: right; }
+.admCanastaAcciones > span { margin: 0 8px; color: var(--a-line); }
+.admMasAcciones { display: inline-block; padding: 0 4px; font-size: 16px; line-height: 1; }
+.admFormColumna { display: grid; align-content: start; gap: 14px; min-width: 0; }
+.admFormColumna .admToggle { justify-self: start; }
 .admInputCorto { width: 96px; padding: 6px 8px; text-align: right; }
 .admInputOrden { width: 60px; min-height: 32px; padding: 4px 6px; text-align: center; }
 .admBuscador { position: relative; }

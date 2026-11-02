@@ -98,7 +98,11 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
                       </button>
                     </form>
                   </td>
-                  <td className="num"><Link className="admLinkMuted" href={`/admin/catalogo/${p.id}`}>Editar</Link></td>
+                  <td className="num admCanastaAcciones">
+                    <Link className="admLinkMuted" href={`/admin/catalogo/${p.id}`}>Editar</Link>
+                    <span aria-hidden="true">|</span>
+                    <Link className="admLinkMuted admMasAcciones" href={`/admin/catalogo/${p.id}`} aria-label={`Abrir ${p.nombre}`} title="Abrir canasta">⋮</Link>
+                  </td>
                 </tr>
               );
             })}

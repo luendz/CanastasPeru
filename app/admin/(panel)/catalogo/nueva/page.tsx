@@ -33,6 +33,7 @@ export default async function NuevaCanastaPage() {
             precio_anterior: null,
             insignia: null,
             descripcion: "",
+            descripcion_completa: "",
             emoji: "🧺",
             tipo_canasta_base: listaTipos[0]?.id ?? "",
             orden: Math.max(0, ...filas.map((f) => f.orden)) + 1,
