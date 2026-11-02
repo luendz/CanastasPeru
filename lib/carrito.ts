@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { SLUGS_ANTIGUOS } from "@/lib/slugs-antiguos";
 
 /*
  * Carrito de la tienda, guardado en el navegador (localStorage) para que
@@ -26,7 +27,7 @@ function leer(): Carrito {
       lineas: Array.isArray(crudo?.lineas)
         ? crudo.lineas
             .filter((l) => l && typeof l.slug === "string" && typeof l.tipo === "string")
-            .map((l) => ({ slug: l.slug, tipo: l.tipo, cantidad: Math.min(500, Math.max(1, Math.round(Number(l.cantidad) || 1))) }))
+            .map((l) => ({ slug: SLUGS_ANTIGUOS[l.slug] ?? l.slug, tipo: l.tipo, cantidad: Math.min(500, Math.max(1, Math.round(Number(l.cantidad) || 1))) }))
         : [],
       tarjetas: {
         activa: Boolean(crudo?.tarjetas?.activa),

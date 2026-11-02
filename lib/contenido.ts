@@ -135,7 +135,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     heroBoton1: "Ver canastas",
     heroBoton2: "Ver boxes",
     heroPuntos: ["Pedidos individuales y corporativos", "Lima y provincias", "Opciones para todos los presupuestos"],
-    canastaDestacada: "canasta-clasica",
+    canastaDestacada: "canasta-economica-1",
     porQueTitulo: "¿Por qué elegir MKA?",
     porQue: [
       { titulo: "Productos seleccionados", texto: "Elegimos cuidadosamente cada producto." },
