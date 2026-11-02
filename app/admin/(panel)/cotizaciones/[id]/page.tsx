@@ -20,7 +20,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const { supabase } = await requireAdmin();
   const { id } = await params;
 
-  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }] = await Promise.all([
+  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }, { data: envasesCanasta }] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
     supabase.from("productos").select("*").order("precio"),
@@ -31,6 +31,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
     getContenido(),
     supabase.from("recetas").select("producto_id,insumo_id,cantidad,insumos!inner(tipo)").eq("insumos.tipo", "producto").order("orden"),
     supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
+    supabase.from("v_envases_canasta").select("producto_id,tipo_canasta,precio,costo_presentacion"),
   ]);
   if (!cot) notFound();
   const c = cot as Cotizacion;
@@ -49,12 +50,17 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   for (const r of (recetas ?? []) as { producto_id: string; insumo_id: string; cantidad: number }[]) {
     recetaDe.set(r.producto_id, [...(recetaDe.get(r.producto_id) ?? []), { insumo_id: r.insumo_id, cantidad: Number(r.cantidad) }]);
   }
+  const envasesDe = new Map<string, { id: string; precio: number; costo: number | null }[]>();
+  for (const e of (envasesCanasta ?? []) as { producto_id: string; tipo_canasta: string; precio: number; costo_presentacion: number | null }[]) {
+    envasesDe.set(e.producto_id, [...(envasesDe.get(e.producto_id) ?? []), { id: e.tipo_canasta, precio: Number(e.precio), costo: e.costo_presentacion == null ? null : Number(e.costo_presentacion) }]);
+  }
   const canastas: CanastaOpcion[] = ((productos ?? []) as Producto[]).map((p) => ({
     id: p.id,
     nombre: p.nombre,
     precio: Number(p.precio),
     tipoBase: p.tipo_canasta_base,
-    costoPresentacion: p.costo_presentacion == null ? null : Number(p.costo_presentacion),
+    costoPresentacion: envasesDe.get(p.id)?.find((e) => e.id === p.tipo_canasta_base)?.costo ?? null,
+    envases: envasesDe.get(p.id) ?? [],
     receta: recetaDe.get(p.id) ?? [],
   }));
   const envases = ((tipos ?? []) as TipoCanasta[]).map((t) => ({ id: t.id, nombre: t.nombre, recargo: Number(t.recargo) }));

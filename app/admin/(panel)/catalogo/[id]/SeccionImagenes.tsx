@@ -34,7 +34,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
   });
 
   if (basketTypes.length === 0) {
-    return <p className="admWarn">Primero asigna una imagen a algún tipo de canasta en <Link href="/admin/catalogo#tipos">Catálogo</Link>.</p>;
+    return <p className="admWarn">Primero asigna una foto a algún envase en <Link href={`/admin/catalogo/${id}?seccion=receta`}>Receta de productos</Link>.</p>;
   }
 
   return (

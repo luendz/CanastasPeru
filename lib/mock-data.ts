@@ -20,6 +20,8 @@ export type Product = {
   baseImage?: string;
   /** Tipo de canasta con el que se vende por defecto (id de tipos_canasta). */
   baseType?: string;
+  /** Envases que ofrece, con su precio (de la base). */
+  envases?: { id: string; precio: number }[];
   description: string;
   items: string[];
   visualItems: ProductVisualItem[];
@@ -151,6 +153,27 @@ export const formatPrice = (value: number) =>
 /** Tipo de canasta propio de un producto, dentro de la lista recibida. */
 export const findBasketType = (types: BasketType[], product: Pick<Product, "baseType" | "baseImage">) =>
   types.find((t) => t.id === product.baseType) ?? types.find((t) => t.image === product.baseImage) ?? types[0];
+
+export type EnvaseProducto = BasketType & { precio: number };
+
+/** Envases que ofrece una canasta, cada uno con su precio. Sin lista propia (demostración), todos con su recargo. */
+export function envasesDe(types: BasketType[], product: Product): EnvaseProducto[] {
+  if (product.envases?.length) {
+    return product.envases.flatMap((e) => {
+      const tipo = types.find((t) => t.id === e.id);
+      return tipo ? [{ ...tipo, precio: e.precio }] : [];
+    });
+  }
+  const propia = findBasketType(types, product);
+  return types.map((t) => ({ ...t, precio: product.price + t.priceDelta - propia.priceDelta }));
+}
+
+/** Envase elegido; si ya no se ofrece, el principal de la canasta. */
+export function envaseElegido(types: BasketType[], product: Product, id?: string): EnvaseProducto {
+  const envases = envasesDe(types, product);
+  const propia = findBasketType(types, product);
+  return envases.find((e) => e.id === id) ?? envases.find((e) => e.id === propia.id) ?? envases[0];
+}
 
 /** Tarifas de delivery de prueba por distrito de Lima. */
 export const deliveryZones = [

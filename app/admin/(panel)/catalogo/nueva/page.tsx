@@ -21,7 +21,7 @@ export default async function NuevaCanastaPage() {
         <div>
           <Link href="/admin/catalogo" className="admLinkMuted">← Catálogo</Link>
           <h1>Nueva canasta</h1>
-          <p className="admMuted">Después de crearla, arma su receta en Costeo y su composición visual en el editor. Luego actívala.</p>
+          <p className="admMuted">Después de crearla, arma su receta y sus envases, y su composición visual en Imágenes. Luego actívala.</p>
         </div>
       </header>
       <section className="admCard admNarrow">
@@ -31,8 +31,6 @@ export default async function NuevaCanastaPage() {
             categoria: "",
             precio: null,
             precio_anterior: null,
-          costo_viveres: null,
-          costo_presentacion: null,
             insignia: null,
             descripcion: "",
             emoji: "🧺",

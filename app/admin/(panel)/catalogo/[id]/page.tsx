@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
-import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm, { type CanastaEditable } from "../CanastaForm";
 import { LINEAS } from "@/lib/lineas";
+import SeccionEnvases from "./SeccionEnvases";
 import SeccionImagenes from "./SeccionImagenes";
 import SeccionReceta from "./SeccionReceta";
 
@@ -22,15 +22,18 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
   const { seccion } = await searchParams;
   const actual = SECCIONES.find((s) => s.id === seccion)?.id ?? "datos";
 
-  const [{ data: producto }, { data: tipos }, { data: todos }, { data: costeo }] = await Promise.all([
+  const [{ data: producto }, { data: tipos }, { data: todos }, { data: envases }] = await Promise.all([
     supabase.from("productos").select("*").eq("id", id).maybeSingle(),
     supabase.from("tipos_canasta").select("*").order("orden"),
     supabase.from("productos").select("categoria"),
-    supabase.from("v_costeo_canastas").select("costo,margen,margen_pct,costo_viveres,costo_presentacion,fuente").eq("producto_id", id).maybeSingle(),
+    supabase.from("canasta_envases").select("tipo_canasta").eq("producto_id", id),
   ]);
   if (!producto) notFound();
-  const p = producto as CanastaEditable & { slug: string; composicion: unknown[] };
+  const p = producto as CanastaEditable & { slug: string };
   const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...((todos ?? []) as { categoria: string }[]).map((t) => t.categoria)])];
+  // El envase principal se elige entre los que tiene la canasta.
+  const propios = new Set(((envases ?? []) as { tipo_canasta: string }[]).map((e) => e.tipo_canasta));
+  const tiposPropios = ((tipos ?? []) as TipoCanasta[]).filter((t) => propios.has(t.id));
 
   return (
     <>
@@ -48,39 +51,19 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
         ))}
       </nav>
 
-      {actual === "receta" && <SeccionReceta productoId={id} />}
-      {actual === "imagenes" && <SeccionImagenes id={id} />}
-
-      {actual === "datos" && <div className="admGrid2 admGridDetail">
+      {actual === "datos" && (
         <section className="admCard">
           <h2>Datos generales</h2>
-          <CanastaForm canasta={p} tipos={(tipos ?? []) as TipoCanasta[]} categorias={categorias} />
+          <CanastaForm canasta={p} tipos={tiposPropios} categorias={categorias} />
         </section>
-
-        <aside className="admStack">
-          <section className="admCard">
-            <h2>Costo y margen</h2>
-            {costeo ? (
-              <table className="admTable admTablaCosto">
-                <tbody>
-                  {costeo.fuente === "tabla" ? (
-                    <>
-                      <tr><td>Costo total de víveres</td><td className="num">{soles(costeo.costo_viveres ?? 0)}</td></tr>
-                      <tr><td>Costo de presentación</td><td className="num">{soles(costeo.costo_presentacion ?? 0)}</td></tr>
-                    </>
-                  ) : (
-                    <tr><td>Costo según la receta</td><td className="num">{soles(costeo.costo)}</td></tr>
-                  )}
-                  <tr className="admFilaFuerte"><td>Costo total de canasta</td><td className="num">{soles(costeo.costo)}</td></tr>
-                  <tr><td>Margen</td><td className="num">{costeo.margen_pct == null ? "—" : `${numero(costeo.margen_pct, 1)} %`}</td></tr>
-                  <tr><td>Valor venta</td><td className="num">{soles(p.precio ?? 0)}</td></tr>
-                  <tr className="admFilaFuerte"><td>Utilidad</td><td className="num" data-tone={Number(costeo.margen) >= 0 ? "ok" : "bad"}>{soles(costeo.margen)}</td></tr>
-                </tbody>
-              </table>
-            ) : <p className="admMuted">Sin datos.</p>}
-          </section>
-        </aside>
-      </div>}
+      )}
+      {actual === "receta" && (
+        <>
+          <SeccionReceta productoId={id} />
+          <SeccionEnvases productoId={id} />
+        </>
+      )}
+      {actual === "imagenes" && <SeccionImagenes id={id} />}
     </>
   );
 }

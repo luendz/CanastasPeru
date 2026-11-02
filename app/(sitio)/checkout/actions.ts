@@ -6,7 +6,7 @@ import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { esFechaReparto } from "@/lib/entrega";
 import { PASARELA_MP, crearPreferencia, mercadoPagoConfigurado } from "@/lib/mercadopago";
-import { findBasketType } from "@/lib/mock-data";
+import { envaseElegido } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -71,9 +71,8 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   const lineas = items.flatMap((i) => {
     const p = products.find((x) => x.slug === i.slug);
     if (!p) return [];
-    const propia = findBasketType(basketTypes, p);
-    const tipo = basketTypes.find((t) => t.id === i.tipo_canasta) ?? propia;
-    return [{ nombre: p.name, detalle: tipo.label, cantidad: i.cantidad, precio: p.price + tipo.priceDelta - propia.priceDelta }];
+    const tipo = envaseElegido(basketTypes, p, i.tipo_canasta);
+    return [{ nombre: p.name, detalle: tipo.label, cantidad: i.cantidad, precio: tipo.precio }];
   });
   const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));
   if (tarjetas) lineas.push({ nombre: "Tarjeta de dedicatoria", detalle: "", cantidad: tarjetas, precio: checkout.tarjetaPrecio });
