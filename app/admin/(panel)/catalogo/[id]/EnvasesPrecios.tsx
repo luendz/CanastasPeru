@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { numero, soles } from "@/lib/admin/format";
 import CampoOrden from "../../CampoOrden";
 import SelectorImagen from "../../medios/SelectorImagen";
-import { agregarEnvase, alternarEnvase, guardarEnvase, guardarImagenEnvase, moverEnvase, quitarEnvase, type FormState } from "../actions";
+import { agregarEnvase, alternarEnvase, guardarEnvase, guardarImagenEnvase, moverEnvase, quitarEnvase, usarEnvaseEnCanastas, type FormState } from "../actions";
 
 export type FilaEnvase = {
   tipo_canasta: string;
@@ -25,11 +25,13 @@ export type FilaEnvase = {
   margen_pct: number | null;
 };
 export type OpcionEnvase = { valor: string; etiqueta: string };
+/** Otra canasta, con su precio en el catálogo y los envases que ya tiene. */
+export type CanastaDestino = { id: string; nombre: string; precio: number; envases: string[] };
 
-type Props = { productoId: string; filas: FilaEnvase[]; opciones: OpcionEnvase[]; productos: { id: string; nombre: string }[] };
+type Props = { productoId: string; filas: FilaEnvase[]; opciones: OpcionEnvase[]; destinos: CanastaDestino[]; productos: { id: string; nombre: string }[] };
 
 /** Tabla de envases de la canasta: costo, precio, margen y utilidad de cada uno. */
-export default function EnvasesPrecios({ productoId, filas, opciones, productos }: Props) {
+export default function EnvasesPrecios({ productoId, filas, opciones, destinos, productos }: Props) {
   const [editando, setEditando] = useState<string | null>(null);
   const [precio, setPrecio] = useState("");
   const [costo, setCosto] = useState("");
@@ -39,6 +41,9 @@ export default function EnvasesPrecios({ productoId, filas, opciones, productos 
   const [agregando, setAgregando] = useState(false);
   const [opcion, setOpcion] = useState("");
   const [precioNuevo, setPrecioNuevo] = useState("");
+  const [compartiendo, setCompartiendo] = useState<string | null>(null);
+  const [marcadas, setMarcadas] = useState<string[]>([]);
+  const [preciosDestino, setPreciosDestino] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [guardando, iniciar] = useTransition();
 
@@ -63,6 +68,21 @@ export default function EnvasesPrecios({ productoId, filas, opciones, productos 
     setNombre(f.tipo_nombre);
     setDescripcion(f.descripcion ?? "");
     setInsumo(f.insumo_id ?? "");
+  }
+
+  const filaCompartida = filas.find((f) => f.tipo_canasta === compartiendo);
+  const disponibles = compartiendo ? destinos.filter((c) => !c.envases.includes(compartiendo)) : [];
+
+  function compartir(f: FilaEnvase) {
+    if (compartiendo === f.tipo_canasta) {
+      setCompartiendo(null);
+      return;
+    }
+    // Se propone la misma diferencia de precio que tiene aquí frente al envase principal.
+    const diferencia = f.precio - (filas.find((x) => x.principal)?.precio ?? f.precio);
+    setPreciosDestino(Object.fromEntries(destinos.map((c) => [c.id, (c.precio + diferencia).toFixed(2)])));
+    setMarcadas([]);
+    setCompartiendo(f.tipo_canasta);
   }
 
   return (
@@ -98,6 +118,62 @@ export default function EnvasesPrecios({ productoId, filas, opciones, productos 
           </label>
           <button className="admBtn" type="submit" disabled={guardando}>Agregar</button>
           {opciones.length === 0 && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Empaque y con foto.</small>}
+        </form>
+      )}
+
+      {filaCompartida && (
+        <form
+          className="admCompartirEnvase admPad"
+          onSubmit={(e) => {
+            e.preventDefault();
+            ejecutar(() => usarEnvaseEnCanastas(productoId, filaCompartida.tipo_canasta, marcadas.map((id) => ({ productoId: id, precio: Number(preciosDestino[id]) }))), () => setCompartiendo(null));
+          }}
+        >
+          <div className="admCompartirCabecera">
+            <div>
+              <h3>Usar {filaCompartida.tipo_nombre} en otras canastas</h3>
+              <p className="admMuted admSmall">Revisa el precio de cada una: se propone con la misma diferencia que tiene aquí frente al envase principal.</p>
+            </div>
+            {disponibles.length > 0 && (
+              <button type="button" className="admLinkMuted" onClick={() => setMarcadas(marcadas.length === disponibles.length ? [] : disponibles.map((c) => c.id))}>
+                {marcadas.length === disponibles.length ? "Quitar todas" : "Marcar todas"}
+              </button>
+            )}
+          </div>
+          {disponibles.length === 0 ? (
+            <p className="admMuted admSmall">Este envase ya está en todas las canastas.</p>
+          ) : (
+            <ul className="admCompartirLista">
+              {disponibles.map((c) => {
+                const marcada = marcadas.includes(c.id);
+                return (
+                  <li key={c.id}>
+                    <label className="admCheck">
+                      <input type="checkbox" checked={marcada} onChange={() => setMarcadas((m) => (marcada ? m.filter((x) => x !== c.id) : [...m, c.id]))} />
+                      {c.nombre}
+                    </label>
+                    <input
+                      className="admInput admInputSm"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      required={marcada}
+                      disabled={!marcada}
+                      aria-label={`Precio de ${filaCompartida.tipo_nombre} en ${c.nombre}`}
+                      value={preciosDestino[c.id] ?? ""}
+                      onChange={(e) => setPreciosDestino((p) => ({ ...p, [c.id]: e.target.value }))}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="admCompartirBotones">
+            <button className="admBtn admBtnPrimary" type="submit" disabled={guardando || marcadas.length === 0}>
+              {marcadas.length === 1 ? "Agregar a 1 canasta" : `Agregar a ${marcadas.length} canastas`}
+            </button>
+            <button className="admBtn" type="button" onClick={() => setCompartiendo(null)}>Cancelar</button>
+          </div>
         </form>
       )}
 
@@ -183,6 +259,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, productos 
                     </>
                   ) : (
                     <>
+                      <button type="button" className="admLinkMuted" aria-label={`Usar ${f.tipo_nombre} en otras canastas`} title="Usar en otras canastas" onClick={() => compartir(f)}>⧉</button>
                       <button type="button" className="admLinkMuted" aria-label={`Editar ${f.tipo_nombre}`} onClick={() => editar(f)}>✎</button>
                       <button
                         type="button"
