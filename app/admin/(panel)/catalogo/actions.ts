@@ -284,3 +284,27 @@ export async function agregarEnvase(productoId: string, opcion: string, precio: 
   revalidatePath("/admin/catalogo");
   return { ok: true };
 }
+
+/** Agrega a otras canastas un envase que ya existe. Cada una lleva su propio precio y queda al final de su lista. */
+export async function usarEnvaseEnCanastas(origenId: string, tipo: string, destinos: { productoId: string; precio: number }[]): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+  if (!tipo || destinos.length === 0) return { error: "Elige al menos una canasta." };
+  if (destinos.some((d) => !precioValido(d.precio))) return { error: "Cada canasta necesita un precio mayor que cero." };
+
+  const { data: actuales, error: errorActuales } = await supabase.from("canasta_envases").select("producto_id,orden").in("producto_id", destinos.map((d) => d.productoId));
+  if (errorActuales) return { error: errorActuales.message };
+  const filas = (actuales ?? []) as { producto_id: string; orden: number }[];
+
+  const { error } = await supabase.from("canasta_envases").insert(destinos.map((d) => ({
+    producto_id: d.productoId,
+    tipo_canasta: tipo,
+    precio: Math.round(d.precio * 100) / 100,
+    orden: Math.max(0, ...filas.filter((f) => f.producto_id === d.productoId).map((f) => f.orden)) + 1,
+  })));
+  if (error) return { error: error.code === "23505" ? "Ese envase ya está en alguna de las canastas. Recarga la página." : error.message };
+
+  refrescar(origenId);
+  destinos.forEach((d) => refrescar(d.productoId));
+  revalidatePath("/admin/catalogo");
+  return { ok: true };
+}

@@ -514,6 +514,12 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admTablaEnvases .admPickerThumb { flex-basis: 60px; width: 60px; height: 60px; }
 .admEnvaseDatos { display: grid; gap: 8px; min-width: 240px; }
 .admEnvaseAcciones { white-space: nowrap; }
+.admCompartirEnvase { display: grid; gap: 12px; padding-top: 14px; padding-bottom: 14px; border-top: 1px dashed var(--a-line); }
+.admCompartirCabecera { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.admCompartirCabecera h3 { margin: 0 0 2px; font-size: 15px; }
+.admCompartirLista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 20px; margin: 0; padding: 0; list-style: none; }
+.admCompartirLista li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.admCompartirBotones { display: flex; flex-wrap: wrap; gap: 8px; }
 .admEnvaseAcciones button { font-size: 16px; }
 .admEnvaseAcciones button + button { margin-left: 14px; }
 .admEliminarError { max-width: 280px; margin-top: 4px; white-space: normal; text-align: right; }
