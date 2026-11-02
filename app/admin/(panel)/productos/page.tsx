@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { CostoInsumo, Insumo, InventarioFila } from "@/lib/admin/types";
+import EliminarProducto from "./EliminarProducto";
 import PestanasProductos from "./PestanasProductos";
 
 export const metadata = { title: "Productos" };
@@ -67,7 +68,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
         ) : (
           <table className="admTable admTablaProductos">
             <thead>
-              <tr><th /><th>SKU</th><th>Descripción</th><th className="num">Inventario (existencias)</th><th className="num">Costo</th><th>Categoría</th></tr>
+              <tr><th /><th>SKU</th><th>Descripción</th><th className="num">Inventario (existencias)</th><th className="num">Costo</th><th>Categoría</th><th className="num">Acciones</th></tr>
             </thead>
             <tbody>
               {lista.map((i) => {
@@ -88,6 +89,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
                     <td className="num" data-tone={existencias < Number(i.stock_minimo) ? "bad" : undefined}>{numero(existencias)}</td>
                     <td className="num">{c != null ? soles(c) : <span className="admMuted">—</span>}</td>
                     <td>{i.categoria ?? <span className="admMuted">Sin categoría</span>}</td>
+                    <td className="num"><EliminarProducto id={i.id} nombre={i.nombre} /></td>
                   </tr>
                 );
               })}

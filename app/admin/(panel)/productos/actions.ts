@@ -24,6 +24,46 @@ const refrescar = (id?: string) => {
   revalidatePath("/", "layout");
 };
 
+/**
+ * Elimina un producto que no se usa en ningún lado. Si está en una receta, un
+ * envase, una composición, una compra o la lista de una orden o cotización, no
+ * se borra, para no perder el costo, el inventario ni el historial.
+ */
+export async function eliminarProducto(id: string): Promise<ProductoState> {
+  const { supabase } = await requireAdmin();
+  const { data: producto } = await supabase.from("insumos").select("nombre").eq("id", id).maybeSingle();
+  if (!producto) return { error: "El producto ya no existe." };
+
+  const lista = [{ insumo_id: id }];
+  const [recetas, envases, compositions, compras, ordenes, cotizaciones] = await Promise.all([
+    supabase.from("recetas").select("productos(nombre)").eq("insumo_id", id),
+    supabase.from("tipos_canasta").select("nombre").eq("insumo_id", id),
+    supabase.from("productos").select("nombre").contains("composicion", [{ name: producto.nombre }]),
+    supabase.from("compras").select("id", { count: "exact", head: true }).eq("insumo_id", id),
+    supabase.from("orden_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
+    supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
+  ]);
+  const consulta = [recetas, envases, compositions, compras, ordenes, cotizaciones].find((r) => r.error);
+  if (consulta?.error) return { error: consulta.error.message };
+
+  const nombres = (filas: { nombre: string }[] | null) => (filas ?? []).map((f) => f.nombre).join(", ");
+  const canastas = ((recetas.data ?? []) as unknown as { productos: { nombre: string } }[]).map((r) => r.productos.nombre).join(", ");
+  const usos = [
+    canastas && `está en la receta de ${canastas}`,
+    envases.data?.length && `es el producto del envase ${nombres(envases.data)}`,
+    compositions.data?.length && `está en la composición visual de ${nombres(compositions.data)}`,
+    compras.count && `tiene ${compras.count} ${compras.count === 1 ? "compra registrada" : "compras registradas"}`,
+    ordenes.count && "está en órdenes",
+    cotizaciones.count && "está en cotizaciones",
+  ].filter(Boolean);
+  if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}.` };
+
+  const { error } = await supabase.from("insumos").delete().eq("id", id);
+  if (error) return { error: error.message };
+  refrescar();
+  return {};
+}
+
 /** Crea o actualiza la ficha de un producto (insumo). El costo y el inventario no se editan aquí. */
 export async function guardarProducto(_prev: ProductoState, fd: FormData): Promise<ProductoState> {
   const { supabase } = await requireAdmin();
