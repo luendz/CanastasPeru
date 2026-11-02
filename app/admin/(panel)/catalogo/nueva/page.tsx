@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import type { TipoCanasta } from "@/lib/admin/types";
 import CanastaForm from "../CanastaForm";
 import { LINEAS } from "@/lib/lineas";
+import { separarInsignias } from "@/lib/mock-data";
 
 export const metadata = { title: "Nueva canasta" };
 
@@ -10,9 +11,9 @@ export default async function NuevaCanastaPage() {
   const { supabase } = await requireAdmin();
   const [{ data: tipos }, { data: todos }] = await Promise.all([
     supabase.from("tipos_canasta").select("*").order("orden"),
-    supabase.from("productos").select("categoria,orden"),
+    supabase.from("productos").select("categoria,orden,insignia"),
   ]);
-  const filas = (todos ?? []) as { categoria: string; orden: number }[];
+  const filas = (todos ?? []) as { categoria: string; orden: number; insignia: string | null }[];
   const listaTipos = (tipos ?? []) as TipoCanasta[];
 
   return (
@@ -41,6 +42,7 @@ export default async function NuevaCanastaPage() {
           }}
           tipos={listaTipos}
           categorias={[...new Set([...LINEAS.map((l) => l.categoria), ...filas.map((f) => f.categoria)])]}
+          insignias={[...new Set(filas.flatMap((f) => separarInsignias(f.insignia)))]}
         />
       </section>
     </>

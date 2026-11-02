@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
-import { Product, formatPrice } from "@/lib/mock-data";
+import { Product, formatPrice, separarInsignias } from "@/lib/mock-data";
 import ProductComposition from "@/components/ProductComposition";
 
 export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="productCard">
       <Link className="productVisual" href={`/producto/${product.slug}`}>
-        {product.badge && <span className="badge">{product.badge}</span>}
+        {product.badge && <span className="badges">{separarInsignias(product.badge).map((b) => <span className="badge" key={b}>{b}</span>)}</span>}
         {/* Misma canasta que en el detalle: el navegador la anima de un lugar al otro. */}
         <ViewTransition name={`basket-${product.slug}`} share="basketMorph" default="none">
           <div className="cardBasket">

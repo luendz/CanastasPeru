@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import { LINEAS, lineaDe } from "@/lib/lineas";
+import { separarInsignias } from "@/lib/mock-data";
 import { alternarCanasta, crearZona, guardarZona } from "./actions";
 
 export const metadata = { title: "Catálogo" };
@@ -82,7 +83,7 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
                   <td>{p.orden}</td>
                   <td>
                     <Link className="admStrongLink" href={`/admin/catalogo/${p.id}`}>{p.nombre}</Link>
-                    {p.insignia && <> <span className="admBadge">{p.insignia}</span></>}
+                    {separarInsignias(p.insignia).map((i) => <span key={i}> <span className="admBadge">{i}</span></span>)}
                     {p.composicion.length === 0 && <small className="admWarn admBlock">Sin composición visual</small>}
                   </td>
                   {verCategoria && <td>{p.categoria}</td>}

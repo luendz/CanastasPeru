@@ -1172,3 +1172,6 @@ del { color: #a99a8e; font-size: 13px; }
   .buyTotal .igvNota { display: none; }
 }
 .detailDescripcion { margin: 14px 2px 0; color: var(--muted); font-size: 14px; line-height: 1.55; white-space: pre-line; }
+.badges { position: absolute; z-index: 30; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 28px); }
+.badges .badge { position: static; }
+.detailVisual .badges { top: 22px; left: 22px; max-width: 55%; }

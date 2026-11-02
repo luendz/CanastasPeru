@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
+import { separarInsignias } from "@/lib/mock-data";
 import { crearCanasta, guardarCanasta, type FormState } from "./actions";
 
 export type CanastaEditable = {
@@ -21,10 +22,12 @@ export type CanastaEditable = {
   activo: boolean;
 };
 
+const MAX_INSIGNIAS = 3;
+
 const slugDe = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-export default function CanastaForm({ canasta, tipos, categorias }: { canasta: CanastaEditable; tipos: TipoCanasta[]; categorias: string[] }) {
+export default function CanastaForm({ canasta, tipos, categorias, insignias }: { canasta: CanastaEditable; tipos: TipoCanasta[]; categorias: string[]; insignias: string[] }) {
   const nueva = !canasta.id;
   const [state, action, pending] = useActionState<FormState, FormData>(nueva ? crearCanasta : guardarCanasta, {});
   const [nombre, setNombre] = useState(canasta.nombre);
@@ -32,8 +35,15 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
   const [slugTocado, setSlugTocado] = useState(false);
   const [precio, setPrecio] = useState(canasta.precio?.toString() ?? "");
   const [anterior, setAnterior] = useState(canasta.precio_anterior?.toString() ?? "");
-  const [insignia, setInsignia] = useState(canasta.insignia ?? "");
+  const [lista, setLista] = useState(() => separarInsignias(canasta.insignia).slice(0, MAX_INSIGNIAS));
+  const [textoInsignia, setTextoInsignia] = useState("");
   const [activo, setActivo] = useState(canasta.activo);
+
+  function confirmarInsignia(valor: string) {
+    const nuevas = separarInsignias(valor);
+    setLista((l) => [...new Set([...l, ...nuevas])].slice(0, MAX_INSIGNIAS));
+    setTextoInsignia("");
+  }
 
   const p = Number(precio);
   const a = Number(anterior);
@@ -76,7 +86,39 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
           <input className="admInput" name="precio_anterior" type="number" min="0.01" step="0.01" value={anterior} onChange={(e) => setAnterior(e.target.value)} placeholder="Ej. 179.90" />
         </label>
         <label>Insignia (opcional)
-          <input className="admInput" name="insignia" maxLength={40} value={insignia} onChange={(e) => setInsignia(e.target.value)} placeholder="Más vendida, Recomendada…" />
+          <input type="hidden" name="insignia" value={lista.join(", ")} />
+          <span className="admTagCampo">
+            {lista.map((i) => (
+              <span className="admTag" key={i}>
+                {i}
+                <button type="button" aria-label={`Quitar insignia ${i}`} onClick={() => setLista((l) => l.filter((x) => x !== i))}>×</button>
+              </span>
+            ))}
+            {lista.length < MAX_INSIGNIAS && (
+              <input
+                maxLength={30}
+                list="insignias"
+                value={textoInsignia}
+                aria-label="Agregar insignia"
+                placeholder={lista.length ? "Agregar otra…" : "Más vendida, Recomendada…"}
+                onChange={(e) => {
+                  // Elegir una sugerencia o escribir una coma la agrega directamente.
+                  if (e.target.value.includes(",") || insignias.includes(e.target.value)) confirmarInsignia(e.target.value);
+                  else setTextoInsignia(e.target.value);
+                }}
+                onBlur={() => confirmarInsignia(textoInsignia)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    confirmarInsignia(textoInsignia);
+                  }
+                  if (e.key === "Backspace" && !textoInsignia) setLista((l) => l.slice(0, -1));
+                }}
+              />
+            )}
+          </span>
+          <datalist id="insignias">{insignias.filter((i) => !lista.includes(i)).map((i) => <option key={i} value={i} />)}</datalist>
+          <small className="admMuted">Escribe y presiona Enter. Hasta {MAX_INSIGNIAS} por canasta.</small>
         </label>
         <label>Emoji de respaldo
           <input className="admInput" name="emoji" maxLength={8} defaultValue={canasta.emoji} />
@@ -109,7 +151,7 @@ export default function CanastaForm({ canasta, tipos, categorias }: { canasta: C
       </div>
 
       <div className="admSpan2 admPreview" aria-label="Vista previa del precio">
-        {insignia && <span className="admBadge">{insignia}</span>}
+        {lista.map((i) => <span className="admBadge" key={i}>{i}</span>)}
         <strong>{nombre || "Nombre de la canasta"}</strong>
         <span>{soles(p || 0)}</span>
         {ahorro > 0 && <><del>{soles(a)}</del><small>Ahorras {soles(ahorro)}</small></>}
