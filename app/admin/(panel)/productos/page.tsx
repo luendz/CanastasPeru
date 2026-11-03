@@ -68,7 +68,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
         ) : (
           <table className="admTable admTablaProductos">
             <thead>
-              <tr><th /><th>SKU</th><th>Descripción</th><th className="num">Inventario (existencias)</th><th className="num">Costo</th><th>Categoría</th><th className="num">Acciones</th></tr>
+              <tr><th /><th>SKU</th><th>Descripción</th><th className="num">Inventario (existencias)</th><th className="num">Costo</th><th>Tipo</th><th className="num">Acciones</th></tr>
             </thead>
             <tbody>
               {lista.map((i) => {
@@ -82,13 +82,12 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
                     <td className="admCeldaLarga">
                       <Link className="admLinkPlano" href={`/admin/productos/${i.id}`}>{i.nombre}</Link>
                       <small className="admMuted admBlock">
-                        {i.tipo === "empaque" ? "Empaque · " : i.tipo === "otro" ? "Otro · " : ""}
                         {i.presentacion_compra === "Unidad" ? "Por unidad" : `${numero(i.unidades_por_presentacion)} unid. por ${i.presentacion_compra.toLowerCase()}`}
                       </small>
                     </td>
                     <td className="num" data-tone={existencias < Number(i.stock_minimo) ? "bad" : undefined}>{numero(existencias)}</td>
                     <td className="num">{c != null ? soles(c) : <span className="admMuted">—</span>}</td>
-                    <td>{i.categoria ?? <span className="admMuted">Sin categoría</span>}</td>
+                    <td>{i.tipo === "empaque" ? "Empaque" : i.tipo === "otro" ? "Otro" : "Producto"}</td>
                     <td className="num"><EliminarProducto id={i.id} nombre={i.nombre} /></td>
                   </tr>
                 );

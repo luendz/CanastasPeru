@@ -20,10 +20,19 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
   const listaEmpaques = (empaques ?? []) as Empaque[];
   const relacionados = new Set(listaTipos.map((t) => t.insumo_id));
 
-  // Se elige del listado de productos (con foto, porque la web la muestra) o de los envases que ya vende la web.
+  // Se elige de los envases que ya vende la web o del listado de productos (con foto, porque la web la muestra).
+  // Los que no se pueden elegir también salen, con el motivo, para que se sepa por qué.
+  const nombreEmpaque = new Map(listaEmpaques.map((e) => [e.id, e.nombre]));
   const opciones: OpcionEnvase[] = [
-    ...listaTipos.filter((t) => !filas.some((f) => f.tipo_canasta === t.id)).map((t) => ({ valor: `tipo:${t.id}`, etiqueta: t.nombre })),
-    ...listaEmpaques.filter((e) => e.imagen && !relacionados.has(e.id)).map((e) => ({ valor: `insumo:${e.id}`, etiqueta: e.nombre })),
+    ...listaTipos.map((t) => {
+      const producto = t.insumo_id ? nombreEmpaque.get(t.insumo_id) : undefined;
+      return {
+        valor: `tipo:${t.id}`,
+        etiqueta: producto && producto !== t.nombre ? `${t.nombre} (${producto})` : t.nombre,
+        motivo: filas.some((f) => f.tipo_canasta === t.id) ? "ya está en esta canasta" : undefined,
+      };
+    }),
+    ...listaEmpaques.filter((e) => !relacionados.has(e.id)).map((e) => ({ valor: `insumo:${e.id}`, etiqueta: e.nombre, motivo: e.imagen ? undefined : "sin foto" })),
   ];
 
   // A qué otras canastas se puede llevar cada envase.

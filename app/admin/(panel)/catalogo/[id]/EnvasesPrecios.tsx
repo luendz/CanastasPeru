@@ -24,7 +24,8 @@ export type FilaEnvase = {
   utilidad: number | null;
   margen_pct: number | null;
 };
-export type OpcionEnvase = { valor: string; etiqueta: string };
+/** Con `motivo`, se muestra en la lista pero no se puede elegir. */
+export type OpcionEnvase = { valor: string; etiqueta: string; motivo?: string };
 /** Otra canasta, con su precio en el catálogo y los envases que ya tiene. */
 export type CanastaDestino = { id: string; nombre: string; precio: number; envases: string[] };
 
@@ -110,14 +111,19 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
           <label>Envase
             <select className="admInput" value={opcion} required onChange={(e) => setOpcion(e.target.value)}>
               <option value="" disabled>Seleccionar</option>
-              {opciones.map((o) => <option key={o.valor} value={o.valor}>{o.etiqueta}</option>)}
+              {opciones.filter((o) => !o.motivo).map((o) => <option key={o.valor} value={o.valor}>{o.etiqueta}</option>)}
+              {opciones.some((o) => o.motivo) && (
+                <optgroup label="No disponibles">
+                  {opciones.filter((o) => o.motivo).map((o) => <option key={o.valor} value={o.valor} disabled>{o.etiqueta} — {o.motivo}</option>)}
+                </optgroup>
+              )}
             </select>
           </label>
           <label>Precio de venta (S/)
             <input className="admInput" type="number" min="0.01" step="0.01" required value={precioNuevo} onChange={(e) => setPrecioNuevo(e.target.value)} />
           </label>
           <button className="admBtn" type="submit" disabled={guardando}>Agregar</button>
-          {opciones.length === 0 && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Empaque y con foto.</small>}
+          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Empaque y con foto.</small>}
         </form>
       )}
 
