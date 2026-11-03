@@ -16,43 +16,27 @@ const LIENZO = 0.75; // Alto del lienzo respecto a su ancho (4:3).
 export const AJUSTE_NEUTRO: AjusteEnvase = { x: 0, y: 0, escala: 100, giro: 0 };
 
 /**
- * Lo que ocupa a la vista el envase, en % del lienzo. Sin ajuste va de 18.5 a 81.5
- * de ancho y de 15 a 90 de alto; la forma real depende de cada foto, así que el alto
- * es aproximado y gira alrededor de un centro también aproximado.
+ * Encuadre fijo de la tienda: qué parte del lienzo se ve en cada recuadro.
+ * Es el mismo para todas las canastas, así todas salen a la misma escala, y el
+ * editor dibuja estos marcos para que se vea qué queda dentro. Va en unidades
+ * del ancho del lienzo (el lienzo mide 100 × 75).
  */
-function limitesEnvase({ x, y, escala, giro }: AjusteEnvase) {
-  const e = escala / 100;
-  const coseno = Math.abs(Math.cos((giro * Math.PI) / 180));
-  const seno = Math.abs(Math.sin((giro * Math.PI) / 180));
-  const centro = 57;
-  const [ancho, arriba, abajo] = [31.5 * e, (centro - 15) * e, (90 - centro) * e];
-  const lado = ancho * coseno + Math.max(arriba, abajo) * LIENZO * seno;
-  return {
-    izquierda: 50 + x - lado,
-    derecha: 50 + x + lado,
-    arriba: centro + y - (arriba * coseno + (ancho / LIENZO) * seno),
-    abajo: centro + y + (abajo * coseno + (ancho / LIENZO) * seno),
-  };
+export type Marco = { izquierda: number; arriba: number; ancho: number; alto: number };
+
+export function marco(proporcion: number): Marco {
+  // Cuadrado (tarjeta, detalle, carrito) o apaisado (inicio, 4:3).
+  const ancho = proporcion >= 0.9 ? 75 : 86;
+  const alto = ancho * proporcion;
+  const centroY = 39;
+  return { izquierda: 50 - ancho / 2, arriba: centroY - alto / 2, ancho, alto };
 }
 
-/**
- * Encuadre de la tienda: amplía el lienzo y lo centra en lo que ocupa la canasta
- * con sus productos, para aprovechar el recuadro sin cortar nada. Las proporciones
- * no cambian. Todo va en % del lienzo.
- */
-function encuadre(items: ProductVisualItem[], proporcion: number, ajuste: AjusteEnvase) {
-  const envase = limitesEnvase(ajuste);
-  const izquierda = Math.min(envase.izquierda, ...items.map((i) => i.left - i.size * 0.1));
-  const derecha = Math.max(envase.derecha, ...items.map((i) => i.left + i.size * 0.1));
-  const arriba = envase.arriba;
-  const abajo = Math.max(envase.abajo, ...items.map((i) => i.top + i.size * 0.133));
-
-  const escala = Math.min(1.45, 96 / (derecha - izquierda), (proporcion * 96) / (LIENZO * (abajo - arriba)));
-  const altoRelativo = (LIENZO * escala) / proporcion;
+function encuadre(proporcion: number) {
+  const m = marco(proporcion);
   return {
-    width: `${escala * 100}%`,
-    left: `${50 - ((izquierda + derecha) / 2) * escala}%`,
-    top: `${(100 - (abajo - arriba) * altoRelativo) / 2 - arriba * altoRelativo}%`,
+    width: `${(100 / m.ancho) * 100}%`,
+    left: `${(-m.izquierda / m.ancho) * 100}%`,
+    top: `${(-m.arriba / m.alto) * 100}%`,
   };
 }
 
@@ -67,6 +51,10 @@ type ProductCompositionProps = {
   proporcion?: number;
   /** En el editor se muestra el lienzo completo, con margen para mover productos. */
   encuadrar?: boolean;
+  /** En el editor: producto que se marca con su silueta (lo elige el editor, no el puntero). */
+  resaltado?: number | null;
+  /** Sin el movimiento de la tarjeta al pasar el mouse (canasta y productos se quedan en su sitio). */
+  quieta?: boolean;
 };
 
 // Máscara de transparencia de cada imagen, calculada una sola vez por archivo.
@@ -101,7 +89,7 @@ function maskFor(img: HTMLImageElement): AlphaMask | null {
 }
 
 /** ¿El punto de pantalla cae sobre un píxel visible del producto? */
-function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, clientY: number) {
+export function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, clientY: number) {
   const rect = layer.getBoundingClientRect();
   const w = layer.offsetWidth;
   const h = layer.offsetHeight;
@@ -126,7 +114,7 @@ function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: number, c
 
 export { anchoProducto };
 
-export default function ProductComposition({ product, variant = "card", baseImage, assemble = false, proporcion = 1, encuadrar = true }: ProductCompositionProps) {
+export default function ProductComposition({ product, variant = "card", baseImage, assemble = false, proporcion = 1, encuadrar = true, resaltado, quieta = false }: ProductCompositionProps) {
   const isDetail = variant === "detail";
   const base = baseImage ?? product.baseImage;
   const ajuste = (base && product.ajustesEnvase?.[base]) || AJUSTE_NEUTRO;
@@ -148,20 +136,21 @@ export default function ProductComposition({ product, variant = "card", baseImag
     if (next !== active) setActive(next);
   }
 
-  const activeItem = active !== null ? product.visualItems[active] : undefined;
+  const editor = resaltado !== undefined;
+  const activeItem = !editor && active !== null ? product.visualItems[active] : undefined;
   // Orden de caída: primero lo que va al fondo, al final lo que queda delante.
   const dropOrder = [...stacking].reverse().map(({ index }) => index);
 
   return (
     <div
-      className={`${styles.composition} ${isDetail ? styles.detail : styles.card} ${activeItem ? styles.hasActive : ""} ${assemble ? styles.assemble : ""}`}
+      className={`${styles.composition} ${isDetail ? styles.detail : styles.card} ${activeItem ? styles.hasActive : ""} ${assemble ? styles.assemble : ""} ${quieta ? styles.quieta : ""}`}
       aria-label={`Composición de ${product.name}`}
       title={activeItem?.name}
-      onPointerMove={isDetail ? onPointerMove : undefined}
-      onPointerLeave={isDetail ? () => setActive(null) : undefined}
+      onPointerMove={isDetail && !editor ? onPointerMove : undefined}
+      onPointerLeave={isDetail && !editor ? () => setActive(null) : undefined}
       style={encuadrar ? { aspectRatio: `1 / ${proporcion}` } : undefined}
     >
-      <div className={encuadrar ? `${styles.lienzo} ${styles.lienzoEncuadrado}` : styles.lienzo} style={encuadrar ? encuadre(product.visualItems, proporcion, ajuste) : undefined}>
+      <div className={encuadrar ? `${styles.lienzo} ${styles.lienzoEncuadrado}` : styles.lienzo} style={encuadrar ? encuadre(proporcion) : undefined}>
       <div className={styles.baseLayer}>
         {base ? (
           <img
@@ -178,7 +167,8 @@ export default function ProductComposition({ product, variant = "card", baseImag
 
       {product.visualItems.map((item, index) => (
         <div
-          className={`${styles.itemLayer} ${index === active ? styles.itemActive : ""}`}
+          className={`${styles.itemLayer} ${editor ? (index === resaltado ? styles.itemResaltado : "") : index === active ? styles.itemActive : ""}`}
+          data-indice={index}
           key={item.name}
           ref={(node) => { layerRefs.current[index] = node; }}
           style={{
@@ -195,6 +185,8 @@ export default function ProductComposition({ product, variant = "card", baseImag
           {item.image ? (
             <img
               className={styles.itemImage}
+              // Con CORS se puede leer la transparencia de la foto y responder solo sobre la silueta.
+              crossOrigin="anonymous"
               src={item.image}
               alt={item.name}
               style={{ width: anchoProducto(item.size) }}

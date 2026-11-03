@@ -11,7 +11,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Misma canasta que en el detalle: el navegador la anima de un lugar al otro. */}
         <ViewTransition name={`basket-${product.slug}`} share="basketMorph" default="none">
           <div className="cardBasket">
-            <ProductComposition product={product} />
+            <ProductComposition product={product} quieta />
           </div>
         </ViewTransition>
       </Link>

@@ -34,7 +34,7 @@ function Titulo({ titulo, sub, etiqueta }: { titulo: string; sub?: string; etiqu
 
 /** Canasta de muestra con su propio tipo de canasta. */
 function Muestra({ producto, tipos }: { producto: Product; tipos: BasketType[] }) {
-  return <ProductComposition product={producto} baseImage={tipos.find((b) => b.id === producto.baseType)?.image} proporcion={0.75} />;
+  return <ProductComposition product={producto} baseImage={tipos.find((b) => b.id === producto.baseType)?.image} proporcion={0.75} quieta />;
 }
 
 export default async function HomePage() {
