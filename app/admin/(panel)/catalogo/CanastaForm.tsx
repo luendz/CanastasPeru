@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import { separarInsignias } from "@/lib/mock-data";
@@ -50,7 +50,17 @@ export default function CanastaForm({ canasta, tipos, categorias, insignias }: {
   const ahorro = anterior && a > p ? a - p : 0;
 
   return (
-    <form action={action} className="admForm admFormGrid">
+    // Se envía a mano para que React no reinicie el formulario al guardar: si lo
+    // reinicia, los campos vuelven a sus valores iniciales y un segundo guardado
+    // deshace el cambio (por ejemplo, el envase principal).
+    <form
+      className="admForm admFormGrid"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const datos = new FormData(event.currentTarget);
+        startTransition(() => action(datos));
+      }}
+    >
       {canasta.id && <input type="hidden" name="id" value={canasta.id} />}
 
       <label className="admSpan2">Nombre del modelo
@@ -127,9 +137,12 @@ export default function CanastaForm({ canasta, tipos, categorias, insignias }: {
 
       <div className="admFormColumna">
         <label>{nueva ? "Envase" : "Envase principal"}
-          <select className="admInput" name="envase_base_id" defaultValue={canasta.envase_base_id} required>
+          {/* Si el principal ya no está entre los envases de la canasta, se pide elegir otro en vez de cambiarlo sin avisar. */}
+          <select className="admInput" name="envase_base_id" defaultValue={tipos.some((t) => t.id === canasta.envase_base_id) ? canasta.envase_base_id : ""} required>
+            {!tipos.some((t) => t.id === canasta.envase_base_id) && <option value="" disabled>Elige el envase principal</option>}
             {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
           </select>
+          {!nueva && tipos.length === 0 && <small className="admWarn">Esta canasta no tiene envases. Agrégalos en Receta de productos.</small>}
         </label>
         <label>Descripción completa
           <textarea className="admInput" name="descripcion_completa" rows={6} maxLength={2000} defaultValue={canasta.descripcion_completa} />

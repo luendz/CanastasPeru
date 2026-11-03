@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { numero, soles } from "@/lib/admin/format";
 import CampoOrden from "../../CampoOrden";
 import SelectorImagen from "../../medios/SelectorImagen";
-import { agregarEnvase, alternarEnvase, guardarEnvase, guardarImagenEnvase, moverEnvase, quitarEnvase, usarEnvaseEnCanastas, type FormState } from "../actions";
+import { agregarEnvase, alternarEnvase, guardarEnvase, guardarImagenEnvase, hacerPrincipal, moverEnvase, quitarEnvase, usarEnvaseEnCanastas, type FormState } from "../actions";
 
 export type FilaEnvase = {
   envase_id: string;
@@ -187,7 +187,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
 
       <table className="admTable admTablaEnvases">
         <thead>
-          <tr><th>N.°</th><th>Envase</th><th>Imagen</th><th className="num">Costo presentación</th><th className="num">Costo total</th><th className="num">Precio venta</th><th className="num">Margen</th><th className="num">Utilidad</th><th>Estado</th><th>Mostrar en web</th><th className="num">Acciones</th></tr>
+          <tr><th>N.°</th><th>Envase</th><th>Imagen</th><th className="num">Costo presentación</th><th className="num">Costo total</th><th className="num">Precio venta</th><th className="num">Margen</th><th className="num">Utilidad</th><th>Estado</th><th>Mostrar en web</th><th>Principal</th><th className="num">Acciones</th></tr>
         </thead>
         <tbody>
           {filas.map((f, i) => {
@@ -211,7 +211,6 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                   ) : (
                     <>
                       <strong>{f.envase_nombre}</strong>
-                      {f.principal && <> <span className="admBadge">Principal</span></>}
                       {f.descripcion && <small className="admMuted admBlock">{f.descripcion}</small>}
                       <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Producto: ${f.articulo_nombre}` : "Sin producto relacionado"}</small>
                     </>
@@ -257,6 +256,19 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                     <span />{f.visible ? "Visible" : "Oculto"}
                   </button>
                 </td>
+                <td>
+                  {/* Solo se enciende: para cambiar el principal se elige otro envase. */}
+                  <button
+                    type="button"
+                    className="admToggle"
+                    aria-pressed={f.principal}
+                    disabled={guardando || f.principal}
+                    title={f.principal ? "Es el envase principal. Para cambiarlo, elige otro." : "Hacer principal: la canasta toma su precio y se muestra con este envase"}
+                    onClick={() => { if (window.confirm(`¿Usar ${f.envase_nombre} como envase principal? La canasta pasará a costar ${soles(f.precio)}.`)) ejecutar(() => hacerPrincipal(productoId, f.envase_id)); }}
+                  >
+                    <span />{f.principal ? "Principal" : "No"}
+                  </button>
+                </td>
                 <td className="num admEnvaseAcciones">
                   {enEdicion ? (
                     <>
@@ -272,7 +284,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                         className="admLinkDanger"
                         aria-label={`Quitar ${f.envase_nombre}`}
                         disabled={guardando || f.principal}
-                        title={f.principal ? "Para quitarlo, elige otro envase principal en Datos generales" : undefined}
+                        title={f.principal ? "Para quitarlo, marca otro envase como principal" : undefined}
                         onClick={() => { if (window.confirm(`¿Quitar ${f.envase_nombre} de esta canasta?`)) ejecutar(() => quitarEnvase(productoId, f.envase_id)); }}
                       >
                         ✕
