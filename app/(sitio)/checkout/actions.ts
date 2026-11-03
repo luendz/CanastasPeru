@@ -26,7 +26,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!esFechaReparto(campo(fd, "fecha_entrega"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado, con al menos 5 días de anticipación." };
   if (!fd.get("terminos")) return { error: "Acepta los términos para continuar." };
 
-  let items: { slug: string; tipo_canasta?: string; cantidad: number }[] = [];
+  let items: { slug: string; envase_id?: string; cantidad: number }[] = [];
   try {
     items = JSON.parse(campo(fd, "items"));
   } catch {
@@ -58,7 +58,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
       },
       tarjetas: { cantidad: Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0)), dedicatoria: campo(fd, "dedicatoria") },
       metodo_pago: campo(fd, "metodo_pago"),
-      items: items.map((i) => ({ slug: i.slug, tipo_canasta: i.tipo_canasta ?? "", cantidad: i.cantidad })),
+      items: items.map((i) => ({ slug: i.slug, envase_id: i.envase_id ?? "", cantidad: i.cantidad })),
     },
   });
 
@@ -71,7 +71,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   const lineas = items.flatMap((i) => {
     const p = products.find((x) => x.slug === i.slug);
     if (!p) return [];
-    const tipo = envaseElegido(basketTypes, p, i.tipo_canasta);
+    const tipo = envaseElegido(basketTypes, p, i.envase_id);
     return [{ nombre: p.name, detalle: tipo.label, cantidad: i.cantidad, precio: tipo.precio }];
   });
   const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));

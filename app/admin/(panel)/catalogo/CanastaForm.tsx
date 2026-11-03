@@ -17,7 +17,7 @@ export type CanastaEditable = {
   descripcion: string;
   descripcion_completa: string;
   emoji: string;
-  tipo_canasta_base: string;
+  envase_base_id: string;
   orden: number;
   activo: boolean;
 };
@@ -127,7 +127,7 @@ export default function CanastaForm({ canasta, tipos, categorias, insignias }: {
 
       <div className="admFormColumna">
         <label>{nueva ? "Envase" : "Envase principal"}
-          <select className="admInput" name="tipo_canasta_base" defaultValue={canasta.tipo_canasta_base} required>
+          <select className="admInput" name="envase_base_id" defaultValue={canasta.envase_base_id} required>
             {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
           </select>
         </label>

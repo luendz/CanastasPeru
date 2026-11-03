@@ -46,7 +46,7 @@ export async function guardarComposicion(id: string, items: ProductVisualItem[],
     ajusteEnvase[tipo.slice(0, 80)] = { x, y, escala, giro };
   }
 
-  const { error, count } = await supabase.from("productos").update({ composicion: limpio, ajuste_envase: ajusteEnvase }, { count: "exact" }).eq("id", id);
+  const { error, count } = await supabase.from("canastas").update({ composicion: limpio, ajuste_envase: ajusteEnvase }, { count: "exact" }).eq("id", id);
   if (error) return { error: error.message };
   if (!count) return { error: "No se encontró la canasta." };
   revalidatePath(`/admin/catalogo/${id}`);

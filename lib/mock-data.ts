@@ -23,7 +23,7 @@ export type Product = {
   baseImage?: string;
   /** Ajuste de cada envase en esta canasta, según la foto del envase. */
   ajustesEnvase?: Record<string, AjusteEnvase>;
-  /** Tipo de canasta con el que se vende por defecto (id de tipos_canasta). */
+  /** Tipo de canasta con el que se vende por defecto (id de envases). */
   baseType?: string;
   /** Información adicional, debajo de la foto en la página del producto. */
   fullDescription?: string;

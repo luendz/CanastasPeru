@@ -14,13 +14,13 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
   const { q = "", categoria = "", tipo = "", guardado } = await searchParams;
 
   const [{ data: insumos, error }, { data: inv }, { data: costos }] = await Promise.all([
-    supabase.from("insumos").select("*").order("sku"),
-    supabase.from("v_inventario").select("insumo_id,stock,requerido_pendiente,stock_minimo"),
-    supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
+    supabase.from("articulos").select("*").order("sku"),
+    supabase.from("v_inventario").select("articulo_id,stock,requerido_pendiente,stock_minimo"),
+    supabase.from("v_costo_articulos").select("articulo_id,costo_actual"),
   ]);
   const todos = (insumos ?? []) as Insumo[];
-  const stock = new Map(((inv ?? []) as InventarioFila[]).map((i) => [i.insumo_id, i]));
-  const costo = new Map(((costos ?? []) as CostoInsumo[]).map((c) => [c.insumo_id, c.costo_actual]));
+  const stock = new Map(((inv ?? []) as InventarioFila[]).map((i) => [i.articulo_id, i]));
+  const costo = new Map(((costos ?? []) as CostoInsumo[]).map((c) => [c.articulo_id, c.costo_actual]));
   const categorias = [...new Set(todos.map((i) => i.categoria).filter(Boolean) as string[])].sort();
 
   const texto = q.trim().toLowerCase();

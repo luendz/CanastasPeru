@@ -7,11 +7,11 @@ import SelectorImagen from "../../medios/SelectorImagen";
 import { agregarEnvase, alternarEnvase, guardarEnvase, guardarImagenEnvase, moverEnvase, quitarEnvase, usarEnvaseEnCanastas, type FormState } from "../actions";
 
 export type FilaEnvase = {
-  tipo_canasta: string;
-  tipo_nombre: string;
+  envase_id: string;
+  envase_nombre: string;
   descripcion: string | null;
-  insumo_id: string | null;
-  insumo_nombre: string | null;
+  articulo_id: string | null;
+  articulo_nombre: string | null;
   imagen: string | null;
   precio: number;
   costo_manual: number | null;
@@ -63,19 +63,19 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
   }
 
   function editar(f: FilaEnvase) {
-    setEditando(f.tipo_canasta);
+    setEditando(f.envase_id);
     setPrecio(String(f.precio));
     setCosto(f.costo_manual == null ? "" : String(f.costo_manual));
-    setNombre(f.tipo_nombre);
+    setNombre(f.envase_nombre);
     setDescripcion(f.descripcion ?? "");
-    setInsumo(f.insumo_id ?? "");
+    setInsumo(f.articulo_id ?? "");
   }
 
-  const filaCompartida = filas.find((f) => f.tipo_canasta === compartiendo);
+  const filaCompartida = filas.find((f) => f.envase_id === compartiendo);
   const disponibles = compartiendo ? destinos.filter((c) => !c.envases.includes(compartiendo)) : [];
 
   function compartir(f: FilaEnvase) {
-    if (compartiendo === f.tipo_canasta) {
+    if (compartiendo === f.envase_id) {
       setCompartiendo(null);
       return;
     }
@@ -83,7 +83,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
     const diferencia = f.precio - (filas.find((x) => x.principal)?.precio ?? f.precio);
     setPreciosDestino(Object.fromEntries(destinos.map((c) => [c.id, (c.precio + diferencia).toFixed(2)])));
     setMarcadas([]);
-    setCompartiendo(f.tipo_canasta);
+    setCompartiendo(f.envase_id);
   }
 
   return (
@@ -132,12 +132,12 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
           className="admCompartirEnvase admPad"
           onSubmit={(e) => {
             e.preventDefault();
-            ejecutar(() => usarEnvaseEnCanastas(productoId, filaCompartida.tipo_canasta, marcadas.map((id) => ({ productoId: id, precio: Number(preciosDestino[id]) }))), () => setCompartiendo(null));
+            ejecutar(() => usarEnvaseEnCanastas(productoId, filaCompartida.envase_id, marcadas.map((id) => ({ productoId: id, precio: Number(preciosDestino[id]) }))), () => setCompartiendo(null));
           }}
         >
           <div className="admCompartirCabecera">
             <div>
-              <h3>Usar {filaCompartida.tipo_nombre} en otras canastas</h3>
+              <h3>Usar {filaCompartida.envase_nombre} en otras canastas</h3>
               <p className="admMuted admSmall">Revisa el precio de cada una: se propone con la misma diferencia que tiene aquí frente al envase principal.</p>
             </div>
             {disponibles.length > 0 && (
@@ -165,7 +165,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                       step="0.01"
                       required={marcada}
                       disabled={!marcada}
-                      aria-label={`Precio de ${filaCompartida.tipo_nombre} en ${c.nombre}`}
+                      aria-label={`Precio de ${filaCompartida.envase_nombre} en ${c.nombre}`}
                       value={preciosDestino[c.id] ?? ""}
                       onChange={(e) => setPreciosDestino((p) => ({ ...p, [c.id]: e.target.value }))}
                     />
@@ -191,11 +191,11 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
         </thead>
         <tbody>
           {filas.map((f, i) => {
-            const enEdicion = editando === f.tipo_canasta;
+            const enEdicion = editando === f.envase_id;
             const costoFijo = f.fuente_costo === "producto";
             return (
-              <tr key={f.tipo_canasta} data-inactivo={!f.visible || undefined}>
-                <td><CampoOrden key={i} posicion={i + 1} total={filas.length} etiqueta={`Orden de ${f.tipo_nombre}`} onCambiar={(n) => ejecutar(() => moverEnvase(productoId, f.tipo_canasta, n))} /></td>
+              <tr key={f.envase_id} data-inactivo={!f.visible || undefined}>
+                <td><CampoOrden key={i} posicion={i + 1} total={filas.length} etiqueta={`Orden de ${f.envase_nombre}`} onCambiar={(n) => ejecutar(() => moverEnvase(productoId, f.envase_id, n))} /></td>
                 <td className="admEnvaseNombre">
                   {enEdicion ? (
                     <div className="admEnvaseDatos">
@@ -210,19 +210,19 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                     </div>
                   ) : (
                     <>
-                      <strong>{f.tipo_nombre}</strong>
+                      <strong>{f.envase_nombre}</strong>
                       {f.principal && <> <span className="admBadge">Principal</span></>}
                       {f.descripcion && <small className="admMuted admBlock">{f.descripcion}</small>}
-                      <small className={`admBlock ${f.insumo_nombre ? "admMuted" : "admWarn"}`}>{f.insumo_nombre ? `Producto: ${f.insumo_nombre}` : "Sin producto relacionado"}</small>
+                      <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Producto: ${f.articulo_nombre}` : "Sin producto relacionado"}</small>
                     </>
                   )}
                 </td>
                 <td>
-                  <SelectorImagen name="imagen" compacto defaultValue={f.imagen} label={`Foto de ${f.tipo_nombre}`} onChange={(url) => ejecutar(() => guardarImagenEnvase(productoId, f.tipo_canasta, url))} />
+                  <SelectorImagen name="imagen" compacto defaultValue={f.imagen} label={`Foto de ${f.envase_nombre}`} onChange={(url) => ejecutar(() => guardarImagenEnvase(productoId, f.envase_id, url))} />
                 </td>
                 <td className="num">
                   {enEdicion && !costoFijo ? (
-                    <input className="admInput admInputSm" type="number" min="0" step="0.01" value={costo} placeholder="Manual" aria-label={`Costo de presentación de ${f.tipo_nombre}`} onChange={(e) => setCosto(e.target.value)} />
+                    <input className="admInput admInputSm" type="number" min="0" step="0.01" value={costo} placeholder="Manual" aria-label={`Costo de presentación de ${f.envase_nombre}`} onChange={(e) => setCosto(e.target.value)} />
                   ) : f.costo_presentacion == null ? (
                     <span className="admWarn">Sin costo</span>
                   ) : (
@@ -239,7 +239,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                 </td>
                 <td className="num">
                   {enEdicion ? (
-                    <input className="admInput admInputSm" type="number" min="0.01" step="0.01" value={precio} aria-label={`Precio de venta de ${f.tipo_nombre}`} onChange={(e) => setPrecio(e.target.value)} />
+                    <input className="admInput admInputSm" type="number" min="0.01" step="0.01" value={precio} aria-label={`Precio de venta de ${f.envase_nombre}`} onChange={(e) => setPrecio(e.target.value)} />
                   ) : <strong>{soles(f.precio)}</strong>}
                 </td>
                 <td className="num">{f.margen_pct == null ? "—" : `${numero(f.margen_pct, 1)} %`}</td>
@@ -252,7 +252,7 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                     aria-pressed={f.visible}
                     disabled={guardando || f.principal}
                     title={f.principal ? "El envase principal siempre se muestra" : f.visible ? "Ocultar de la tienda" : "Mostrar en la tienda"}
-                    onClick={() => ejecutar(() => alternarEnvase(productoId, f.tipo_canasta, !f.visible))}
+                    onClick={() => ejecutar(() => alternarEnvase(productoId, f.envase_id, !f.visible))}
                   >
                     <span />{f.visible ? "Visible" : "Oculto"}
                   </button>
@@ -260,20 +260,20 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
                 <td className="num admEnvaseAcciones">
                   {enEdicion ? (
                     <>
-                      <button type="button" className="admLinkMuted" disabled={guardando} onClick={() => ejecutar(() => guardarEnvase(productoId, f.tipo_canasta, Number(precio), costo.trim() === "" ? null : Number(costo), { nombre, descripcion, insumoId: insumo || null }), () => setEditando(null))}>Guardar</button>
+                      <button type="button" className="admLinkMuted" disabled={guardando} onClick={() => ejecutar(() => guardarEnvase(productoId, f.envase_id, Number(precio), costo.trim() === "" ? null : Number(costo), { nombre, descripcion, insumoId: insumo || null }), () => setEditando(null))}>Guardar</button>
                       <button type="button" className="admLinkMuted" onClick={() => setEditando(null)}>Cancelar</button>
                     </>
                   ) : (
                     <>
-                      <button type="button" className="admLinkMuted" aria-label={`Usar ${f.tipo_nombre} en otras canastas`} title="Usar en otras canastas" onClick={() => compartir(f)}>⧉</button>
-                      <button type="button" className="admLinkMuted" aria-label={`Editar ${f.tipo_nombre}`} onClick={() => editar(f)}>✎</button>
+                      <button type="button" className="admLinkMuted" aria-label={`Usar ${f.envase_nombre} en otras canastas`} title="Usar en otras canastas" onClick={() => compartir(f)}>⧉</button>
+                      <button type="button" className="admLinkMuted" aria-label={`Editar ${f.envase_nombre}`} onClick={() => editar(f)}>✎</button>
                       <button
                         type="button"
                         className="admLinkDanger"
-                        aria-label={`Quitar ${f.tipo_nombre}`}
+                        aria-label={`Quitar ${f.envase_nombre}`}
                         disabled={guardando || f.principal}
                         title={f.principal ? "Para quitarlo, elige otro envase principal en Datos generales" : undefined}
-                        onClick={() => { if (window.confirm(`¿Quitar ${f.tipo_nombre} de esta canasta?`)) ejecutar(() => quitarEnvase(productoId, f.tipo_canasta)); }}
+                        onClick={() => { if (window.confirm(`¿Quitar ${f.envase_nombre} de esta canasta?`)) ejecutar(() => quitarEnvase(productoId, f.envase_id)); }}
                       >
                         ✕
                       </button>

@@ -31,15 +31,15 @@ const refrescar = (id?: string) => {
  */
 export async function eliminarProducto(id: string): Promise<ProductoState> {
   const { supabase } = await requireAdmin();
-  const { data: producto } = await supabase.from("insumos").select("nombre").eq("id", id).maybeSingle();
+  const { data: producto } = await supabase.from("articulos").select("nombre").eq("id", id).maybeSingle();
   if (!producto) return { error: "El producto ya no existe." };
 
-  const lista = [{ insumo_id: id }];
+  const lista = [{ articulo_id: id }];
   const [recetas, envases, compositions, compras, ordenes, cotizaciones] = await Promise.all([
-    supabase.from("recetas").select("productos(nombre)").eq("insumo_id", id),
-    supabase.from("tipos_canasta").select("nombre").eq("insumo_id", id),
-    supabase.from("productos").select("nombre").contains("composicion", [{ name: producto.nombre }]),
-    supabase.from("compras").select("id", { count: "exact", head: true }).eq("insumo_id", id),
+    supabase.from("canasta_articulos").select("canastas(nombre)").eq("articulo_id", id),
+    supabase.from("envases").select("nombre").eq("articulo_id", id),
+    supabase.from("canastas").select("nombre").contains("composicion", [{ name: producto.nombre }]),
+    supabase.from("compras").select("id", { count: "exact", head: true }).eq("articulo_id", id),
     supabase.from("orden_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
     supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
   ]);
@@ -47,7 +47,7 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   if (consulta?.error) return { error: consulta.error.message };
 
   const nombres = (filas: { nombre: string }[] | null) => (filas ?? []).map((f) => f.nombre).join(", ");
-  const canastas = ((recetas.data ?? []) as unknown as { productos: { nombre: string } }[]).map((r) => r.productos.nombre).join(", ");
+  const canastas = ((recetas.data ?? []) as unknown as { canastas: { nombre: string } }[]).map((r) => r.canastas.nombre).join(", ");
   const usos = [
     canastas && `está en la receta de ${canastas}`,
     envases.data?.length && `es el producto del envase ${nombres(envases.data)}`,
@@ -58,7 +58,7 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   ].filter(Boolean);
   if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}.` };
 
-  const { error } = await supabase.from("insumos").delete().eq("id", id);
+  const { error } = await supabase.from("articulos").delete().eq("id", id);
   if (error) return { error: error.message };
   refrescar();
   return {};
@@ -98,8 +98,8 @@ export async function guardarProducto(_prev: ProductoState, fd: FormData): Promi
   };
 
   const { data, error } = id
-    ? await supabase.from("insumos").update(datos).eq("id", id).select("id").single()
-    : await supabase.from("insumos").insert(datos).select("id").single();
+    ? await supabase.from("articulos").update(datos).eq("id", id).select("id").single()
+    : await supabase.from("articulos").insert(datos).select("id").single();
   if (error) {
     if (error.code === "23505") return { error: error.message.includes("sku") ? "Ya existe un producto con ese SKU." : "Ya existe un producto con ese nombre." };
     return { error: error.message };

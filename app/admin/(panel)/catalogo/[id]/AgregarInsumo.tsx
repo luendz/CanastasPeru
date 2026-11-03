@@ -23,8 +23,8 @@ export default function AgregarInsumo({ productoId, productos }: { productoId: s
 
   function agregar(id: string) {
     const fd = new FormData();
-    fd.set("producto_id", productoId);
-    fd.set("insumo_id", id);
+    fd.set("canasta_id", productoId);
+    fd.set("articulo_id", id);
     fd.set("cantidad", "1");
     setBusqueda("");
     setError("");

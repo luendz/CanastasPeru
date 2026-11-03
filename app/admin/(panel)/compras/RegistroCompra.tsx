@@ -32,7 +32,7 @@ type Props = {
 
 const nueva = (): Fila => ({
   categoria: "mercaderia",
-  insumo_id: null,
+  articulo_id: null,
   descripcion: "",
   presentacion: "Unidad",
   cantidad_presentaciones: "1",
@@ -58,11 +58,11 @@ export default function RegistroCompra({ productos, proveedores, inicial, editar
   const cambiar = (i: number, cambios: Partial<Fila>) => setFilas((fs) => fs.map((f, j) => (j === i ? { ...f, ...cambios } : f)));
 
   function elegirProducto(i: number, id: string) {
-    if (!id) return cambiar(i, { insumo_id: null });
+    if (!id) return cambiar(i, { articulo_id: null });
     const p = porId.get(id);
     if (!p) return;
     cambiar(i, {
-      insumo_id: p.id,
+      articulo_id: p.id,
       descripcion: p.nombre,
       categoria: p.tipo === "empaque" ? "empaque" : "mercaderia",
       presentacion: p.presentacion_compra || "Unidad",
@@ -129,18 +129,18 @@ export default function RegistroCompra({ productos, proveedores, inicial, editar
               <span>Producto / descripción</span><span>Tipo de costo</span><span>Presentación</span><span>Cantidad comprada</span><span>Unid. por presentación</span><span>Precio por presentación (S/)</span><span>Total unid.</span><span>Costo unit. (S/)</span><span />
             </div>
             {filas.map((f, i) => {
-              const p = f.insumo_id ? porId.get(f.insumo_id) : undefined;
+              const p = f.articulo_id ? porId.get(f.articulo_id) : undefined;
               const c = calculo[i];
               return (
                 <div key={i} className="admItem" data-activa={i === activa || undefined} onFocus={() => setActiva(i)}>
                   <div className="admItemProducto">
                     <span className="admItemThumb">{p?.imagen ? <img src={p.imagen} alt="" /> : <span>{p?.emoji ?? "🧾"}</span>}</span>
                     <div>
-                      <select className="admInput" value={f.insumo_id ?? ""} onChange={(e) => elegirProducto(i, e.target.value)} aria-label={`Producto del ítem ${i + 1}`}>
+                      <select className="admInput" value={f.articulo_id ?? ""} onChange={(e) => elegirProducto(i, e.target.value)} aria-label={`Producto del ítem ${i + 1}`}>
                         <option value="">Otro gasto (escribir)</option>
                         {productos.map((pr) => <option key={pr.id} value={pr.id}>{pr.nombre}</option>)}
                       </select>
-                      {!f.insumo_id && (
+                      {!f.articulo_id && (
                         <input className="admInput" value={f.descripcion} maxLength={300} placeholder="Ej. Movilidad a Gamarra" aria-label={`Descripción del ítem ${i + 1}`} onChange={(e) => cambiar(i, { descripcion: e.target.value })} />
                       )}
                     </div>
@@ -221,7 +221,7 @@ export default function RegistroCompra({ productos, proveedores, inicial, editar
           <h2>Costo unitario</h2>
           <ul className="admPrevia">
             {filas.map((f, i) => {
-              const p = f.insumo_id ? porId.get(f.insumo_id) : undefined;
+              const p = f.articulo_id ? porId.get(f.articulo_id) : undefined;
               return (
                 <li key={i}>
                   <span className="admItemThumb">{p?.imagen ? <img src={p.imagen} alt="" /> : <span>{p?.emoji ?? "🧾"}</span>}</span>

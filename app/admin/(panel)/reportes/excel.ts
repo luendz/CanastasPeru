@@ -87,7 +87,7 @@ function hojaOrdenes(wb: Workbook, d: DatosReporte, periodo: string) {
       new Date(o.created_at).toLocaleDateString("es-PE", { timeZone: "America/Lima" }),
       labelCanal(o.canal) + (o.origen === "cotizacion" ? " (cotización)" : ""),
       o.cliente_nombre,
-      o.items.map((it) => `${it.cantidad} × ${it.producto_nombre}`).join(", "),
+      o.items.map((it) => `${it.cantidad} × ${it.canasta_nombre}`).join(", "),
       o.distrito ?? "",
       o.fecha_entrega ?? "",
       labelEstado(o.estado),

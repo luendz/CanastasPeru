@@ -147,7 +147,7 @@ export default async function ContenidoPage({ searchParams }: { searchParams: Pr
 
   const [{ data: filas, error }, { data: productos }] = await Promise.all([
     supabase.from("contenido").select("clave, valor, updated_at"),
-    supabase.from("productos").select("slug, nombre").order("orden"),
+    supabase.from("canastas").select("slug, nombre").order("orden"),
   ]);
   const guardado = Object.fromEntries((filas ?? []).map((f) => [f.clave, f.valor]));
   const contenido = combinarContenido(guardado);

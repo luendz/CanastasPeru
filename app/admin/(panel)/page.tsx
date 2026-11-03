@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     supabase.from("ordenes").select("id,total,estado").gte("created_at", `${desde}T00:00:00-05:00`).neq("estado", "anulada"),
     supabase.from("compras").select("categoria,total").gte("fecha", desde),
     supabase.from("ordenes").select("estado").neq("estado", "anulada"),
-    supabase.from("orden_items").select("producto_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
+    supabase.from("orden_items").select("canasta_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
     supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]),
     supabase.from("v_inventario").select("*"),
     supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,estado,estado_pago").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(8),
@@ -31,10 +31,10 @@ export default async function DashboardPage() {
 
   const porCanasta = new Map<string, { cantidad: number; importe: number }>();
   ((items.data ?? []) as unknown as OrdenItem[]).forEach((it) => {
-    const acc = porCanasta.get(it.producto_nombre) ?? { cantidad: 0, importe: 0 };
+    const acc = porCanasta.get(it.canasta_nombre) ?? { cantidad: 0, importe: 0 };
     acc.cantidad += it.cantidad;
     acc.importe += Number(it.subtotal);
-    porCanasta.set(it.producto_nombre, acc);
+    porCanasta.set(it.canasta_nombre, acc);
   });
   const top = [...porCanasta.entries()].sort((a, b) => b[1].cantidad - a[1].cantidad);
   const maxTop = Math.max(1, ...top.map(([, v]) => v.cantidad));
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
               {bajos.slice(0, 10).map((i) => {
                 const falta = Math.max(0, Number(i.requerido_pendiente) + Number(i.stock_minimo) - Number(i.stock));
                 return (
-                  <tr key={i.insumo_id}>
+                  <tr key={i.articulo_id}>
                     <td className="admCeldaLarga">{i.nombre}</td>
                     <td className="num" data-tone={Number(i.stock) < 0 ? "bad" : undefined}>{numero(i.stock)}</td>
                     <td className="num">{numero(i.requerido_pendiente)}</td>

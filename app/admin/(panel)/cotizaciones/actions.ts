@@ -64,14 +64,14 @@ async function contenidoPersonalizado(supabase: Awaited<ReturnType<typeof requir
   if (!Array.isArray(lista) || lista.length === 0) return { error: "Agrega al menos un producto a la canasta personalizada." };
   if (lista.length > 40) return { error: "Demasiados productos." };
 
-  const { data: insumos } = await supabase.from("insumos").select("id,nombre");
+  const { data: insumos } = await supabase.from("articulos").select("id,nombre");
   const nombreDe = new Map((insumos ?? []).map((i: { id: string; nombre: string }) => [i.id, i.nombre]));
   const contenido: ContenidoLinea[] = [];
-  for (const x of lista as { insumo_id?: string; cantidad?: number }[]) {
-    const nombre = x.insumo_id ? nombreDe.get(x.insumo_id) : undefined;
+  for (const x of lista as { articulo_id?: string; cantidad?: number }[]) {
+    const nombre = x.articulo_id ? nombreDe.get(x.articulo_id) : undefined;
     const cantidad = Number(x.cantidad);
     if (!nombre || !Number.isFinite(cantidad) || cantidad <= 0) return { error: "Hay un producto inválido en la lista." };
-    contenido.push({ insumo_id: x.insumo_id!, nombre, cantidad: Math.round(cantidad * 100) / 100 });
+    contenido.push({ articulo_id: x.articulo_id!, nombre, cantidad: Math.round(cantidad * 100) / 100 });
   }
   return { contenido };
 }
@@ -81,15 +81,15 @@ export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormDat
   const { supabase } = await requireAdmin();
   const cotizacionId = String(formData.get("cotizacion_id") ?? "");
   const itemId = String(formData.get("item_id") ?? "");
-  const productoId = String(formData.get("producto_id") ?? "");
-  const tipo = String(formData.get("tipo_canasta") ?? "") || null;
+  const productoId = String(formData.get("canasta_id") ?? "");
+  const tipo = String(formData.get("envase_id") ?? "") || null;
   const cantidad = Math.round(Number(formData.get("cantidad")));
   const precioIngresado = String(formData.get("precio_unitario") ?? "").trim();
 
   if (!productoId) return { error: "Elige una canasta." };
   if (!Number.isFinite(cantidad) || cantidad < 1) return { error: "La cantidad debe ser 1 o más." };
 
-  let fila: { producto_id: string | null; producto_nombre: string; tipo_canasta: string | null; contenido: ContenidoLinea[] | null };
+  let fila: { canasta_id: string | null; canasta_nombre: string; envase_id: string | null; contenido: ContenidoLinea[] | null };
   let precio = Number(precioIngresado);
 
   if (productoId === "personalizada") {
@@ -97,13 +97,13 @@ export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormDat
     if (!precioIngresado || !Number.isFinite(precio) || precio <= 0) return { error: "Escribe el precio unitario de la canasta personalizada." };
     const r = await contenidoPersonalizado(supabase, String(formData.get("contenido") ?? ""));
     if ("error" in r) return { error: r.error };
-    fila = { producto_id: null, producto_nombre: txt(formData, "nombre", 120) || "Canasta personalizada", tipo_canasta: tipo, contenido: r.contenido! };
+    fila = { canasta_id: null, canasta_nombre: txt(formData, "nombre", 120) || "Canasta personalizada", envase_id: tipo, contenido: r.contenido! };
   } else {
-    const { data: producto } = await supabase.from("productos").select("id,nombre,tipo_canasta_base").eq("id", productoId).maybeSingle();
+    const { data: producto } = await supabase.from("canastas").select("id,nombre,envase_base_id").eq("id", productoId).maybeSingle();
     if (!producto) return { error: "Canasta no encontrada." };
     // Sin precio escrito, se usa el de catálogo con el envase elegido.
     if (!precioIngresado || !Number.isFinite(precio)) {
-      const { data } = await supabase.rpc("precio_canasta", { p_producto_id: producto.id, p_tipo: tipo ?? producto.tipo_canasta_base });
+      const { data } = await supabase.rpc("precio_canasta", { p_canasta_id: producto.id, p_envase_id: tipo ?? producto.envase_base_id });
       precio = Number(data ?? 0);
     }
     // Canasta del catálogo con productos cambiados: se guarda su lista propia, sin tocar la receta.
@@ -114,7 +114,7 @@ export async function agregarItemCotizacion(_prev: EstadoForm, formData: FormDat
       contenido = r.contenido!;
     }
     const nombre = contenido ? txt(formData, "nombre", 120) || `${producto.nombre} (personalizada)` : producto.nombre;
-    fila = { producto_id: producto.id, producto_nombre: nombre, tipo_canasta: tipo ?? producto.tipo_canasta_base, contenido };
+    fila = { canasta_id: producto.id, canasta_nombre: nombre, envase_id: tipo ?? producto.envase_base_id, contenido };
   }
   if (precio < 0) return { error: "Precio inválido." };
 
@@ -184,7 +184,7 @@ export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion
   const [{ data: cot }, { data: items }, { data: tipos }, productos, personalizados, contenido] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
-    supabase.from("tipos_canasta").select("id,nombre"),
+    supabase.from("envases").select("id,nombre"),
     productosPorCanasta(supabase),
     productosPersonalizados(supabase),
     getContenido(),
@@ -195,8 +195,8 @@ export async function datosPdfCotizacion(id: string): Promise<DatosPdfCotizacion
     cotizacion: cot as Cotizacion,
     items: ((items ?? []) as CotizacionItem[]).map((it) => ({
       ...it,
-      envase: it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—",
-      productos: it.contenido ? personalizados(it.contenido) : productos.get(it.producto_id ?? "") ?? [],
+      envase: it.envase_id ? envase.get(it.envase_id) ?? it.envase_id : "—",
+      productos: it.contenido ? personalizados(it.contenido) : productos.get(it.canasta_id ?? "") ?? [],
     })),
     marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema, logo: contenido.marca.logo },
     contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo, ciudad: contenido.contacto.ciudad },

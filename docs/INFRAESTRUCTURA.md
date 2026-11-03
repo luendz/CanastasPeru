@@ -50,6 +50,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
   - `20260924000002_endurecer_funciones.sql`: `es_admin` y `precio_canasta` pasan a `SECURITY INVOKER`.
   - `20260925000003_catalogo_web.sql`: el catálogo de la web (descripción, precio tachado, insignia, composición, imágenes de tipos de canasta, orden) y la función pública `catalogo_web()`.
   - `20261018000013_pago_mercado_pago.sql`: columnas `mp_*` en `ordenes` y la función `registrar_pago_mp`, que solo ejecuta `service_role`.
+  - `20261102000020_nombres_claros.sql` y `20261102000021_quitar_nombres_antiguos.sql`: `productos` pasa a `canastas`, `tipos_canasta` a `envases`, `insumos` a `articulos` y `recetas` a `canasta_articulos`; las columnas y vistas cambian con ellas (`canasta_id`, `envase_id`, `envase_base_id`, `articulo_id`, `canasta_nombre`, `v_consumo_articulos`, `v_costo_articulos`, `v_armado_canasta`). Las migraciones anteriores conservan los nombres de su época. En el panel la tabla `articulos` se sigue mostrando como Productos.
   - `20261102000016_descripcion_completa.sql`: `productos.descripcion_completa`, que se muestra debajo de la foto en la página del producto.
   - `20261102000015_envases_por_canasta.sql`: tabla `canasta_envases` (precio, visibilidad y orden de cada envase en cada canasta; el orden es el que ve el cliente), `tipos_canasta.insumo_id` (producto que da el costo del envase; foto, nombre, descripción y producto se editan en la tabla Envases y precios de cada canasta y aplican a todas) y las vistas `v_receta_canasta` y `v_envases_canasta`. El costo es receta + envase; `productos.costo_viveres` y `costo_presentacion` ya no se usan, y `tipos_canasta.recargo` solo se usa para envases que la canasta no tiene, en cotizaciones. El precio de `productos` es el de su envase principal.
   - `20261030000014_orden_productos_canasta.sql`: columna `recetas.orden`. El orden se edita en Panel → Catálogo → (canasta) → Receta de productos y lo siguen el panel, los PDF y "lo que trae" en la web. El panetón entra primero al agregarlo, y el campo Orden puede moverlo.
@@ -87,7 +88,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 
 ### Cómo está protegida la base
 
-- **RLS:** todas las tablas la tienen. Solo los administradores leen y escriben los datos de gestión. Lo público es el catálogo activo (productos, tipos de canasta, zonas de delivery).
+- **RLS:** todas las tablas la tienen. Solo los administradores leen y escriben los datos de gestión. Lo público es el catálogo activo (canastas, envases, zonas de delivery).
 - **Tienda:** la web **no escribe directo** en las tablas; usa dos funciones.
   - `crear_orden_web`: valida todo y **recalcula precios y delivery en el servidor**; se ignora cualquier precio que mande el navegador.
   - `crear_cotizacion_web`.
@@ -111,9 +112,9 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 1. **No mergear el panel a `main` sin confirmarlo con el usuario.** `main` se publica sola y es pública.
 2. **El panel está publicado** junto con la web. Necesita `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` en las variables de **Build** de Cloudflare. No hay rutas internas públicas: el editor de composición vive dentro del panel.
 3. **El catálogo vive en la base.** La tienda lee canastas, precios, tipos de canasta y distritos con `catalogo_web()` en cada visita (`lib/catalogo.ts`), y cobra con los mismos datos. Precios, descripciones, insignias, visibilidad, tipos de canasta y tarifas se editan en **Panel → Catálogo** y se ven al instante, sin redeploy. Las canastas nuevas se crean ocultas: primero se arma su receta (Costeo) y su composición (editor), y después se activan.
-   - "Lo que trae" cada canasta sale de su **receta** (insumos de tipo producto), la misma del costeo.
-   - La posición de cada producto sobre la canasta está en `productos.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Imágenes** (`/admin/catalogo/[id]?seccion=imagenes`).
-   - La **foto y el emoji** de cada producto son del insumo (`insumos.imagen`, `insumos.emoji`), en **Catálogo → Fotos de productos**: `catalogo_web()` los aplica a todas las canastas que lo llevan.
+   - "Lo que trae" cada canasta sale de su **armado** (`canasta_articulos`, artículos de tipo producto), la misma del costeo.
+   - La posición de cada producto sobre la canasta está en `canastas.composicion`. Se ajusta en **Panel → Catálogo → (canasta) → Imágenes** (`/admin/catalogo/[id]?seccion=imagenes`).
+   - La **foto y el emoji** de cada producto son del artículo (`articulos.imagen`, `articulos.emoji`), en **Catálogo → Fotos de productos**: `catalogo_web()` los aplica a todas las canastas que lo llevan.
    - `lib/mock-data.ts` solo se usa como **modo demostración** si faltan las variables de Supabase; ya no es la fuente de verdad.
 
 4. **Todo el contenido se administra desde el panel.**
@@ -125,7 +126,7 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
    - Menú: Inicio · Canastas (Económicas, Premium, Ejecutivas) · Boxes navideños · Empresas · Nosotros · Contacto. Las líneas salen de la **categoría** de cada canasta (`lib/lineas.ts`: "Económica", "Premium", "Ejecutiva", "Box Navideño"). `/catalogo` redirige a `/canastas`.
    - El carrito es real y vive en el navegador (`lib/carrito.ts`, localStorage): guarda canasta, tipo de canasta y cantidad, más la **tarjeta navideña** (cantidad y dedicatoria). Los precios nunca se guardan ahí: `crear_orden_web` los recalcula, incluido el de la tarjeta, que lee de `contenido.checkout.tarjetaPrecio`. La tarjeta entra a la orden como una línea que descuenta el insumo "Tarjeta…".
    - La confirmación lee un resumen del pedido desde una cookie httpOnly de una hora (`mka-pedido`); no se ponen datos personales en la URL.
-6. **Costos y productos.** El costo de cada producto es el de su **compra más reciente** (`v_costo_insumos.costo_actual`). Las compras se registran por comprobante en **Costos totales** con 5 tipos (`mercaderia`, `empaque`, `logistica`, `marketing`, `administrativos`). Renombrar un producto actualiza solo la composición visual de las canastas (trigger).
+6. **Costos y productos.** El costo de cada producto es el de su **compra más reciente** (`v_costo_articulos.costo_actual`). Las compras se registran por comprobante en **Costos totales** con 5 tipos (`mercaderia`, `empaque`, `logistica`, `marketing`, `administrativos`). Renombrar un producto actualiza solo la composición visual de las canastas (trigger).
 
 ## Otras ramas
 

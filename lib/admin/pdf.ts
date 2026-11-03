@@ -226,7 +226,7 @@ async function documentoComercial(d: Documento) {
       styles: { ...base, fontSize: 9.5 },
       headStyles: { fillColor: PINO, textColor: 255, fontStyle: "bold", halign: "center" },
       head: [[d.items.length > 1 ? `${i + 1}. TIPO DE CANASTA / BOX` : "TIPO DE CANASTA / BOX", "TIPO DE ENVASE", "CANTIDAD", "PRECIO UNIT.", "TOTAL"]],
-      body: [[it.producto_nombre, it.envase, String(it.cantidad), soles(it.precio_unitario), soles(it.subtotal)]],
+      body: [[it.canasta_nombre, it.envase, String(it.cantidad), soles(it.precio_unitario), soles(it.subtotal)]],
       columnStyles: { 0: { cellWidth: 54, fontStyle: "bold" }, 1: { cellWidth: 40 }, 2: { halign: "center" }, 3: { halign: "right" }, 4: { halign: "right", fontStyle: "bold" } },
     });
     y = finY();

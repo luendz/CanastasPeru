@@ -17,7 +17,7 @@ export async function actualizarInsumo(formData: FormData) {
   if (!Number.isFinite(stockInicial) || !Number.isFinite(stockMinimo) || stockMinimo < 0) throw new Error("Valores inválidos");
 
   const { error } = await supabase
-    .from("insumos")
+    .from("articulos")
     .update({ stock_inicial: stockInicial, stock_minimo: stockMinimo })
     .eq("id", String(formData.get("id") ?? ""));
   if (error) throw new Error(error.message);
