@@ -14,6 +14,7 @@ const clamp = (value: number) => Math.min(100, Math.max(0, value));
 /** En la selección, el envase va aparte de los productos. */
 const SEL_ENVASE = -1;
 
+/** `basketTypes` son los envases de la canasta; `product.ajustesEnvase` va por id de envase. */
 type Props = { id: string; product: Product; basketTypes: BasketType[]; insumos: InsumoVisual[] };
 
 export default function EditorComposicion({ id, product, basketTypes, insumos }: Props) {
@@ -23,7 +24,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const [guardado, setGuardado] = useState<GuardarState | null>(null);
   const [cambios, setCambios] = useState(false);
   const [guardando, startGuardar] = useTransition();
-  const [basketImage, setBasketImage] = useState(product.baseImage ?? basketTypes[0]?.image ?? "");
+  const [envaseId, setEnvaseId] = useState(basketTypes.find((t) => t.id === product.baseType)?.id ?? basketTypes[0]?.id ?? "");
   const [ajustes, setAjustes] = useState(product.ajustesEnvase ?? {});
   // Recuadro de la foto del envase sin ajustar, en % del lienzo: depende de la forma de cada foto.
   const [cajaEnvase, setCajaEnvase] = useState({ left: 18.5, top: 26, width: 63, height: 63 });
@@ -33,10 +34,13 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ index: number; offsetX: number; offsetY: number } | null>(null);
 
-  const draft = { ...product, visualItems: items, ajustesEnvase: ajustes };
+  const envase = basketTypes.find((t) => t.id === envaseId);
+  const basketImage = envase?.image ?? "";
+  const nombreEnvase = envase?.label ?? "Envase";
+  const ajuste = ajustes[envaseId] ?? AJUSTE_NEUTRO;
+  // La vista previa busca el ajuste por la foto que muestra.
+  const draft = { ...product, visualItems: items, ajustesEnvase: { [basketImage]: ajuste } };
   const current = items[selected];
-  const ajuste = ajustes[basketImage] ?? AJUSTE_NEUTRO;
-  const nombreEnvase = basketTypes.find((t) => t.image === basketImage)?.label ?? "Envase";
   const centroEnvase = { left: cajaEnvase.left + cajaEnvase.width / 2, top: cajaEnvase.top + cajaEnvase.height / 2 };
   const centro = (index: number) => (index === SEL_ENVASE ? { left: centroEnvase.left + ajuste.x, top: centroEnvase.top + ajuste.y } : items[index]);
 
@@ -62,7 +66,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   }
 
   function patchEnvase(changes: Partial<AjusteEnvase>) {
-    setAjustes((prev) => ({ ...prev, [basketImage]: { ...(prev[basketImage] ?? AJUSTE_NEUTRO), ...changes } }));
+    setAjustes((prev) => ({ ...prev, [envaseId]: { ...(prev[envaseId] ?? AJUSTE_NEUTRO), ...changes } }));
     marcar();
   }
 
@@ -102,9 +106,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   function guardar() {
     setGuardado(null);
     startGuardar(async () => {
-      // En la base el ajuste va por tipo de envase, no por foto.
-      const porTipo = Object.fromEntries(basketTypes.flatMap((t) => (ajustes[t.image] ? [[t.id, ajustes[t.image]]] : [])));
-      const r = await guardarComposicion(id, items, porTipo);
+      const r = await guardarComposicion(id, items, ajustes);
       setGuardado(r);
       if (r.ok) setCambios(false);
     });
@@ -146,8 +148,8 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
       <div className="devToolbar">
         <label>
           Canasta de fondo
-          <select className="select" onChange={(event) => setBasketImage(event.target.value)} value={basketImage}>
-            {basketTypes.map((type) => <option key={type.id} value={type.image}>{type.label}</option>)}
+          <select className="select" onChange={(event) => setEnvaseId(event.target.value)} value={envaseId}>
+            {basketTypes.map((type) => <option key={type.id} value={type.id}>{type.label}{type.id === product.baseType ? " (principal)" : ""}</option>)}
           </select>
         </label>
         <label>

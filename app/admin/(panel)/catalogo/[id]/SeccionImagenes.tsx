@@ -12,9 +12,10 @@ type TipoFila = { id: string; nombre: string; imagen: string | null; descripcion
 /** Composición visual de la canasta: la imagen con efecto que se ve en la tienda. */
 export default async function SeccionImagenes({ id }: { id: string }) {
   const { supabase } = await requireAdmin();
-  const [{ data: producto }, { data: tipos }, { data: insumos }] = await Promise.all([
+  const [{ data: producto }, { data: tipos }, { data: propios }, { data: insumos }] = await Promise.all([
     supabase.from("canastas").select("*").eq("id", id).maybeSingle(),
-    supabase.from("envases").select("id,nombre,imagen,descripcion,recargo").order("orden"),
+    supabase.from("envases").select("id,nombre,imagen,descripcion,recargo"),
+    supabase.from("canasta_envases").select("envase_id").eq("canasta_id", id).order("orden").order("envase_id"),
     supabase.from("articulos").select("nombre,emoji,imagen").eq("tipo", "producto").order("nombre"),
   ]);
   if (!producto) return null;
@@ -22,10 +23,16 @@ export default async function SeccionImagenes({ id }: { id: string }) {
   const listaInsumos = (insumos ?? []) as InsumoVisual[];
   const fotoDe = new Map(listaInsumos.map((i) => [i.nombre, i]));
 
-  const basketTypes: BasketType[] = ((tipos ?? []) as TipoFila[])
-    .filter((t) => t.imagen)
-    .map((t) => ({ id: t.id, label: t.nombre, image: t.imagen!, hint: t.descripcion ?? "", priceDelta: Number(t.recargo) }));
-  const base = basketTypes.find((t) => t.id === p.envase_base_id);
+  // Solo los envases de esta canasta (Envases y precios), en su orden y con el principal primero.
+  // Los que no tienen foto no se pueden ver en el editor.
+  const tipoDe = new Map(((tipos ?? []) as TipoFila[]).map((t) => [t.id, t]));
+  const ids = ((propios ?? []) as { envase_id: string }[]).map((e) => e.envase_id);
+  const ordenados = [...ids.filter((e) => e === p.envase_base_id), ...ids.filter((e) => e !== p.envase_base_id)];
+  const basketTypes: BasketType[] = ordenados.flatMap((e) => {
+    const t = tipoDe.get(e);
+    return t?.imagen ? [{ id: t.id, label: t.nombre, image: t.imagen, hint: t.descripcion ?? "", priceDelta: Number(t.recargo) }] : [];
+  });
+  const sinFoto = ordenados.length - basketTypes.length;
 
   // Igual que en la tienda: la foto y el emoji salen del insumo con el mismo nombre.
   const visualItems = (p.composicion ?? []).map((it) => {
@@ -34,12 +41,20 @@ export default async function SeccionImagenes({ id }: { id: string }) {
   });
 
   if (basketTypes.length === 0) {
-    return <p className="admWarn">Primero asigna una foto a algún envase en <Link href={`/admin/catalogo/${id}?seccion=receta`}>Receta de productos</Link>.</p>;
+    return (
+      <p className="admWarn">
+        {ordenados.length === 0 ? "Esta canasta no tiene envases." : "Ningún envase de esta canasta tiene foto."} Agrégalo en{" "}
+        <Link href={`/admin/catalogo/${id}?seccion=receta#envases`}>Receta de productos → Envases y precios</Link>.
+      </p>
+    );
   }
 
   return (
     <section className="admCard admComposicion">
-      <p className="admMuted">Arrastra el envase y cada producto. Así se verá en el catálogo y en la página del producto.</p>
+      <p className="admMuted">
+        Arrastra el envase y cada producto. Así se verá en el catálogo y en la página del producto.
+        {sinFoto > 0 && ` ${sinFoto === 1 ? "Un envase de esta canasta no sale en la lista porque no tiene foto." : `${sinFoto} envases de esta canasta no salen en la lista porque no tienen foto.`}`}
+      </p>
       <EditorComposicion
         id={id}
         basketTypes={basketTypes}
@@ -50,8 +65,9 @@ export default async function SeccionImagenes({ id }: { id: string }) {
           category: p.categoria,
           price: Number(p.precio),
           emoji: p.emoji,
-          baseImage: base?.image,
-          ajustesEnvase: Object.fromEntries(basketTypes.flatMap((t) => (p.ajuste_envase?.[t.id] ? [[t.image, p.ajuste_envase[t.id]]] : []))),
+          baseImage: basketTypes[0].image,
+          // En el editor el ajuste va por envase (id), no por foto: dos envases pueden compartir foto.
+          ajustesEnvase: p.ajuste_envase ?? {},
           baseType: p.envase_base_id,
           description: p.descripcion,
           items: [],
