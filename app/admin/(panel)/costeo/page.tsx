@@ -37,7 +37,7 @@ export default async function CosteoPage() {
       <header className="admHead">
         <div>
           <h1>Costeo por canasta</h1>
-          <p className="admMuted">Costo de cada canasta (víveres + presentación), margen y utilidad sobre su valor de venta. Se calcula con la receta y el envase principal de cada canasta; se edita en Catálogo → la canasta → Receta de productos.</p>
+          <p className="admMuted">Costo de cada canasta (víveres + presentación), margen y utilidad sobre su valor de venta. Se calcula con la receta y el envase principal de cada canasta; se edita en Catálogo → la canasta → Contenido y envases.</p>
         </div>
       </header>
 

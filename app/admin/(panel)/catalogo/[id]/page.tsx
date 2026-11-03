@@ -13,7 +13,7 @@ export const metadata = { title: "Editar canasta" };
 
 const SECCIONES = [
   { id: "datos", titulo: "Datos generales" },
-  { id: "receta", titulo: "Receta de productos" },
+  { id: "receta", titulo: "Contenido y envases" },
   { id: "imagenes", titulo: "Imágenes" },
 ];
 

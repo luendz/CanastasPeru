@@ -70,7 +70,7 @@ export async function guardarCanasta(_prev: FormState, fd: FormData): Promise<Fo
   const id = txt(fd, "id", 40);
   // El envase principal define el precio de la canasta y siempre está visible.
   const { data: envase } = await supabase.from("canasta_envases").select("precio").eq("canasta_id", id).eq("envase_id", txt(fd, "envase_base_id", 40)).maybeSingle();
-  if (!envase) return { error: "Ese envase no está en la canasta. Agrégalo en Receta de productos." };
+  if (!envase) return { error: "Ese envase no está en la canasta. Agrégalo en Contenido y envases." };
   const r = datosCanasta(fd, Number(envase.precio));
   if ("error" in r) return { error: r.error };
 

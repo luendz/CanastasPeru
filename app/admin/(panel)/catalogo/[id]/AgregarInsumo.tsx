@@ -39,7 +39,7 @@ export default function AgregarInsumo({ productoId, productos }: { productoId: s
 
   return (
     <div className="admBuscador">
-      <label>Agregar insumo
+      <label>Agregar producto al contenido
         <input
           className="admInput"
           type="search"

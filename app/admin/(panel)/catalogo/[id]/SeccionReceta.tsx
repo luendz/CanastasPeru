@@ -35,7 +35,10 @@ export default async function SeccionReceta({ productoId }: { productoId: string
   return (
     <section className="admCard admCardFlush admCardAbierta">
       <div className="admCardHead admPad">
-        <h2>Receta de productos</h2>
+        <div>
+          <h2>1. Contenido de la canasta</h2>
+          <p className="admMuted admSmall">Lo que va dentro. Es igual para todos los envases.</p>
+        </div>
         <span className="admMuted">{filas.length} {filas.length === 1 ? "producto" : "productos"}</span>
       </div>
       <table className="admTable">
@@ -62,7 +65,7 @@ export default async function SeccionReceta({ productoId }: { productoId: string
         {filas.length > 0 && (
           <tfoot>
             <tr className="admFilaFuerte">
-              <td colSpan={4}>Costo total de los productos{sinCosto > 0 && <small className="admWarn"> · {sinCosto} sin costo</small>}</td>
+              <td colSpan={4}>Costo del contenido{sinCosto > 0 && <small className="admWarn"> · {sinCosto} sin costo</small>}</td>
               <td className="num">{soles(total)}</td>
               <td />
             </tr>
