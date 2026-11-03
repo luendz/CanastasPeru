@@ -143,7 +143,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           {lines.map((l) => (
             <li key={`${l.slug}|${l.tipo.id}`}>
               <span className="summaryThumb">
-                <span className="cartThumbStage"><ProductComposition product={l.product} baseImage={l.tipo.image} /></span>
+                <span className="cartThumbStage"><ProductComposition product={l.product} baseImage={l.tipo.image} envaseId={l.tipo.id} /></span>
                 <b>{l.cantidad}</b>
               </span>
               <span className="summaryItemName">{l.product.name}<small>{l.tipo.label} · {formatPrice(l.precio)} c/u</small></span>

@@ -39,7 +39,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           {product.badge && <span className="badges">{separarInsignias(product.badge).map((b) => <span className="badge" key={b}>{b}</span>)}</span>}
           <ViewTransition name={`basket-${product.slug}`} share="basketMorph" default="none">
             <div className="detailBasket">
-              <ProductComposition baseImage={selected.image} product={product} variant="detail" />
+              <ProductComposition baseImage={selected.image} envaseId={selected.id} product={product} variant="detail" />
             </div>
           </ViewTransition>
           <span className="detailHint">Pasa el cursor sobre cada producto</span>

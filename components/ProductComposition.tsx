@@ -45,6 +45,8 @@ type ProductCompositionProps = {
   variant?: "card" | "detail";
   /** Sustituye la canasta propia del producto por otro tipo elegido. */
   baseImage?: string;
+  /** Envase que se muestra (su id), para tomar su ajuste. Por defecto, el principal. */
+  envaseId?: string;
   /** Los productos caen uno a uno dentro de la canasta al montarse. */
   assemble?: boolean;
   /** Alto del recuadro respecto a su ancho. */
@@ -114,10 +116,11 @@ export function hitsVisiblePixel(layer: HTMLElement, rotate: number, clientX: nu
 
 export { anchoProducto };
 
-export default function ProductComposition({ product, variant = "card", baseImage, assemble = false, proporcion = 1, encuadrar = true, resaltado, quieta = false }: ProductCompositionProps) {
+export default function ProductComposition({ product, variant = "card", baseImage, envaseId, assemble = false, proporcion = 1, encuadrar = true, resaltado, quieta = false }: ProductCompositionProps) {
   const isDetail = variant === "detail";
   const base = baseImage ?? product.baseImage;
-  const ajuste = (base && product.ajustesEnvase?.[base]) || AJUSTE_NEUTRO;
+  // El ajuste va por envase y no por foto: dos envases pueden compartir la misma foto.
+  const ajuste = product.ajustesEnvase?.[envaseId ?? product.baseType ?? ""] ?? AJUSTE_NEUTRO;
 
   const layerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState<number | null>(null);

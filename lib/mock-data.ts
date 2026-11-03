@@ -22,6 +22,7 @@ export type Product = {
   emoji: string;
   baseImage?: string;
   /** Ajuste de cada envase en esta canasta, según la foto del envase. */
+  /** Ajuste de cada envase en esta canasta, por id de envase. */
   ajustesEnvase?: Record<string, AjusteEnvase>;
   /** Tipo de canasta con el que se vende por defecto (id de envases). */
   baseType?: string;
