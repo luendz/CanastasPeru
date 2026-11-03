@@ -142,7 +142,7 @@ export default function CanastaForm({ canasta, tipos, categorias, insignias }: {
             {!tipos.some((t) => t.id === canasta.envase_base_id) && <option value="" disabled>Elige el envase principal</option>}
             {tipos.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
           </select>
-          {!nueva && tipos.length === 0 && <small className="admWarn">Esta canasta no tiene envases. Agrégalos en Receta de productos.</small>}
+          {!nueva && tipos.length === 0 && <small className="admWarn">Esta canasta no tiene envases. Agrégalos en Contenido y envases.</small>}
         </label>
         <label>Descripción completa
           <textarea className="admInput" name="descripcion_completa" rows={6} maxLength={2000} defaultValue={canasta.descripcion_completa} />

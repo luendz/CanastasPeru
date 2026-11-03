@@ -10,7 +10,7 @@ export default async function MediosPage() {
     <>
       <header className="admHead">
         <div>
-          <h1>Productos</h1>
+          <h1>Artículos</h1>
           <p className="admMuted">
             Biblioteca con las fotos de productos, canastas y marca. Luego elígelas desde la ficha de cada producto, el Catálogo o Contenido.
             Una imagen que se está usando en la web no se puede borrar.

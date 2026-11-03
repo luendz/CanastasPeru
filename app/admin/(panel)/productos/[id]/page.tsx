@@ -5,7 +5,7 @@ import type { Insumo } from "@/lib/admin/types";
 import { datosFicha, datosProducto } from "../datos";
 import FichaProducto from "../FichaProducto";
 
-export const metadata = { title: "Ficha del producto" };
+export const metadata = { title: "Ficha del artículo" };
 
 export default async function FichaProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { supabase } = await requireAdmin();
@@ -22,7 +22,7 @@ export default async function FichaProductoPage({ params }: { params: Promise<{ 
     <>
       <header className="admHead">
         <div>
-          <Link href="/admin/productos" className="admLinkMuted">← Productos</Link>
+          <Link href="/admin/productos" className="admLinkMuted">← Artículos</Link>
           <h1>{p.nombre}</h1>
           <p className="admMuted">SKU {p.sku}{p.categoria ? ` · ${p.categoria}` : ""}</p>
         </div>

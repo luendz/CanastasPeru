@@ -31,7 +31,7 @@ export default function FichaProducto({ producto: p, skuSugerido, categorias, in
           <input className="admInput" name="categoria" maxLength={60} list="categorias" defaultValue={p?.categoria ?? ""} placeholder="Ej. Menestras, Panetones, Chocolates" />
           <datalist id="categorias">{categorias.map((c) => <option key={c} value={c} />)}</datalist>
         </label>
-        <label className="admSpan2">Nombre del producto
+        <label className="admSpan2">Nombre del artículo
           <input className="admInput" name="nombre" required maxLength={160} defaultValue={p?.nombre ?? ""} placeholder="Nombre, marca y presentación: Lentejita Bebé Komilón 400 g" />
           <small className="admMuted">Es la descripción completa que sale en las cotizaciones, las órdenes y la página de cada canasta.</small>
         </label>
@@ -72,7 +72,7 @@ export default function FichaProducto({ producto: p, skuSugerido, categorias, in
         <div className="admField admSpan2">
           <span className="admFieldLabel">Imagen</span>
           <div className="admFichaImagen">
-            <SelectorImagen name="imagen" defaultValue={p?.imagen} label="Foto del producto" />
+            <SelectorImagen name="imagen" defaultValue={p?.imagen} label="Foto del artículo" />
             <label className="admEmojiLabel">Emoji si no hay foto
               <input className="admInput admInputEmoji" name="emoji" maxLength={8} defaultValue={p?.emoji ?? "📦"} />
             </label>
@@ -103,7 +103,7 @@ export default function FichaProducto({ producto: p, skuSugerido, categorias, in
         </details>
 
         <div className="admSpan2 admFormFootRow">
-          <button className="admBtn admBtnPrimary" type="submit" disabled={guardando}>{guardando ? "Guardando…" : p ? "Guardar cambios" : "Crear producto"}</button>
+          <button className="admBtn admBtnPrimary" type="submit" disabled={guardando}>{guardando ? "Guardando…" : p ? "Guardar cambios" : "Crear artículo"}</button>
           <Link className="admBtn" href="/admin/productos">Cancelar</Link>
           {estado.error && <span className="admError" role="alert">{estado.error}</span>}
         </div>

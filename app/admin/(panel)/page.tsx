@@ -134,7 +134,7 @@ export default async function DashboardPage() {
           <p className="admEmpty">Todo el stock cubre los pedidos pendientes.</p>
         ) : (
           <table className="admTable admTablaAmplia">
-            <thead><tr><th>Producto</th><th className="num">Stock</th><th className="num">Pendiente</th><th className="num">Mínimo</th><th className="num">Falta comprar</th></tr></thead>
+            <thead><tr><th>Artículo</th><th className="num">Stock</th><th className="num">Pendiente</th><th className="num">Mínimo</th><th className="num">Falta comprar</th></tr></thead>
             <tbody>
               {bajos.slice(0, 10).map((i) => {
                 const falta = Math.max(0, Number(i.requerido_pendiente) + Number(i.stock_minimo) - Number(i.stock));

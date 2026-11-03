@@ -118,11 +118,19 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
     <section className="admCard admCardFlush" id="envases">
       <div className="admCardHead admPad">
         <div>
-          <h2>Envases y precios</h2>
-          <p className="admMuted admSmall">Cada envase tiene un costo de presentación, por lo que el precio, el margen y la utilidad pueden variar. La foto, el nombre, la descripción y el producto se cambian en todas las canastas con ese envase; el precio y el orden, solo en esta.</p>
+          <h2>2. Envase y precio de venta</h2>
+          <p className="admMuted admSmall">Lo que el cliente elige en la web. Cada envase suma su costo al contenido y tiene su propio precio de venta. La foto, el nombre, la descripción y el producto se cambian en todas las canastas con ese envase; el precio y el orden, solo en esta.</p>
         </div>
         <button type="button" className="admBtn admBtnPrimary" onClick={() => (agregando ? cerrarAgregar() : setAgregando(true))}>+ Agregar envase</button>
       </div>
+
+      <p className="admFormulaCosto admPad">
+        <span>Contenido <strong>{soles(costoReceta)}</strong></span>
+        <span aria-hidden="true">+</span>
+        <span>costo del envase</span>
+        <span aria-hidden="true">=</span>
+        <span>costo de la canasta</span>
+      </p>
 
       {agregando && (
         <form
@@ -144,13 +152,13 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
               )}
             </select>
           </label>
-          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Envase y con foto.</small>}
+          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Artículos, con tipo Envase y con foto.</small>}
 
           {elegida && (
             <div className="admAgregarResumen">
               {elegida.imagen ? <img src={elegida.imagen} alt="" /> : <span className="admAgregarSinFoto">Sin foto</span>}
               <dl>
-                <div><dt>Productos de la canasta</dt><dd>{soles(costoReceta)}</dd></div>
+                <div><dt>Contenido de la canasta</dt><dd>{soles(costoReceta)}</dd></div>
                 <div><dt>Envase</dt><dd>{elegida.costo == null ? <span className="admWarn">Sin costo</span> : `+ ${soles(elegida.costo)}`}</dd></div>
                 <div className="admAgregarTotal"><dt>Costo de la canasta</dt><dd>{costoNuevo == null ? "—" : soles(costoNuevo)}</dd></div>
               </dl>
@@ -243,7 +251,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
 
       <table className="admTable admTablaEnvases">
         <thead>
-          <tr><th>N.°</th><th>Envase</th><th>Imagen</th><th className="num">Costo presentación</th><th className="num">Costo total</th><th className="num">Precio venta</th><th className="num">Margen</th><th className="num">Utilidad</th><th>Estado</th><th>Mostrar en web</th><th>Principal</th><th className="num">Acciones</th></tr>
+          <tr><th>N.°</th><th>Envase</th><th>Imagen</th><th className="num">Costo del envase</th><th className="num">Costo de la canasta</th><th className="num">Precio venta</th><th className="num">Margen</th><th className="num">Utilidad</th><th>Mostrar en web</th><th>Principal</th><th className="num">Acciones</th></tr>
         </thead>
         <tbody>
           {filas.map((f, i) => {
@@ -257,7 +265,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <div className="admEnvaseDatos">
                       <label>Nombre<input className="admInput" value={nombre} maxLength={80} required onChange={(e) => setNombre(e.target.value)} /></label>
                       <label>Descripción<input className="admInput" value={descripcion} maxLength={120} onChange={(e) => setDescripcion(e.target.value)} /></label>
-                      <label>Producto (costo)
+                      <label>Artículo (costo)
                         <select className="admInput" value={insumo} onChange={(e) => setInsumo(e.target.value)}>
                           <option value="">Sin relacionar</option>
                           {productos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -268,7 +276,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <>
                       <strong>{f.envase_nombre}</strong>
                       {f.descripcion && <small className="admMuted admBlock">{f.descripcion}</small>}
-                      <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Producto: ${f.articulo_nombre}` : "Sin producto relacionado"}</small>
+                      <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Artículo: ${f.articulo_nombre}` : "Sin artículo relacionado"}</small>
                     </>
                   )}
                 </td>
@@ -287,7 +295,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                 <td className="num">
                   {f.costo_total == null ? "—" : (
                     <>
-                      <small className="admMuted admBlock">{soles(f.costo_receta)} + {numero(f.costo_presentacion ?? 0, 2)}</small>
+                      <small className="admMuted admBlock">contenido {soles(f.costo_receta)} + envase {soles(f.costo_presentacion ?? 0)}</small>
                       <strong>{soles(f.costo_total)}</strong>
                     </>
                   )}
@@ -299,7 +307,6 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                 </td>
                 <td className="num">{f.margen_pct == null ? "—" : `${numero(f.margen_pct, 1)} %`}</td>
                 <td className="num" data-tone={f.utilidad != null && f.utilidad < 0 ? "bad" : undefined}>{f.utilidad == null ? "—" : soles(f.utilidad)}</td>
-                <td><span className="admBadge" data-stock={f.visible ? "ok" : "bajo"}>{f.visible ? "Activa" : "Oculta"}</span></td>
                 <td>
                   <button
                     type="button"

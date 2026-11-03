@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { datosFicha } from "../datos";
 import FichaProducto from "../FichaProducto";
 
-export const metadata = { title: "Nuevo producto" };
+export const metadata = { title: "Nuevo artículo" };
 
 export default async function NuevoProductoPage() {
   const { supabase } = await requireAdmin();
@@ -12,8 +12,8 @@ export default async function NuevoProductoPage() {
     <>
       <header className="admHead">
         <div>
-          <Link href="/admin/productos" className="admLinkMuted">← Productos</Link>
-          <h1>Nuevo producto</h1>
+          <Link href="/admin/productos" className="admLinkMuted">← Artículos</Link>
+          <h1>Nuevo artículo</h1>
           <p className="admMuted">El inventario y el costo se llenan solos cuando registres su primera compra en Costos totales.</p>
         </div>
       </header>

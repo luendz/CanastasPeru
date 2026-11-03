@@ -44,7 +44,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
     return (
       <p className="admWarn">
         {ordenados.length === 0 ? "Esta canasta no tiene envases." : "Ningún envase de esta canasta tiene foto."} Agrégalo en{" "}
-        <Link href={`/admin/catalogo/${id}?seccion=receta#envases`}>Receta de productos → Envases y precios</Link>.
+        <Link href={`/admin/catalogo/${id}?seccion=receta#envases`}>Contenido y envases → Envase y precio de venta</Link>.
       </p>
     );
   }
