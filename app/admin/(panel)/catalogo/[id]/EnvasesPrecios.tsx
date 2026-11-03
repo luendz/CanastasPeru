@@ -144,7 +144,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
               )}
             </select>
           </label>
-          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Empaque y con foto.</small>}
+          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Envase y con foto.</small>}
 
           {elegida && (
             <div className="admAgregarResumen">

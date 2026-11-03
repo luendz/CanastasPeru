@@ -80,7 +80,7 @@ export default async function ProduccionPage() {
             {filas.map((f) => (
               <tr key={f.articulo_id}>
                 <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.articulo_id}`}>{f.nombre}</Link></td>
-                <td>{f.tipo === "producto" ? "Producto" : f.tipo === "empaque" ? "Empaque" : "Otro"}</td>
+                <td>{f.tipo === "producto" ? "Producto" : f.tipo === "empaque" ? "Envase" : "Otro"}</td>
                 <td className="num">{numero(f.stock)}</td>
                 <td className="num">{numero(f.requerido)}</td>
                 <td className="num" data-tone={f.despues < 0 ? "bad" : undefined}>{numero(f.despues)}</td>

@@ -39,7 +39,7 @@ export default function FichaProducto({ producto: p, skuSugerido, categorias, in
         <label>Tipo
           <select className="admInput" name="tipo" defaultValue={p?.tipo ?? "producto"}>
             <option value="producto">Producto (va dentro de las canastas)</option>
-            <option value="empaque">Empaque (cestas, cajas, cintas, tarjetas)</option>
+            <option value="empaque">Envase (cestas, cajas: se puede usar como envase de una canasta)</option>
             <option value="otro">Otro</option>
           </select>
         </label>
