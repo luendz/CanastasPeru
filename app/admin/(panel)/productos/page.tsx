@@ -5,7 +5,7 @@ import type { CostoInsumo, Insumo, InventarioFila } from "@/lib/admin/types";
 import EliminarProducto from "./EliminarProducto";
 import PestanasProductos from "./PestanasProductos";
 
-export const metadata = { title: "Productos" };
+export const metadata = { title: "Artículos" };
 
 type Search = { q?: string; categoria?: string; tipo?: string; guardado?: string };
 
@@ -35,25 +35,25 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
     <>
       <header className="admHead">
         <div>
-          <h1>Productos</h1>
-          <p className="admMuted">Cada producto con su SKU, categoría, presentación e imagen. El inventario y el costo se actualizan solos con las compras.</p>
+          <h1>Artículos</h1>
+          <p className="admMuted">Cada artículo con su SKU, categoría, presentación e imagen. El inventario y el costo se actualizan solos con las compras.</p>
         </div>
       </header>
 
       <PestanasProductos actual="productos" />
 
-      {guardado && <p className="admSuccess" role="status">Producto {guardado} guardado.</p>}
-      {error && <p className="admError">No se pudieron cargar los productos: {error.message}</p>}
+      {guardado && <p className="admSuccess" role="status">Artículo {guardado} guardado.</p>}
+      {error && <p className="admError">No se pudieron cargar los artículos: {error.message}</p>}
 
       <form className="admFilters admFiltrosProductos" method="get">
         <Link className="admBtn admBtnPrimary" href="/admin/productos/nuevo">+ Añadir nuevo</Link>
-        <input className="admInput" name="q" defaultValue={q} placeholder="Buscar producto por nombre o SKU" />
+        <input className="admInput" name="q" defaultValue={q} placeholder="Buscar artículo por nombre o SKU" />
         <select className="admInput" name="categoria" defaultValue={categoria} aria-label="Filtrar por categoría">
           <option value="">Todas las categorías</option>
           {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className="admInput" name="tipo" defaultValue={tipo} aria-label="Filtrar por tipo">
-          <option value="">Productos y envases</option>
+          <option value="">Todos los tipos</option>
           <option value="producto">Solo productos</option>
           <option value="envase">Solo envases</option>
           <option value="otro">Otros</option>
@@ -64,7 +64,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
 
       <div className="admCard admCardFlush">
         {lista.length === 0 ? (
-          <p className="admEmpty">No hay productos con estos filtros.</p>
+          <p className="admEmpty">No hay artículos con estos filtros.</p>
         ) : (
           <table className="admTable admTablaProductos">
             <thead>
@@ -96,7 +96,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
           </table>
         )}
       </div>
-      <p className="admMuted admSmall">{lista.length} de {todos.length} productos. Pulsa el SKU para abrir y editar la ficha.</p>
+      <p className="admMuted admSmall">{lista.length} de {todos.length} artículos. Pulsa el SKU para abrir y editar la ficha.</p>
     </>
   );
 }

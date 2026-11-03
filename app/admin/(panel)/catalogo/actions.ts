@@ -262,7 +262,7 @@ async function tipoDeInsumo(supabase: Awaited<ReturnType<typeof requireAdmin>>["
   if (existente) return existente.id as string;
 
   const { data: insumo } = await supabase.from("articulos").select("nombre,imagen").eq("id", insumoId).eq("tipo", "envase").maybeSingle();
-  if (!insumo?.imagen) throw new Error("El envase necesita una foto en Productos.");
+  if (!insumo?.imagen) throw new Error("El envase necesita una foto en Artículos.");
 
   const { data: tipos } = await supabase.from("envases").select("id,orden");
   const lista = (tipos ?? []) as { id: string; orden: number }[];

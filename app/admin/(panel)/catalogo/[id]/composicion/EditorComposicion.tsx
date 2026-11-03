@@ -370,7 +370,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
               </ul>
             )}
           </div>
-          <p className="devHint">¿Falta una foto o un producto? Agrégalo en <Link href="/admin/productos">Productos</Link>.</p>
+          <p className="devHint">¿Falta una foto o un artículo? Agrégalo en <Link href="/admin/productos">Artículos</Link>.</p>
 
         </aside>
       </div>

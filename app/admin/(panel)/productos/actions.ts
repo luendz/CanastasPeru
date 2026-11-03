@@ -32,7 +32,7 @@ const refrescar = (id?: string) => {
 export async function eliminarProducto(id: string): Promise<ProductoState> {
   const { supabase } = await requireAdmin();
   const { data: producto } = await supabase.from("articulos").select("nombre").eq("id", id).maybeSingle();
-  if (!producto) return { error: "El producto ya no existe." };
+  if (!producto) return { error: "El artículo ya no existe." };
 
   const lista = [{ articulo_id: id }];
   const [recetas, envases, compositions, compras, ordenes, cotizaciones] = await Promise.all([
@@ -50,7 +50,7 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   const canastas = ((recetas.data ?? []) as unknown as { canastas: { nombre: string } }[]).map((r) => r.canastas.nombre).join(", ");
   const usos = [
     canastas && `está en la receta de ${canastas}`,
-    envases.data?.length && `es el producto del envase ${nombres(envases.data)}`,
+    envases.data?.length && `es el artículo del envase ${nombres(envases.data)}`,
     compositions.data?.length && `está en la composición visual de ${nombres(compositions.data)}`,
     compras.count && `tiene ${compras.count} ${compras.count === 1 ? "compra registrada" : "compras registradas"}`,
     ordenes.count && "está en órdenes",
@@ -76,7 +76,7 @@ export async function guardarProducto(_prev: ProductoState, fd: FormData): Promi
   const img = imagen(fd);
 
   if (!sku) return { error: "Falta el SKU." };
-  if (!nombre) return { error: "Escribe el nombre completo del producto (nombre, marca y presentación)." };
+  if (!nombre) return { error: "Escribe el nombre completo del artículo (nombre, marca y presentación)." };
   if (!["producto", "envase", "otro"].includes(tipo)) return { error: "Elige el tipo." };
   if (!PRESENTACIONES.includes(presentacion)) return { error: "Elige la presentación." };
   if (!(unidades > 0)) return { error: "Las unidades por presentación deben ser mayores que cero." };
@@ -101,7 +101,7 @@ export async function guardarProducto(_prev: ProductoState, fd: FormData): Promi
     ? await supabase.from("articulos").update(datos).eq("id", id).select("id").single()
     : await supabase.from("articulos").insert(datos).select("id").single();
   if (error) {
-    if (error.code === "23505") return { error: error.message.includes("sku") ? "Ya existe un producto con ese SKU." : "Ya existe un producto con ese nombre." };
+    if (error.code === "23505") return { error: error.message.includes("sku") ? "Ya existe un artículo con ese SKU." : "Ya existe un artículo con ese nombre." };
     return { error: error.message };
   }
   refrescar(data.id);

@@ -63,7 +63,7 @@ export default async function ProduccionPage() {
             <p className="admEmpty">El stock cubre todos los pedidos pendientes.</p>
           ) : (
             <table className="admTable admTableCompact">
-              <thead><tr><th>Producto</th><th className="num">Falta comprar</th></tr></thead>
+              <thead><tr><th>Artículo</th><th className="num">Falta comprar</th></tr></thead>
               <tbody>
                 {aComprar.map((f) => <tr key={f.articulo_id}><td className="admCeldaLarga">{f.nombre}</td><td className="num"><strong>{numero(f.faltante, 2).replace(/[.,]00$/, "")}</strong> <small className="admMuted">{f.unidad}</small></td></tr>)}
               </tbody>
@@ -73,9 +73,9 @@ export default async function ProduccionPage() {
       </div>
 
       <section className="admCard admCardFlush">
-        <div className="admCardHead admPad"><h2>Inventario de productos</h2><Link href="/admin/productos/nuevo">+ Añadir producto</Link></div>
+        <div className="admCardHead admPad"><h2>Inventario de artículos</h2><Link href="/admin/productos/nuevo">+ Añadir artículo</Link></div>
         <table className="admTable">
-          <thead><tr><th>Producto</th><th>Tipo</th><th className="num">Stock</th><th className="num">Requerido</th><th className="num">Queda</th><th>Estado</th><th>Stock inicial · mínimo</th></tr></thead>
+          <thead><tr><th>Artículo</th><th>Tipo</th><th className="num">Stock</th><th className="num">Requerido</th><th className="num">Queda</th><th>Estado</th><th>Stock inicial · mínimo</th></tr></thead>
           <tbody>
             {filas.map((f) => (
               <tr key={f.articulo_id}>

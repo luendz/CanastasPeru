@@ -152,7 +152,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
               )}
             </select>
           </label>
-          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Envase y con foto.</small>}
+          {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Artículos, con tipo Envase y con foto.</small>}
 
           {elegida && (
             <div className="admAgregarResumen">
@@ -265,7 +265,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <div className="admEnvaseDatos">
                       <label>Nombre<input className="admInput" value={nombre} maxLength={80} required onChange={(e) => setNombre(e.target.value)} /></label>
                       <label>Descripción<input className="admInput" value={descripcion} maxLength={120} onChange={(e) => setDescripcion(e.target.value)} /></label>
-                      <label>Producto (costo)
+                      <label>Artículo (costo)
                         <select className="admInput" value={insumo} onChange={(e) => setInsumo(e.target.value)}>
                           <option value="">Sin relacionar</option>
                           {productos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
@@ -276,7 +276,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <>
                       <strong>{f.envase_nombre}</strong>
                       {f.descripcion && <small className="admMuted admBlock">{f.descripcion}</small>}
-                      <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Producto: ${f.articulo_nombre}` : "Sin producto relacionado"}</small>
+                      <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Artículo: ${f.articulo_nombre}` : "Sin artículo relacionado"}</small>
                     </>
                   )}
                 </td>
