@@ -184,7 +184,7 @@ export async function guardarEnvase(productoId: string, tipo: string, precio: nu
 export async function alternarEnvase(productoId: string, tipo: string, visible: boolean): Promise<FormState> {
   const { supabase } = await requireAdmin();
   const { data: producto } = await supabase.from("canastas").select("envase_base_id").eq("id", productoId).maybeSingle();
-  if (producto?.envase_base_id === tipo && !visible) return { error: "El envase principal siempre se muestra. Elige otro en Datos generales." };
+  if (producto?.envase_base_id === tipo && !visible) return { error: "El envase principal siempre se muestra. Marca otro como principal." };
 
   const { error } = await supabase.from("canasta_envases").update({ visible }).eq("canasta_id", productoId).eq("envase_id", tipo);
   if (error) return { error: error.message };
@@ -234,10 +234,24 @@ export async function guardarImagenEnvase(productoId: string, tipo: string, url:
 export async function quitarEnvase(productoId: string, tipo: string): Promise<FormState> {
   const { supabase } = await requireAdmin();
   const { data: producto } = await supabase.from("canastas").select("envase_base_id").eq("id", productoId).maybeSingle();
-  if (producto?.envase_base_id === tipo) return { error: "No se puede quitar el envase principal. Elige otro en Datos generales." };
+  if (producto?.envase_base_id === tipo) return { error: "No se puede quitar el envase principal. Marca otro como principal." };
 
   const { error } = await supabase.from("canasta_envases").delete().eq("canasta_id", productoId).eq("envase_id", tipo);
   if (error) return { error: error.message };
+  refrescar(productoId);
+  return { ok: true };
+}
+
+/** Hace principal un envase de la canasta, como en Datos generales: la canasta toma su precio y el envase queda visible. */
+export async function hacerPrincipal(productoId: string, tipo: string): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+  const { data: envase } = await supabase.from("canasta_envases").select("precio").eq("canasta_id", productoId).eq("envase_id", tipo).maybeSingle();
+  if (!envase) return { error: "Ese envase ya no está en la canasta. Recarga la página." };
+
+  const { error, count } = await supabase.from("canastas").update({ envase_base_id: tipo, precio: Number(envase.precio) }, { count: "exact" }).eq("id", productoId);
+  if (error) return { error: error.message };
+  if (!count) return { error: "No se encontró la canasta." };
+  await supabase.from("canasta_envases").update({ visible: true }).eq("canasta_id", productoId).eq("envase_id", tipo);
   refrescar(productoId);
   return { ok: true };
 }
