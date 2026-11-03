@@ -53,9 +53,9 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
           {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <select className="admInput" name="tipo" defaultValue={tipo} aria-label="Filtrar por tipo">
-          <option value="">Productos y empaques</option>
+          <option value="">Productos y envases</option>
           <option value="producto">Solo productos</option>
-          <option value="empaque">Solo empaques</option>
+          <option value="envase">Solo envases</option>
           <option value="otro">Otros</option>
         </select>
         <button className="admBtn" type="submit">Filtrar</button>
@@ -87,7 +87,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td className="num" data-tone={existencias < Number(i.stock_minimo) ? "bad" : undefined}>{numero(existencias)}</td>
                     <td className="num">{c != null ? soles(c) : <span className="admMuted">—</span>}</td>
-                    <td>{i.tipo === "empaque" ? "Empaque" : i.tipo === "otro" ? "Otro" : "Producto"}</td>
+                    <td>{i.tipo === "envase" ? "Envase" : i.tipo === "otro" ? "Otro" : "Producto"}</td>
                     <td className="num"><EliminarProducto id={i.id} nombre={i.nombre} /></td>
                   </tr>
                 );

@@ -64,7 +64,7 @@ export default function RegistroCompra({ productos, proveedores, inicial, editar
     cambiar(i, {
       articulo_id: p.id,
       descripcion: p.nombre,
-      categoria: p.tipo === "empaque" ? "empaque" : "mercaderia",
+      categoria: p.tipo === "envase" ? "empaque" : "mercaderia",
       presentacion: p.presentacion_compra || "Unidad",
       unidades_por_presentacion: String(p.unidades_por_presentacion || 1),
     });

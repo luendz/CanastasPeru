@@ -150,7 +150,7 @@ export type Insumo = {
   nombre: string;
   categoria: string | null;
   unidad: string;
-  tipo: "producto" | "empaque" | "otro";
+  tipo: "producto" | "envase" | "otro";
   presentacion_compra: string;
   unidades_por_presentacion: number;
   stock_inicial: number;

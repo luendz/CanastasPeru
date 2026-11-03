@@ -77,7 +77,7 @@ export async function guardarProducto(_prev: ProductoState, fd: FormData): Promi
 
   if (!sku) return { error: "Falta el SKU." };
   if (!nombre) return { error: "Escribe el nombre completo del producto (nombre, marca y presentación)." };
-  if (!["producto", "empaque", "otro"].includes(tipo)) return { error: "Elige el tipo." };
+  if (!["producto", "envase", "otro"].includes(tipo)) return { error: "Elige el tipo." };
   if (!PRESENTACIONES.includes(presentacion)) return { error: "Elige la presentación." };
   if (!(unidades > 0)) return { error: "Las unidades por presentación deben ser mayores que cero." };
   if (img === undefined) return { error: "La imagen debe elegirse de la biblioteca." };
