@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import ProductComposition, { AJUSTE_NEUTRO, anchoProducto } from "@/components/ProductComposition";
+import ProductComposition, { AJUSTE_NEUTRO, anchoProducto, hitsVisiblePixel, marco } from "@/components/ProductComposition";
 import type { AjusteEnvase, BasketType, Product, ProductVisualItem } from "@/lib/mock-data";
 import { guardarComposicion, type GuardarState } from "./actions";
 
@@ -13,6 +13,11 @@ const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g,
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 /** En la selección, el envase va aparte de los productos. */
 const SEL_ENVASE = -1;
+/** Lo que se ve en la tienda: el recuadro cuadrado (tarjeta, detalle, carrito) y el del inicio (4:3). */
+const MARCOS = [
+  { etiqueta: "Catálogo y detalle", ...marco(1) },
+  { etiqueta: "Inicio", ...marco(0.75) },
+];
 
 /** `basketTypes` son los envases de la canasta; `product.ajustesEnvase` va por id de envase. */
 type Props = { id: string; product: Product; basketTypes: BasketType[]; insumos: InsumoVisual[] };
@@ -21,6 +26,8 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const [variant, setVariant] = useState<Variant>("detail");
   const [items, setItems] = useState<ProductVisualItem[]>(product.visualItems);
   const [selected, setSelected] = useState(0);
+  const [encima, setEncima] = useState<number | null>(null);
+  const [arrastrando, setArrastrando] = useState(false);
   const [guardado, setGuardado] = useState<GuardarState | null>(null);
   const [cambios, setCambios] = useState(false);
   const [guardando, startGuardar] = useTransition();
@@ -33,6 +40,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
 
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ index: number; offsetX: number; offsetY: number } | null>(null);
+  const envaseRef = useRef<HTMLButtonElement>(null);
 
   const envase = basketTypes.find((t) => t.id === envaseId);
   const basketImage = envase?.image ?? "";
@@ -75,21 +83,41 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     else patch(index, { left: clamp(left), top: clamp(top) });
   }
 
-  function onPointerDown(event: React.PointerEvent<HTMLButtonElement>, index: number) {
+  /** Lo que hay bajo el puntero: el producto por su silueta (el de más adelante primero) o, si no, el envase. */
+  function elegir(clientX: number, clientY: number): number | null {
     const stage = stageRef.current;
-    if (!stage) return;
+    if (!stage) return null;
+    const capas = new Map([...stage.querySelectorAll<HTMLElement>("[data-indice]")].map((el) => [Number(el.dataset.indice), el]));
+    const orden = items.map((item, index) => ({ index, z: item.zIndex ?? 5, giro: item.rotate ?? 0 })).sort((a, b) => b.z - a.z || b.index - a.index);
+    const hit = orden.find(({ index, giro }) => {
+      const capa = capas.get(index);
+      return capa ? hitsVisiblePixel(capa, giro, clientX, clientY) : false;
+    });
+    if (hit) return hit.index;
+    const caja = envaseRef.current?.getBoundingClientRect();
+    return caja && clientX >= caja.left && clientX <= caja.right && clientY >= caja.top && clientY <= caja.bottom ? SEL_ENVASE : null;
+  }
+
+  function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    const stage = stageRef.current;
+    const index = elegir(event.clientX, event.clientY);
+    if (!stage || index === null) return;
     const rect = stage.getBoundingClientRect();
     const centerX = rect.left + (centro(index).left / 100) * rect.width;
     const centerY = rect.top + (centro(index).top / 100) * rect.height;
     dragRef.current = { index, offsetX: event.clientX - centerX, offsetY: event.clientY - centerY };
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelected(index);
+    setArrastrando(true);
   }
 
-  function onPointerMove(event: React.PointerEvent<HTMLButtonElement>) {
+  function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
     const drag = dragRef.current;
     const stage = stageRef.current;
-    if (!drag || !stage) return;
+    if (!drag || !stage) {
+      setEncima(elegir(event.clientX, event.clientY));
+      return;
+    }
     const rect = stage.getBoundingClientRect();
     mover(drag.index, ((event.clientX - drag.offsetX - rect.left) / rect.width) * 100, ((event.clientY - drag.offsetY - rect.top) / rect.height) * 100);
   }
@@ -172,16 +200,31 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
         <div className="devColumna">
         <div className={variant === "card" ? "devStageWrap devStageCard" : "devStageWrap"}>
           <div className="devStage" ref={stageRef}>
-            <ProductComposition baseImage={basketImage} product={draft} variant={variant} encuadrar={false} />
+            <ProductComposition
+              baseImage={basketImage}
+              product={draft}
+              variant={variant}
+              encuadrar={false}
+              resaltado={encima !== null && encima !== SEL_ENVASE ? encima : selected >= 0 ? selected : null}
+            />
             <div className="devOverlay">
-              {/* Va primero para quedar debajo de los productos, como en la imagen. */}
+              {MARCOS.map((m) => (
+                <div
+                  aria-hidden="true"
+                  className="devMarco"
+                  key={m.etiqueta}
+                  style={{ left: `${m.izquierda}%`, width: `${m.ancho}%`, top: `${(m.arriba / 75) * 100}%`, height: `${(m.alto / 75) * 100}%` }}
+                >
+                  <span>{m.etiqueta}</span>
+                </div>
+              ))}
+              {/* El envase se marca con su recuadro; los productos, con su silueta. Los botones sirven para el teclado. */}
               <button
                 aria-label={`Mover envase ${nombreEnvase}`}
-                className={selected === SEL_ENVASE ? "devHandle devHandleEnvase devHandleActive" : "devHandle devHandleEnvase"}
+                className={`devHandle devHandleEnvase${selected === SEL_ENVASE ? " devHandleActive" : encima === SEL_ENVASE ? " devHandleEncima" : ""}`}
+                onFocus={() => setSelected(SEL_ENVASE)}
                 onKeyDown={(event) => onKeyDown(event, SEL_ENVASE)}
-                onPointerDown={(event) => onPointerDown(event, SEL_ENVASE)}
-                onPointerMove={onPointerMove}
-                onPointerUp={() => { dragRef.current = null; }}
+                ref={envaseRef}
                 style={{
                   top: `${centro(SEL_ENVASE).top}%`,
                   left: `${centro(SEL_ENVASE).left}%`,
@@ -194,12 +237,10 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
               {items.map((item, index) => (
                 <button
                   aria-label={`Mover ${item.name}`}
-                  className={index === selected ? "devHandle devHandleActive" : "devHandle"}
+                  className="devHandle devHandleTeclado"
                   key={item.name}
+                  onFocus={() => setSelected(index)}
                   onKeyDown={(event) => onKeyDown(event, index)}
-                  onPointerDown={(event) => onPointerDown(event, index)}
-                  onPointerMove={onPointerMove}
-                  onPointerUp={() => { dragRef.current = null; }}
                   style={{
                     top: `${item.top}%`,
                     left: `${item.left}%`,
@@ -210,8 +251,16 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                   type="button"
                 />
               ))}
-              {/* Van después de todos los recuadros para que ninguno tape una ✕. */}
-              {items.map((item, index) => (
+              <div
+                className="devCaptura"
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={() => { dragRef.current = null; setArrastrando(false); }}
+                onPointerLeave={() => setEncima(null)}
+                style={{ cursor: arrastrando ? "grabbing" : encima !== null ? "grab" : "default" }}
+              />
+              {/* La ✕ va encima de todo, solo en el producto elegido. */}
+              {items.map((item, index) => index === selected && (
                 <div
                   className="devQuitarCaja"
                   key={item.name}

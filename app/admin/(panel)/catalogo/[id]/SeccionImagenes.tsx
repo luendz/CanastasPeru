@@ -52,7 +52,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
   return (
     <section className="admCard admComposicion">
       <p className="admMuted">
-        Arrastra el envase y cada producto. Así se verá en el catálogo y en la página del producto.
+        Arrastra el envase y cada producto. Lo que quede dentro de cada marco es lo que se ve en la tienda: el cuadrado en el catálogo, la página del producto y el carrito, y el ancho en el inicio.
         {sinFoto > 0 && ` ${sinFoto === 1 ? "Un envase de esta canasta no sale en la lista porque no tiene foto." : `${sinFoto} envases de esta canasta no salen en la lista porque no tienen foto.`}`}
       </p>
       <EditorComposicion

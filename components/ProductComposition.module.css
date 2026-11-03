@@ -105,6 +105,17 @@
     drop-shadow(0 10px 10px rgba(0, 0, 0, .18));
 }
 
+/* En el editor, el producto elegido se marca con su silueta, sin moverlo de capa. */
+.itemResaltado .itemEmoji,
+.itemResaltado .itemImage {
+  filter:
+    drop-shadow(2px 0 0 #215e40)
+    drop-shadow(-2px 0 0 #215e40)
+    drop-shadow(0 2px 0 #215e40)
+    drop-shadow(0 -2px 0 #215e40)
+    drop-shadow(0 8px 8px rgba(0, 0, 0, .16));
+}
+
 .itemEmoji {
   display: block;
   line-height: 1;
@@ -141,6 +152,15 @@
 
 .card:hover .itemLayer {
   translate: var(--ex) var(--ey);
+}
+
+/* Quieta: la tarjeta no mueve la canasta ni los productos al pasar el mouse. */
+.quieta.card:hover .baseLayer {
+  transform: none;
+}
+
+.quieta.card:hover .itemLayer {
+  translate: none;
 }
 
 /* Armado: los productos caen dentro de la canasta uno tras otro. */
