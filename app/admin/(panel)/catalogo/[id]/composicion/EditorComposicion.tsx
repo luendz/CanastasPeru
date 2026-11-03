@@ -46,8 +46,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const basketImage = envase?.image ?? "";
   const nombreEnvase = envase?.label ?? "Envase";
   const ajuste = ajustes[envaseId] ?? AJUSTE_NEUTRO;
-  // La vista previa busca el ajuste por la foto que muestra.
-  const draft = { ...product, visualItems: items, ajustesEnvase: { [basketImage]: ajuste } };
+  const draft = { ...product, visualItems: items, ajustesEnvase: ajustes };
   const current = items[selected];
   const centroEnvase = { left: cajaEnvase.left + cajaEnvase.width / 2, top: cajaEnvase.top + cajaEnvase.height / 2 };
   const centro = (index: number) => (index === SEL_ENVASE ? { left: centroEnvase.left + ajuste.x, top: centroEnvase.top + ajuste.y } : items[index]);
@@ -202,6 +201,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
           <div className="devStage" ref={stageRef}>
             <ProductComposition
               baseImage={basketImage}
+              envaseId={envaseId}
               product={draft}
               variant={variant}
               encuadrar={false}

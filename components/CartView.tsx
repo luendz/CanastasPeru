@@ -76,7 +76,7 @@ export default function CartView({ products, basketTypes, opciones }: Props) {
             <li className="cartRow" key={clave(l)} data-leaving={leaving.includes(clave(l)) || undefined} style={{ "--i": i } as React.CSSProperties}>
               <div className="cartItem">
                 <Link className="cartThumb" href={`/producto/${l.product.slug}`} aria-label={`Ver ${l.product.name}`}>
-                  <span className="cartThumbStage"><ProductComposition product={l.product} baseImage={l.tipo.image} /></span>
+                  <span className="cartThumbStage"><ProductComposition product={l.product} baseImage={l.tipo.image} envaseId={l.tipo.id} /></span>
                 </Link>
                 <div className="cartInfo">
                   <span className="eyebrow">{l.product.category}</span>

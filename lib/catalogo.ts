@@ -63,7 +63,6 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
   }
 
   const c = data as CatalogoWeb;
-  const fotoEnvase = new Map(c.envases.map((t) => [t.id, t.imagen]));
   return {
     fuente: "base",
     products: c.canastas.map((p) => ({
@@ -75,10 +74,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       badge: p.insignia ?? undefined,
       emoji: p.emoji,
       baseImage: p.imagen_base ?? undefined,
-      ajustesEnvase: Object.fromEntries(Object.entries(p.ajuste_envase ?? {}).flatMap(([id, ajuste]) => {
-        const foto = fotoEnvase.get(id);
-        return foto ? [[foto, ajuste]] : [];
-      })),
+      ajustesEnvase: p.ajuste_envase ?? {},
       baseType: p.envase_base_id,
       envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,

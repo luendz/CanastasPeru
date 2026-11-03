@@ -1,18 +1,20 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import EnvasesPrecios, { type CanastaDestino, type FilaEnvase, type OpcionEnvase } from "./EnvasesPrecios";
 
-type Tipo = { id: string; nombre: string; descripcion: string | null; articulo_id: string | null };
-type Empaque = { id: string; nombre: string; imagen: string | null };
+type Tipo = { id: string; nombre: string; descripcion: string | null; imagen: string | null; articulo_id: string | null };
+type Empaque = { id: string; nombre: string; imagen: string | null; costo_referencia: number | null };
 
 /** Envases de la canasta con el cálculo de cada uno, y los que se le pueden agregar. */
 export default async function SeccionEnvases({ productoId }: { productoId: string }) {
   const { supabase } = await requireAdmin();
-  const [{ data: envases }, { data: tipos }, { data: empaques }, { data: canastas }, { data: usos }] = await Promise.all([
+  const [{ data: envases }, { data: tipos }, { data: empaques }, { data: canastas }, { data: usos }, { data: costos }, { data: armado }] = await Promise.all([
     supabase.from("v_envases_canasta").select("*").eq("canasta_id", productoId).order("orden").order("envase_id"),
-    supabase.from("envases").select("id,nombre,descripcion,articulo_id").order("orden"),
-    supabase.from("articulos").select("id,nombre,imagen").eq("tipo", "empaque").order("nombre"),
+    supabase.from("envases").select("id,nombre,descripcion,imagen,articulo_id").order("orden"),
+    supabase.from("articulos").select("id,nombre,imagen,costo_referencia").eq("tipo", "empaque").order("nombre"),
     supabase.from("canastas").select("id,nombre,precio").neq("id", productoId).order("orden").order("precio"),
     supabase.from("canasta_envases").select("canasta_id,envase_id"),
+    supabase.from("v_costo_articulos").select("articulo_id,costo_actual"),
+    supabase.from("v_armado_canasta").select("costo").eq("canasta_id", productoId).maybeSingle(),
   ]);
   const listaTipos = (tipos ?? []) as Tipo[];
   const descripcionDe = new Map(listaTipos.map((t) => [t.id, t.descripcion]));
@@ -23,6 +25,13 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
   // Se elige de los envases que ya vende la web o del listado de productos (con foto, porque la web la muestra).
   // Los que no se pueden elegir también salen, con el motivo, para que se sepa por qué.
   const nombreEmpaque = new Map(listaEmpaques.map((e) => [e.id, e.nombre]));
+  // Costo de cada producto como en la tabla: el de sus compras o, si no tiene, el de referencia.
+  const costoActual = new Map(((costos ?? []) as { articulo_id: string; costo_actual: number | null }[]).map((c) => [c.articulo_id, c.costo_actual]));
+  const costoDe = (articuloId: string | null) => {
+    if (!articuloId) return null;
+    const c = costoActual.get(articuloId) ?? listaEmpaques.find((e) => e.id === articuloId)?.costo_referencia;
+    return c == null ? null : Math.round(Number(c) * 100) / 100;
+  };
   const opciones: OpcionEnvase[] = [
     ...listaTipos.map((t) => {
       const producto = t.articulo_id ? nombreEmpaque.get(t.articulo_id) : undefined;
@@ -30,9 +39,11 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
         valor: `tipo:${t.id}`,
         etiqueta: producto && producto !== t.nombre ? `${t.nombre} (${producto})` : t.nombre,
         motivo: filas.some((f) => f.envase_id === t.id) ? "ya está en esta canasta" : undefined,
+        imagen: t.imagen ?? listaEmpaques.find((e) => e.id === t.articulo_id)?.imagen ?? null,
+        costo: costoDe(t.articulo_id),
       };
     }),
-    ...listaEmpaques.filter((e) => !relacionados.has(e.id)).map((e) => ({ valor: `insumo:${e.id}`, etiqueta: e.nombre, motivo: e.imagen ? undefined : "sin foto" })),
+    ...listaEmpaques.filter((e) => !relacionados.has(e.id)).map((e) => ({ valor: `insumo:${e.id}`, etiqueta: e.nombre, motivo: e.imagen ? undefined : "sin foto", imagen: e.imagen, costo: costoDe(e.id) })),
   ];
 
   // A qué otras canastas se puede llevar cada envase.
@@ -44,5 +55,5 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
     envases: listaUsos.filter((u) => u.canasta_id === c.id).map((u) => u.envase_id),
   }));
 
-  return <EnvasesPrecios productoId={productoId} filas={filas} opciones={opciones} destinos={destinos} productos={listaEmpaques.map((e) => ({ id: e.id, nombre: e.nombre }))} />;
+  return <EnvasesPrecios productoId={productoId} costoReceta={Number((armado as { costo: number } | null)?.costo ?? 0)} filas={filas} opciones={opciones} destinos={destinos} productos={listaEmpaques.map((e) => ({ id: e.id, nombre: e.nombre }))} />;
 }

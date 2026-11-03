@@ -520,6 +520,25 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admCompartirLista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 20px; margin: 0; padding: 0; list-style: none; }
 .admCompartirLista li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .admCompartirBotones { display: flex; flex-wrap: wrap; gap: 8px; }
+.admAgregarEnvase { display: grid; gap: 12px; max-width: 640px; padding-top: 14px; padding-bottom: 16px; border-top: 1px dashed var(--a-line); }
+.admAgregarEnvase h3 { margin: 0; font-size: 15px; }
+.admAgregarCampo { display: grid; gap: 5px; color: var(--a-muted); font-size: 12.5px; font-weight: 700; }
+.admAgregarPrecio { max-width: 220px; font-size: 18px; font-weight: 700; }
+.admAgregarResumen { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid var(--a-line); border-radius: 12px; background: #faf6ef; }
+.admAgregarResumen img, .admAgregarSinFoto { flex: none; width: 64px; height: 64px; border-radius: 10px; object-fit: contain; background: #fff; }
+.admAgregarSinFoto { display: grid; place-items: center; color: var(--a-muted); font-size: 11px; }
+.admAgregarResumen dl { display: grid; flex: 1; gap: 3px; margin: 0; font-size: 13px; }
+.admAgregarResumen dl div { display: flex; justify-content: space-between; gap: 12px; }
+.admAgregarResumen dt { color: var(--a-muted); }
+.admAgregarResumen dd { margin: 0; font-variant-numeric: tabular-nums; }
+.admAgregarTotal { padding-top: 4px; border-top: 1px solid var(--a-line); font-weight: 800; }
+.admAgregarTotal dt { color: var(--a-ink); }
+.admAgregarSugerencias { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.admChip { padding: 5px 11px; border: 1px solid var(--a-line); border-radius: 99px; background: #fff; color: var(--a-ink); font-size: 12.5px; cursor: pointer; }
+.admChip:hover, .admChip[aria-pressed="true"] { border-color: var(--a-wine); color: var(--a-wine); }
+.admAgregarResultado { margin: 0; font-size: 14px; }
+.admAgregarResultado[data-tone="ok"] { color: var(--a-ok); }
+.admAgregarResultado[data-tone="bad"] { color: var(--a-bad); }
 .admEnvaseAcciones button { font-size: 16px; }
 .admEnvaseAcciones button + button { margin-left: 14px; }
 .admEliminarError { max-width: 280px; margin-top: 4px; white-space: normal; text-align: right; }
