@@ -24,15 +24,15 @@ export type FilaEnvase = {
   utilidad: number | null;
   margen_pct: number | null;
 };
-/** Con `motivo`, se muestra en la lista pero no se puede elegir. */
-export type OpcionEnvase = { valor: string; etiqueta: string; motivo?: string };
+/** Con `motivo`, se muestra en la lista pero no se puede elegir. `costo` es el del envase, si se conoce. */
+export type OpcionEnvase = { valor: string; etiqueta: string; motivo?: string; imagen?: string | null; costo?: number | null };
 /** Otra canasta, con su precio en el catálogo y los envases que ya tiene. */
 export type CanastaDestino = { id: string; nombre: string; precio: number; envases: string[] };
 
-type Props = { productoId: string; filas: FilaEnvase[]; opciones: OpcionEnvase[]; destinos: CanastaDestino[]; productos: { id: string; nombre: string }[] };
+type Props = { productoId: string; costoReceta: number; filas: FilaEnvase[]; opciones: OpcionEnvase[]; destinos: CanastaDestino[]; productos: { id: string; nombre: string }[] };
 
 /** Tabla de envases de la canasta: costo, precio, margen y utilidad de cada uno. */
-export default function EnvasesPrecios({ productoId, filas, opciones, destinos, productos }: Props) {
+export default function EnvasesPrecios({ productoId, costoReceta, filas, opciones, destinos, productos }: Props) {
   const [editando, setEditando] = useState<string | null>(null);
   const [precio, setPrecio] = useState("");
   const [costo, setCosto] = useState("");
@@ -71,6 +71,34 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
     setInsumo(f.articulo_id ?? "");
   }
 
+  // Envase que se está agregando: su costo, el de la canasta con él y precios sugeridos.
+  const elegida = opciones.find((o) => o.valor === opcion);
+  const principal = filas.find((f) => f.principal);
+  const costoNuevo = elegida?.costo == null ? null : costoReceta + elegida.costo;
+  const sugerencias = costoNuevo == null ? [] : [
+    ...(principal?.utilidad != null && principal.utilidad > 0 ? [{ etiqueta: "Misma utilidad que el principal", precio: costoNuevo + principal.utilidad }] : []),
+    { etiqueta: "Margen 30 %", precio: precioRedondo(costoNuevo / 0.7) },
+    { etiqueta: "Margen 40 %", precio: precioRedondo(costoNuevo / 0.6) },
+  ];
+  const precioEscrito = Number(precioNuevo);
+  const utilidadNueva = costoNuevo != null && precioEscrito > 0 ? precioEscrito - costoNuevo : null;
+
+  function elegir(valor: string) {
+    setOpcion(valor);
+    const o = opciones.find((x) => x.valor === valor);
+    // Se propone la misma utilidad que deja el principal; si no la hay, un margen del 30 %.
+    if (o?.costo != null && !precioNuevo) {
+      const costoTotal = costoReceta + o.costo;
+      setPrecioNuevo((principal?.utilidad != null && principal.utilidad > 0 ? costoTotal + principal.utilidad : precioRedondo(costoTotal / 0.7)).toFixed(2));
+    }
+  }
+
+  function cerrarAgregar() {
+    setAgregando(false);
+    setOpcion("");
+    setPrecioNuevo("");
+  }
+
   const filaCompartida = filas.find((f) => f.envase_id === compartiendo);
   const disponibles = compartiendo ? destinos.filter((c) => !c.envases.includes(compartiendo)) : [];
 
@@ -93,23 +121,20 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
           <h2>Envases y precios</h2>
           <p className="admMuted admSmall">Cada envase tiene un costo de presentación, por lo que el precio, el margen y la utilidad pueden variar. La foto, el nombre, la descripción y el producto se cambian en todas las canastas con ese envase; el precio y el orden, solo en esta.</p>
         </div>
-        <button type="button" className="admBtn admBtnPrimary" onClick={() => setAgregando((a) => !a)}>+ Agregar envase</button>
+        <button type="button" className="admBtn admBtnPrimary" onClick={() => (agregando ? cerrarAgregar() : setAgregando(true))}>+ Agregar envase</button>
       </div>
 
       {agregando && (
         <form
-          className="admInlineForm admPad"
+          className="admAgregarEnvase admPad"
           onSubmit={(e) => {
             e.preventDefault();
-            ejecutar(() => agregarEnvase(productoId, opcion, Number(precioNuevo)), () => {
-              setAgregando(false);
-              setOpcion("");
-              setPrecioNuevo("");
-            });
+            ejecutar(() => agregarEnvase(productoId, opcion, Number(precioNuevo)), cerrarAgregar);
           }}
         >
-          <label>Envase
-            <select className="admInput" value={opcion} required onChange={(e) => setOpcion(e.target.value)}>
+          <h3>Agregar envase</h3>
+          <label className="admAgregarCampo">1. Elige el envase
+            <select className="admInput" value={opcion} required onChange={(e) => elegir(e.target.value)}>
               <option value="" disabled>Seleccionar</option>
               {opciones.filter((o) => !o.motivo).map((o) => <option key={o.valor} value={o.valor}>{o.etiqueta}</option>)}
               {opciones.some((o) => o.motivo) && (
@@ -119,11 +144,42 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
               )}
             </select>
           </label>
-          <label>Precio de venta (S/)
-            <input className="admInput" type="number" min="0.01" step="0.01" required value={precioNuevo} onChange={(e) => setPrecioNuevo(e.target.value)} />
-          </label>
-          <button className="admBtn" type="submit" disabled={guardando}>Agregar</button>
           {opciones.every((o) => o.motivo) && <small className="admMuted">No hay más envases. Súbelos en Productos, con tipo Empaque y con foto.</small>}
+
+          {elegida && (
+            <div className="admAgregarResumen">
+              {elegida.imagen ? <img src={elegida.imagen} alt="" /> : <span className="admAgregarSinFoto">Sin foto</span>}
+              <dl>
+                <div><dt>Productos de la canasta</dt><dd>{soles(costoReceta)}</dd></div>
+                <div><dt>Envase</dt><dd>{elegida.costo == null ? <span className="admWarn">Sin costo</span> : `+ ${soles(elegida.costo)}`}</dd></div>
+                <div className="admAgregarTotal"><dt>Costo de la canasta</dt><dd>{costoNuevo == null ? "—" : soles(costoNuevo)}</dd></div>
+              </dl>
+            </div>
+          )}
+
+          <label className="admAgregarCampo">2. Precio de venta de la canasta con este envase (S/)
+            <input className="admInput admAgregarPrecio" type="number" min="0.01" step="0.01" required inputMode="decimal" placeholder="0.00" value={precioNuevo} onChange={(e) => setPrecioNuevo(e.target.value)} />
+          </label>
+          {sugerencias.length > 0 && (
+            <div className="admAgregarSugerencias">
+              <span className="admMuted admSmall">Sugeridos:</span>
+              {sugerencias.map((s) => (
+                <button key={s.etiqueta} type="button" className="admChip" aria-pressed={Number(precioNuevo) === s.precio} onClick={() => setPrecioNuevo(s.precio.toFixed(2))}>
+                  {s.etiqueta} · <strong>{soles(s.precio)}</strong>
+                </button>
+              ))}
+            </div>
+          )}
+          {utilidadNueva != null && (
+            <p className="admAgregarResultado" data-tone={utilidadNueva < 0 ? "bad" : "ok"}>
+              {utilidadNueva < 0 ? "Pierdes" : "Ganas"} <strong>{soles(Math.abs(utilidadNueva))}</strong> por canasta · margen <strong>{numero((utilidadNueva / precioEscrito) * 100, 1)} %</strong>
+            </p>
+          )}
+
+          <div className="admCompartirBotones">
+            <button className="admBtn admBtnPrimary" type="submit" disabled={guardando || !opcion}>Agregar envase</button>
+            <button className="admBtn" type="button" onClick={cerrarAgregar}>Cancelar</button>
+          </div>
         </form>
       )}
 
@@ -299,4 +355,9 @@ export default function EnvasesPrecios({ productoId, filas, opciones, destinos, 
       </table>
     </section>
   );
+}
+
+/** Sube el precio al siguiente que termina en ,90, como los del catálogo. */
+function precioRedondo(n: number) {
+  return Math.ceil(n - 0.9) + 0.9;
 }
