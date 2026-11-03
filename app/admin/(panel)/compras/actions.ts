@@ -20,7 +20,7 @@ export type CabeceraCompra = {
 
 export type ItemCompra = {
   categoria: string;
-  insumo_id: string | null;
+  articulo_id: string | null;
   descripcion: string;
   presentacion: string;
   cantidad_presentaciones: number;
@@ -76,7 +76,7 @@ function fila(cab: CabeceraCompra, it: ItemCompra) {
     incluye_igv: cab.incluye_igv,
     notas: txt(cab.notas, 1000) || null,
     categoria: it.categoria,
-    insumo_id: it.insumo_id || null,
+    articulo_id: it.articulo_id || null,
     descripcion: txt(it.descripcion, 300),
     presentacion: txt(it.presentacion, 30) || "Unidad",
     cantidad_presentaciones: it.cantidad_presentaciones,
@@ -102,7 +102,7 @@ function leer(formData: FormData): { cab: CabeceraCompra; items: ItemCompra[] } 
     };
     const items = (Array.isArray(datos.items) ? datos.items : []).slice(0, 60).map((it) => ({
       categoria: txt(it.categoria, 20),
-      insumo_id: txt(it.insumo_id, 40) || null,
+      articulo_id: txt(it.articulo_id, 40) || null,
       descripcion: txt(it.descripcion, 300),
       presentacion: txt(it.presentacion, 30),
       cantidad_presentaciones: num(it.cantidad_presentaciones),
@@ -133,8 +133,8 @@ export async function registrarCompras(_prev: CompraState, formData: FormData): 
   if (error) return { error: error.message };
 
   // Cada producto recuerda cómo se compra, para prellenar la próxima vez.
-  for (const it of r.items.filter((x) => x.insumo_id)) {
-    await supabase.from("insumos").update({ presentacion_compra: it.presentacion || "Unidad", unidades_por_presentacion: it.unidades_por_presentacion }).eq("id", it.insumo_id!);
+  for (const it of r.items.filter((x) => x.articulo_id)) {
+    await supabase.from("articulos").update({ presentacion_compra: it.presentacion || "Unidad", unidades_por_presentacion: it.unidades_por_presentacion }).eq("id", it.articulo_id!);
   }
 
   refrescar();

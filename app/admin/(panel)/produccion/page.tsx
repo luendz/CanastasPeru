@@ -10,12 +10,12 @@ export default async function ProduccionPage() {
   const { supabase } = await requireAdmin();
   const [{ data: inv }, { data: pendientes }] = await Promise.all([
     supabase.from("v_inventario").select("*").order("tipo").order("nombre"),
-    supabase.from("orden_items").select("producto_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]),
+    supabase.from("orden_items").select("canasta_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]),
   ]);
   const inventario = (inv ?? []) as InventarioFila[];
 
   const porCanasta = new Map<string, number>();
-  ((pendientes ?? []) as unknown as OrdenItem[]).forEach((it) => porCanasta.set(it.producto_nombre, (porCanasta.get(it.producto_nombre) ?? 0) + it.cantidad));
+  ((pendientes ?? []) as unknown as OrdenItem[]).forEach((it) => porCanasta.set(it.canasta_nombre, (porCanasta.get(it.canasta_nombre) ?? 0) + it.cantidad));
   const totalCanastas = [...porCanasta.values()].reduce((s, n) => s + n, 0);
 
   const filas = inventario.map((i) => {
@@ -65,7 +65,7 @@ export default async function ProduccionPage() {
             <table className="admTable admTableCompact">
               <thead><tr><th>Producto</th><th className="num">Falta comprar</th></tr></thead>
               <tbody>
-                {aComprar.map((f) => <tr key={f.insumo_id}><td className="admCeldaLarga">{f.nombre}</td><td className="num"><strong>{numero(f.faltante, 2).replace(/[.,]00$/, "")}</strong> <small className="admMuted">{f.unidad}</small></td></tr>)}
+                {aComprar.map((f) => <tr key={f.articulo_id}><td className="admCeldaLarga">{f.nombre}</td><td className="num"><strong>{numero(f.faltante, 2).replace(/[.,]00$/, "")}</strong> <small className="admMuted">{f.unidad}</small></td></tr>)}
               </tbody>
             </table>
           )}
@@ -78,8 +78,8 @@ export default async function ProduccionPage() {
           <thead><tr><th>Producto</th><th>Tipo</th><th className="num">Stock</th><th className="num">Requerido</th><th className="num">Queda</th><th>Estado</th><th>Stock inicial · mínimo</th></tr></thead>
           <tbody>
             {filas.map((f) => (
-              <tr key={f.insumo_id}>
-                <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.insumo_id}`}>{f.nombre}</Link></td>
+              <tr key={f.articulo_id}>
+                <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.articulo_id}`}>{f.nombre}</Link></td>
                 <td>{f.tipo === "producto" ? "Producto" : f.tipo === "empaque" ? "Empaque" : "Otro"}</td>
                 <td className="num">{numero(f.stock)}</td>
                 <td className="num">{numero(f.requerido)}</td>
@@ -87,7 +87,7 @@ export default async function ProduccionPage() {
                 <td><span className="admBadge" data-stock={f.estado}>{f.estado === "falta" ? "Falta" : f.estado === "bajo" ? "Bajo mínimo" : "OK"}</span></td>
                 <td>
                   <form action={actualizarInsumo} className="admCellForm">
-                    <input type="hidden" name="id" value={f.insumo_id} />
+                    <input type="hidden" name="id" value={f.articulo_id} />
                     <input className="admInput admInputSm" type="number" step="0.01" name="stock_inicial" defaultValue={f.stock_inicial} aria-label={`Stock inicial de ${f.nombre}`} title="Stock inicial (lo que ya tenías antes de registrar compras)" />
                     <input className="admInput admInputSm" type="number" step="0.01" min="0" name="stock_minimo" defaultValue={f.stock_minimo} aria-label={`Stock mínimo de ${f.nombre}`} title="Stock mínimo" />
                     <button className="admLinkMuted" type="submit">Guardar</button>

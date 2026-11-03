@@ -19,7 +19,7 @@ export type CanastaOpcion = {
 };
 export type EnvaseOpcion = { id: string; nombre: string; recargo: number };
 export type ProductoOpcion = { id: string; nombre: string; costo: number | null };
-type Fila = { insumo_id: string; cantidad: number };
+type Fila = { articulo_id: string; cantidad: number };
 /** Línea ya guardada que se edita (sin ella, el formulario agrega una nueva). */
 export type LineaGuardada = { id: string; productoId: string | null; nombre: string; envase: string | null; cantidad: number; precio: number; contenido: Fila[] | null };
 
@@ -50,9 +50,9 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   const [inicio] = useState(() => {
     if (!linea) return null;
     const base = canastas.find((c) => c.id === linea.productoId);
-    const filas = linea.contenido?.map((f) => ({ insumo_id: f.insumo_id, cantidad: f.cantidad })) ?? base?.receta.map((r) => ({ ...r })) ?? [];
+    const filas = linea.contenido?.map((f) => ({ articulo_id: f.articulo_id, cantidad: f.cantidad })) ?? base?.receta.map((r) => ({ ...r })) ?? [];
     const presentacion = base?.envases.find((e) => e.id === linea.envase)?.costo ?? base?.costoPresentacion ?? null;
-    const costo = filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0) + (presentacion ?? 0);
+    const costo = filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.articulo_id)?.costo ?? 0), 0) + (presentacion ?? 0);
     return {
       canasta: base ? base.id : "personalizada",
       filas,
@@ -82,8 +82,8 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
     else elegir("");
   }, [estado.en, estado.ok]);
 
-  const costoProductos = redondear(filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0));
-  const sinCosto = filas.filter((f) => productoDe.get(f.insumo_id)?.costo == null).length;
+  const costoProductos = redondear(filas.reduce((s, f) => s + f.cantidad * (productoDe.get(f.articulo_id)?.costo ?? 0), 0));
+  const sinCosto = filas.filter((f) => productoDe.get(f.articulo_id)?.costo == null).length;
   const costoTotal = redondear(costoProductos + (Number(presentacion) || 0));
   const m = Math.min(95, Math.max(0, Number(margen) || 0));
   const sugerido = costoTotal > 0 ? redondear(costoTotal / (1 - m / 100)) : 0;
@@ -95,7 +95,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
   const modificada = useMemo(() => {
     if (!elegida) return false;
     if (elegida.receta.length !== filas.length) return true;
-    return elegida.receta.some((r, i) => filas[i].insumo_id !== r.insumo_id || filas[i].cantidad !== r.cantidad);
+    return elegida.receta.some((r, i) => filas[i].articulo_id !== r.articulo_id || filas[i].cantidad !== r.cantidad);
   }, [elegida, filas]);
   const enviarContenido = personalizada || modificada;
 
@@ -105,7 +105,7 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
     setBusqueda("");
     if (c) {
       const filasBase = c.receta.map((r) => ({ ...r }));
-      const costo = filasBase.reduce((s, f) => s + f.cantidad * (productoDe.get(f.insumo_id)?.costo ?? 0), 0) + (c.costoPresentacion ?? 0);
+      const costo = filasBase.reduce((s, f) => s + f.cantidad * (productoDe.get(f.articulo_id)?.costo ?? 0), 0) + (c.costoPresentacion ?? 0);
       setFilas(filasBase);
       setEnvase(c.tipoBase);
       setNombre(c.nombre);
@@ -137,13 +137,13 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
     const palabras = normalizar(busqueda).split(/\s+/).filter(Boolean);
     if (!palabras.length) return [];
     return productos
-      .filter((p) => !filas.some((f) => f.insumo_id === p.id))
+      .filter((p) => !filas.some((f) => f.articulo_id === p.id))
       .filter((p) => palabras.every((w) => normalizar(p.nombre).includes(w)))
       .slice(0, 8);
   }, [busqueda, productos, filas]);
 
   function agregarProducto(id: string) {
-    setFilas((fs) => insertarProducto(fs, { insumo_id: id, cantidad: 1 }, (f) => productoDe.get(f.insumo_id)?.nombre ?? ""));
+    setFilas((fs) => insertarProducto(fs, { articulo_id: id, cantidad: 1 }, (f) => productoDe.get(f.articulo_id)?.nombre ?? ""));
     setBusqueda("");
   }
 
@@ -156,14 +156,14 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
 
       <div className="admLineaCampos">
         <label>Canasta
-          <select className="admInput" name="producto_id" required value={canasta} onChange={(e) => elegir(e.target.value)}>
+          <select className="admInput" name="canasta_id" required value={canasta} onChange={(e) => elegir(e.target.value)}>
             <option value="" disabled>Seleccionar</option>
             {canastas.map((p) => <option key={p.id} value={p.id}>{p.nombre} · {soles(p.precio)}</option>)}
             <option value="personalizada">Canasta personalizada (desde cero)</option>
           </select>
         </label>
         <label>Envase
-          <select className="admInput" name="tipo_canasta" value={envase} onChange={(e) => cambiarEnvase(e.target.value)} required={personalizada}>
+          <select className="admInput" name="envase_id" value={envase} onChange={(e) => cambiarEnvase(e.target.value)} required={personalizada}>
             <option value="" disabled>Seleccionar</option>
             {envases.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
           </select>
@@ -188,9 +188,9 @@ export default function AgregarLinea({ cotizacionId, canastas, envases, producto
                 <thead><tr><th>Orden</th><th>Producto</th><th className="num">Costo unit.</th><th className="num">Cant.</th><th className="num">Costo</th><th /></tr></thead>
                 <tbody>
                   {filas.map((f, i) => {
-                    const p = productoDe.get(f.insumo_id);
+                    const p = productoDe.get(f.articulo_id);
                     return (
-                      <tr key={f.insumo_id}>
+                      <tr key={f.articulo_id}>
                         <td><CampoOrden key={i} posicion={i + 1} total={filas.length} etiqueta={`Orden de ${p?.nombre ?? "producto"}`} onCambiar={(n) => setFilas(moverProducto(filas, i, n))} /></td>
                         <td>{p?.nombre ?? "—"}</td>
                         <td className="num">{p?.costo != null ? soles(p.costo) : <span className="admMuted">Sin costo</span>}</td>

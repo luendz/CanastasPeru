@@ -23,7 +23,7 @@ export type Catalogo = {
 };
 
 type CatalogoWeb = {
-  productos: {
+  canastas: {
     slug: string;
     nombre: string;
     categoria: string;
@@ -33,14 +33,14 @@ type CatalogoWeb = {
     emoji: string;
     descripcion: string;
     descripcion_completa?: string;
-    tipo_canasta_base: string;
+    envase_base_id: string;
     imagen_base: string | null;
     ajuste_envase?: Record<string, AjusteEnvase>;
     envases: { id: string; precio: number }[];
     composicion: ProductVisualItem[];
     contenido: string[];
   }[];
-  tipos_canasta: { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number }[];
+  envases: { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number }[];
   zonas: { distrito: string; tarifa: number }[];
 };
 
@@ -63,10 +63,10 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
   }
 
   const c = data as CatalogoWeb;
-  const fotoEnvase = new Map(c.tipos_canasta.map((t) => [t.id, t.imagen]));
+  const fotoEnvase = new Map(c.envases.map((t) => [t.id, t.imagen]));
   return {
     fuente: "base",
-    products: c.productos.map((p) => ({
+    products: c.canastas.map((p) => ({
       slug: p.slug,
       name: p.nombre,
       category: p.categoria,
@@ -79,14 +79,14 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
         const foto = fotoEnvase.get(id);
         return foto ? [[foto, ajuste]] : [];
       })),
-      baseType: p.tipo_canasta_base,
+      baseType: p.envase_base_id,
       envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,
       fullDescription: p.descripcion_completa || undefined,
       items: p.contenido,
       visualItems: p.composicion ?? [],
     })),
-    basketTypes: c.tipos_canasta.map((t) => ({
+    basketTypes: c.envases.map((t) => ({
       id: t.id,
       label: t.nombre,
       image: t.imagen ?? "",

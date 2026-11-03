@@ -73,14 +73,14 @@ export type Orden = {
 };
 
 /** Producto dentro de una canasta personalizada. */
-export type ContenidoLinea = { insumo_id: string; nombre: string; cantidad: number };
+export type ContenidoLinea = { articulo_id: string; nombre: string; cantidad: number };
 
 export type OrdenItem = {
   id: string;
   orden_id: string;
-  producto_id: string | null;
-  producto_nombre: string;
-  tipo_canasta: string | null;
+  canasta_id: string | null;
+  canasta_nombre: string;
+  envase_id: string | null;
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
@@ -127,7 +127,7 @@ export type Compra = {
   proveedor: string | null;
   ruc_proveedor: string | null;
   descripcion: string;
-  insumo_id: string | null;
+  articulo_id: string | null;
   presentacion: string;
   cantidad_presentaciones: number;
   unidades_por_presentacion: number;
@@ -142,7 +142,7 @@ export type Compra = {
   created_at: string;
 };
 
-export type Producto = { id: string; slug: string; nombre: string; categoria: string; precio: number; tipo_canasta_base: string; activo: boolean; costo_presentacion?: number | null };
+export type Producto = { id: string; slug: string; nombre: string; categoria: string; precio: number; envase_base_id: string; activo: boolean; costo_presentacion?: number | null };
 export type TipoCanasta = { id: string; nombre: string; recargo: number };
 export type Insumo = {
   id: string;
@@ -159,22 +159,22 @@ export type Insumo = {
   emoji: string;
   costo_referencia: number | null;
 };
-export type Receta = { producto_id: string; insumo_id: string; cantidad: number; orden: number };
+export type Receta = { canasta_id: string; articulo_id: string; cantidad: number; orden: number };
 export type CosteoCanasta = {
-  producto_id: string;
+  canasta_id: string;
   slug: string;
   nombre: string;
   precio: number;
   costo: number;
   margen: number;
   margen_pct: number | null;
-  insumos_sin_costo: number;
+  articulos_sin_costo: number;
   costo_viveres: number | null;
   costo_presentacion: number | null;
   costo_receta: number;
 };
-export type CostoInsumo = { insumo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null; costo_actual: number | null };
-export type InventarioFila = { insumo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };
+export type CostoInsumo = { articulo_id: string; nombre: string; unidad: string; tipo: string; cantidad_comprada: number; costo_promedio: number | null; costo_actual: number | null };
+export type InventarioFila = { articulo_id: string; nombre: string; unidad: string; tipo: string; stock_minimo: number; stock_inicial: number; stock: number; requerido_pendiente: number };
 
 export const ESTADOS_ORDEN: { id: EstadoOrden; label: string }[] = [
   // Una orden "nueva" pasa sola a "pendiente" a las 24 horas (tarea programada en la base).

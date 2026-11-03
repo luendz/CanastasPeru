@@ -26,10 +26,10 @@ export async function listarMedios(): Promise<Medio[]> {
 async function usosDe(url: string) {
   const { supabase } = await requireAdmin();
   const [{ data: insumos }, { data: tipos }, { data: contenido }, { data: productos }] = await Promise.all([
-    supabase.from("insumos").select("nombre").eq("imagen", url),
-    supabase.from("tipos_canasta").select("nombre").eq("imagen", url),
+    supabase.from("articulos").select("nombre").eq("imagen", url),
+    supabase.from("envases").select("nombre").eq("imagen", url),
     supabase.from("contenido").select("clave, valor"),
-    supabase.from("productos").select("nombre, composicion"),
+    supabase.from("canastas").select("nombre, composicion"),
   ]);
   const usos = [
     ...(insumos ?? []).map((i) => `insumo ${i.nombre}`),

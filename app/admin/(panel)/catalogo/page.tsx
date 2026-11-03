@@ -10,7 +10,7 @@ export const metadata = { title: "Catálogo" };
 
 type ProductoFila = {
   id: string; slug: string; nombre: string; categoria: string; precio: number; precio_anterior: number | null;
-  insignia: string | null; tipo_canasta_base: string; orden: number; activo: boolean; composicion: unknown[];
+  insignia: string | null; envase_base_id: string; orden: number; activo: boolean; composicion: unknown[];
 };
 type TipoFila = TipoCanasta & { imagen: string | null };
 type ZonaFila = { distrito: string; tarifa: number; activo: boolean; orden: number };
@@ -19,15 +19,15 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
   const { supabase } = await requireAdmin();
   const { linea } = await searchParams;
   const [{ data: productos }, { data: tipos }, { data: zonas }, { data: costeo }] = await Promise.all([
-    supabase.from("productos").select("*").order("orden").order("precio"),
-    supabase.from("tipos_canasta").select("*").order("orden").order("recargo"),
+    supabase.from("canastas").select("*").order("orden").order("precio"),
+    supabase.from("envases").select("*").order("orden").order("recargo"),
     supabase.from("zonas_delivery").select("*").order("orden").order("distrito"),
-    supabase.from("v_costeo_canastas").select("producto_id,costo,margen_pct"),
+    supabase.from("v_costeo_canastas").select("canasta_id,costo,margen_pct"),
   ]);
   const lista = (productos ?? []) as ProductoFila[];
   const listaTipos = (tipos ?? []) as TipoFila[];
   const listaZonas = (zonas ?? []) as ZonaFila[];
-  const costoDe = new Map(((costeo ?? []) as { producto_id: string; costo: number; margen_pct: number | null }[]).map((c) => [c.producto_id, c]));
+  const costoDe = new Map(((costeo ?? []) as { canasta_id: string; costo: number; margen_pct: number | null }[]).map((c) => [c.canasta_id, c]));
   const imagenDe = new Map(listaTipos.map((t) => [t.id, t.imagen]));
 
   // Las líneas se muestran siempre, aunque no tengan canastas; las de categoría desconocida van en "Otras" para no perderlas.
@@ -57,7 +57,7 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
 
       <nav className="admCategorias" aria-label="Categorías de canastas">
         {categorias.map((c) => {
-          const imagen = c.canastas[0] && imagenDe.get(c.canastas[0].tipo_canasta_base);
+          const imagen = c.canastas[0] && imagenDe.get(c.canastas[0].envase_base_id);
           return (
             <Link key={c.id} className="admCategoria" data-linea={c.id} href={`/admin/catalogo?linea=${c.id}`} scroll={false} aria-current={c.id === actual.id ? "true" : undefined}>
               {imagen && <img src={imagen} alt="" />}

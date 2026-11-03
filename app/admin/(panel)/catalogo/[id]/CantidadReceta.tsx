@@ -18,8 +18,8 @@ export default function CantidadReceta({ productoId, insumoId, cantidad, nombre 
       return;
     }
     const fd = new FormData();
-    fd.set("producto_id", productoId);
-    fd.set("insumo_id", insumoId);
+    fd.set("canasta_id", productoId);
+    fd.set("articulo_id", insumoId);
     fd.set("cantidad", String(n));
     setError(false);
     iniciar(async () => {

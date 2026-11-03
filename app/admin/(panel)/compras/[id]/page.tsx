@@ -49,7 +49,7 @@ export default async function EditarCompraPage({ params }: { params: Promise<{ i
           items: [
             {
               categoria: c.categoria,
-              insumo_id: c.insumo_id,
+              articulo_id: c.articulo_id,
               descripcion: c.descripcion,
               presentacion: c.presentacion,
               cantidad_presentaciones: Number(c.cantidad_presentaciones ?? c.cantidad),

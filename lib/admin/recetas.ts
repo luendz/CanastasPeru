@@ -31,23 +31,23 @@ export function moverProducto<T>(lista: T[], desde: number, posicion: number): T
 /** Productos (insumos de tipo producto) que trae cada canasta del catálogo, según su receta. */
 export async function productosPorCanasta(supabase: SupabaseClient) {
   const { data } = await supabase
-    .from("recetas")
-    .select("producto_id, cantidad, insumos!inner(nombre, tipo)")
-    .eq("insumos.tipo", "producto")
+    .from("canasta_articulos")
+    .select("canasta_id, cantidad, articulos!inner(nombre, tipo)")
+    .eq("articulos.tipo", "producto")
     .order("orden");
   const mapa = new Map<string, ProductoCanasta[]>();
-  for (const r of (data ?? []) as unknown as { producto_id: string; cantidad: number; insumos: { nombre: string } }[]) {
-    const lista = mapa.get(r.producto_id) ?? [];
-    lista.push({ nombre: r.insumos.nombre, cantidad: Number(r.cantidad) });
-    mapa.set(r.producto_id, lista);
+  for (const r of (data ?? []) as unknown as { canasta_id: string; cantidad: number; articulos: { nombre: string } }[]) {
+    const lista = mapa.get(r.canasta_id) ?? [];
+    lista.push({ nombre: r.articulos.nombre, cantidad: Number(r.cantidad) });
+    mapa.set(r.canasta_id, lista);
   }
   return mapa;
 }
 
 /** Productos de una canasta personalizada, con el nombre actual de cada insumo. */
 export async function productosPersonalizados(supabase: SupabaseClient) {
-  const { data } = await supabase.from("insumos").select("id, nombre");
+  const { data } = await supabase.from("articulos").select("id, nombre");
   const nombre = new Map((data ?? []).map((i: { id: string; nombre: string }) => [i.id, i.nombre]));
   return (contenido: ContenidoLinea[]): ProductoCanasta[] =>
-    contenido.map((c) => ({ nombre: nombre.get(c.insumo_id) ?? c.nombre, cantidad: Number(c.cantidad) }));
+    contenido.map((c) => ({ nombre: nombre.get(c.articulo_id) ?? c.nombre, cantidad: Number(c.cantidad) }));
 }

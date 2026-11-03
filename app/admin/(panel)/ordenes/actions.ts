@@ -33,7 +33,7 @@ export async function datosPdfOrden(id: string): Promise<DatosPdfOrden> {
   const [{ data: orden, error }, { data: items }, { data: tipos }, trae, personalizados, contenido] = await Promise.all([
     supabase.from("ordenes").select("*").eq("id", id).maybeSingle(),
     supabase.from("orden_items").select("*").eq("orden_id", id),
-    supabase.from("tipos_canasta").select("id,nombre"),
+    supabase.from("envases").select("id,nombre"),
     productosPorCanasta(supabase),
     productosPersonalizados(supabase),
     getContenido(),
@@ -47,8 +47,8 @@ export async function datosPdfOrden(id: string): Promise<DatosPdfOrden> {
     orden: orden as Orden,
     items: ((items ?? []) as OrdenItem[]).map((it) => ({
       ...it,
-      envase: it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—",
-      productos: it.contenido ? personalizados(it.contenido) : trae.get(it.producto_id ?? "") ?? [],
+      envase: it.envase_id ? envase.get(it.envase_id) ?? it.envase_id : "—",
+      productos: it.contenido ? personalizados(it.contenido) : trae.get(it.canasta_id ?? "") ?? [],
     })),
     marca: { nombre: contenido.marca.nombre, lema: contenido.marca.lema, logo: contenido.marca.logo },
     contacto: { telefono: contenido.contacto.telefono, correo: contenido.contacto.correo, ciudad: contenido.contacto.ciudad },

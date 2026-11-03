@@ -24,7 +24,7 @@ export async function obtenerDatosReporte(desde: string, hasta: string): Promise
   const [{ data: ordenes, error: e1 }, { data: compras, error: e2 }, { data: productos }] = await Promise.all([
     supabase.from("ordenes").select("*, orden_items(*)").gte("created_at", inicio).lte("created_at", fin).order("created_at"),
     supabase.from("compras").select("*").gte("fecha", desde).lte("fecha", hasta).order("fecha"),
-    supabase.from("productos").select("nombre,precio"),
+    supabase.from("canastas").select("nombre,precio"),
   ]);
   if (e1 || e2) throw new Error((e1 ?? e2)!.message);
 
@@ -35,11 +35,11 @@ export async function obtenerDatosReporte(desde: string, hasta: string): Promise
   const acc = new Map<string, { pedidos: Set<string>; cantidad: number; total: number }>();
   lista.filter((o) => o.estado !== "anulada").forEach((o) => {
     o.items.forEach((it) => {
-      const a = acc.get(it.producto_nombre) ?? { pedidos: new Set<string>(), cantidad: 0, total: 0 };
+      const a = acc.get(it.canasta_nombre) ?? { pedidos: new Set<string>(), cantidad: 0, total: 0 };
       a.pedidos.add(o.id);
       a.cantidad += it.cantidad;
       a.total += Number(it.subtotal);
-      acc.set(it.producto_nombre, a);
+      acc.set(it.canasta_nombre, a);
     });
   });
   const porCanasta = [...acc.entries()]

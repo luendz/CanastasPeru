@@ -5,17 +5,17 @@ import AgregarInsumo from "./AgregarInsumo";
 import CantidadReceta from "./CantidadReceta";
 import OrdenReceta from "./OrdenReceta";
 
-type FilaReceta = { insumo_id: string; cantidad: number; insumos: { nombre: string; costo_referencia: number | null } };
+type FilaReceta = { articulo_id: string; cantidad: number; articulos: { nombre: string; costo_referencia: number | null } };
 
 /** Productos de la canasta: su orden, cantidad y costo. De aquí sale "Lo que trae" en la tienda. */
 export default async function SeccionReceta({ productoId }: { productoId: string }) {
   const { supabase } = await requireAdmin();
   const [{ data: recetas }, { data: costos }, { data: insumos }] = await Promise.all([
-    supabase.from("recetas").select("insumo_id,cantidad,insumos(nombre,costo_referencia)").eq("producto_id", productoId).order("orden"),
-    supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
-    supabase.from("insumos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
+    supabase.from("canasta_articulos").select("articulo_id,cantidad,articulos(nombre,costo_referencia)").eq("canasta_id", productoId).order("orden"),
+    supabase.from("v_costo_articulos").select("articulo_id,costo_actual"),
+    supabase.from("articulos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
   ]);
-  const costoCompra = new Map(((costos ?? []) as { insumo_id: string; costo_actual: number | null }[]).map((c) => [c.insumo_id, c.costo_actual]));
+  const costoCompra = new Map(((costos ?? []) as { articulo_id: string; costo_actual: number | null }[]).map((c) => [c.articulo_id, c.costo_actual]));
   // Costo unitario: el de la última compra; si no hay compras, el de referencia.
   const costoDe = (id: string, referencia: number | null) => {
     const costo = costoCompra.get(id) ?? referencia;
@@ -23,8 +23,8 @@ export default async function SeccionReceta({ productoId }: { productoId: string
   };
 
   const filas = ((recetas ?? []) as unknown as FilaReceta[]).map((r) => {
-    const costo = costoDe(r.insumo_id, r.insumos.costo_referencia);
-    return { id: r.insumo_id, nombre: r.insumos.nombre, cantidad: Number(r.cantidad), costo, total: costo == null ? null : costo * Number(r.cantidad) };
+    const costo = costoDe(r.articulo_id, r.articulos.costo_referencia);
+    return { id: r.articulo_id, nombre: r.articulos.nombre, cantidad: Number(r.cantidad), costo, total: costo == null ? null : costo * Number(r.cantidad) };
   });
   const total = filas.reduce((s, f) => s + (f.total ?? 0), 0);
   const sinCosto = filas.filter((f) => f.costo == null).length;
@@ -51,8 +51,8 @@ export default async function SeccionReceta({ productoId }: { productoId: string
               <td className="num">{f.total == null ? "—" : soles(f.total)}</td>
               <td className="num">
                 <form action={quitarRecetaItem}>
-                  <input type="hidden" name="producto_id" value={productoId} />
-                  <input type="hidden" name="insumo_id" value={f.id} />
+                  <input type="hidden" name="canasta_id" value={productoId} />
+                  <input type="hidden" name="articulo_id" value={f.id} />
                   <button className="admLinkDanger" type="submit" aria-label={`Quitar ${f.nombre}`}>Quitar</button>
                 </form>
               </td>

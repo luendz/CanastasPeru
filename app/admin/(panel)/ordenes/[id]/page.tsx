@@ -18,7 +18,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
   const [{ data: orden }, { data: items }, { data: tipos }, trae] = await Promise.all([
     supabase.from("ordenes").select("*").eq("id", id).maybeSingle(),
     supabase.from("orden_items").select("*").eq("orden_id", id),
-    supabase.from("tipos_canasta").select("id,nombre"),
+    supabase.from("envases").select("id,nombre"),
     productosPorCanasta(supabase),
   ]);
   if (!orden) notFound();
@@ -109,10 +109,10 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
                 {lineas.map((it) => (
                   <tr key={it.id}>
                     <td>
-                      {it.producto_nombre}
-                      <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.producto_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
+                      {it.canasta_nombre}
+                      <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.canasta_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
                     </td>
-                    <td>{it.tipo_canasta ? envase.get(it.tipo_canasta) ?? it.tipo_canasta : "—"}</td>
+                    <td>{it.envase_id ? envase.get(it.envase_id) ?? it.envase_id : "—"}</td>
                     <td className="num">{it.cantidad}</td>
                     <td className="num">{soles(it.precio_unitario)}</td>
                     <td className="num">{soles(it.subtotal)}</td>

@@ -10,8 +10,8 @@ export const metadata = { title: "Nueva canasta" };
 export default async function NuevaCanastaPage() {
   const { supabase } = await requireAdmin();
   const [{ data: tipos }, { data: todos }] = await Promise.all([
-    supabase.from("tipos_canasta").select("*").order("orden"),
-    supabase.from("productos").select("categoria,orden,insignia"),
+    supabase.from("envases").select("*").order("orden"),
+    supabase.from("canastas").select("categoria,orden,insignia"),
   ]);
   const filas = (todos ?? []) as { categoria: string; orden: number; insignia: string | null }[];
   const listaTipos = (tipos ?? []) as TipoCanasta[];
@@ -36,7 +36,7 @@ export default async function NuevaCanastaPage() {
             descripcion: "",
             descripcion_completa: "",
             emoji: "🧺",
-            tipo_canasta_base: listaTipos[0]?.id ?? "",
+            envase_base_id: listaTipos[0]?.id ?? "",
             orden: Math.max(0, ...filas.map((f) => f.orden)) + 1,
             activo: false,
           }}

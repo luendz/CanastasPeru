@@ -52,7 +52,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
   return (
     <div className="checkoutLayout">
       <form id="checkout" className="checkoutForm" action={action}>
-        <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, tipo_canasta: l.tipo.id, cantidad: l.cantidad })))} />
+        <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, envase_id: l.tipo.id, cantidad: l.cantidad })))} />
         <input type="hidden" name="tarjetas" value={tarjetas} />
         <input type="hidden" name="dedicatoria" value={tarjetas ? c.tarjetas.dedicatoria : ""} />
         <input type="hidden" name="metodo_pago" value={metodo?.label ?? ""} />

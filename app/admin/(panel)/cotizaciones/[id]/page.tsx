@@ -23,15 +23,15 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }, { data: envasesCanasta }] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
-    supabase.from("productos").select("*").order("precio"),
-    supabase.from("tipos_canasta").select("*").order("recargo"),
+    supabase.from("canastas").select("*").order("precio"),
+    supabase.from("envases").select("*").order("recargo"),
     supabase.from("ordenes").select("id,numero").eq("cotizacion_id", id).maybeSingle(),
-    supabase.from("insumos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
+    supabase.from("articulos").select("id,nombre,costo_referencia").eq("tipo", "producto").order("nombre"),
     productosPorCanasta(supabase),
     getContenido(),
-    supabase.from("recetas").select("producto_id,insumo_id,cantidad,insumos!inner(tipo)").eq("insumos.tipo", "producto").order("orden"),
-    supabase.from("v_costo_insumos").select("insumo_id,costo_actual"),
-    supabase.from("v_envases_canasta").select("producto_id,tipo_canasta,precio,costo_presentacion"),
+    supabase.from("canasta_articulos").select("canasta_id,articulo_id,cantidad,articulos!inner(tipo)").eq("articulos.tipo", "producto").order("orden"),
+    supabase.from("v_costo_articulos").select("articulo_id,costo_actual"),
+    supabase.from("v_envases_canasta").select("canasta_id,envase_id,precio,costo_presentacion"),
   ]);
   if (!cot) notFound();
   const c = cot as Cotizacion;
@@ -41,25 +41,25 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const editable = c.estado !== "aprobada";
 
   // Costo unitario: el de la última compra; si no hay compras, el de referencia.
-  const costoCompra = new Map(((costos ?? []) as { insumo_id: string; costo_actual: number | null }[]).map((x) => [x.insumo_id, x.costo_actual]));
+  const costoCompra = new Map(((costos ?? []) as { articulo_id: string; costo_actual: number | null }[]).map((x) => [x.articulo_id, x.costo_actual]));
   const productosCosteo = ((insumos ?? []) as { id: string; nombre: string; costo_referencia: number | null }[]).map((i) => {
     const costo = costoCompra.get(i.id) ?? i.costo_referencia;
     return { id: i.id, nombre: i.nombre, costo: costo == null ? null : Number(costo) };
   });
-  const recetaDe = new Map<string, { insumo_id: string; cantidad: number }[]>();
-  for (const r of (recetas ?? []) as { producto_id: string; insumo_id: string; cantidad: number }[]) {
-    recetaDe.set(r.producto_id, [...(recetaDe.get(r.producto_id) ?? []), { insumo_id: r.insumo_id, cantidad: Number(r.cantidad) }]);
+  const recetaDe = new Map<string, { articulo_id: string; cantidad: number }[]>();
+  for (const r of (recetas ?? []) as { canasta_id: string; articulo_id: string; cantidad: number }[]) {
+    recetaDe.set(r.canasta_id, [...(recetaDe.get(r.canasta_id) ?? []), { articulo_id: r.articulo_id, cantidad: Number(r.cantidad) }]);
   }
   const envasesDe = new Map<string, { id: string; precio: number; costo: number | null }[]>();
-  for (const e of (envasesCanasta ?? []) as { producto_id: string; tipo_canasta: string; precio: number; costo_presentacion: number | null }[]) {
-    envasesDe.set(e.producto_id, [...(envasesDe.get(e.producto_id) ?? []), { id: e.tipo_canasta, precio: Number(e.precio), costo: e.costo_presentacion == null ? null : Number(e.costo_presentacion) }]);
+  for (const e of (envasesCanasta ?? []) as { canasta_id: string; envase_id: string; precio: number; costo_presentacion: number | null }[]) {
+    envasesDe.set(e.canasta_id, [...(envasesDe.get(e.canasta_id) ?? []), { id: e.envase_id, precio: Number(e.precio), costo: e.costo_presentacion == null ? null : Number(e.costo_presentacion) }]);
   }
   const canastas: CanastaOpcion[] = ((productos ?? []) as Producto[]).map((p) => ({
     id: p.id,
     nombre: p.nombre,
     precio: Number(p.precio),
-    tipoBase: p.tipo_canasta_base,
-    costoPresentacion: envasesDe.get(p.id)?.find((e) => e.id === p.tipo_canasta_base)?.costo ?? null,
+    tipoBase: p.envase_base_id,
+    costoPresentacion: envasesDe.get(p.id)?.find((e) => e.id === p.envase_base_id)?.costo ?? null,
     envases: envasesDe.get(p.id) ?? [],
     receta: recetaDe.get(p.id) ?? [],
   }));
@@ -134,10 +134,10 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                   {lineas.map((it) => (
                     <tr key={it.id}>
                       <td>
-                        {it.producto_nombre}
-                        <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.producto_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
+                        {it.canasta_nombre}
+                        <small className="admMuted admBlock">{(it.contenido ?? trae.get(it.canasta_id ?? "") ?? []).map(etiquetaProducto).join(" · ")}</small>
                       </td>
-                      <td>{(tipos as TipoCanasta[] | null)?.find((t) => t.id === it.tipo_canasta)?.nombre ?? it.tipo_canasta ?? "—"}</td>
+                      <td>{(tipos as TipoCanasta[] | null)?.find((t) => t.id === it.envase_id)?.nombre ?? it.envase_id ?? "—"}</td>
                       <td className="num">{numero(it.cantidad)}</td>
                       <td className="num">{soles(it.precio_unitario)}</td>
                       <td className="num">{soles(it.subtotal)}</td>
@@ -146,7 +146,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                           <div className="admAccionesLinea">
                             <EditarLinea
                               cotizacionId={c.id}
-                              linea={{ id: it.id, productoId: it.producto_id, nombre: it.producto_nombre, envase: it.tipo_canasta, cantidad: it.cantidad, precio: Number(it.precio_unitario), contenido: it.contenido }}
+                              linea={{ id: it.id, productoId: it.canasta_id, nombre: it.canasta_nombre, envase: it.envase_id, cantidad: it.cantidad, precio: Number(it.precio_unitario), contenido: it.contenido }}
                               canastas={canastas}
                               envases={envases}
                               productos={productosCosteo}

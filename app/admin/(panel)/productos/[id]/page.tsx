@@ -11,7 +11,7 @@ export default async function FichaProductoPage({ params }: { params: Promise<{ 
   const { supabase } = await requireAdmin();
   const { id } = await params;
   const [{ data }, ficha, datos] = await Promise.all([
-    supabase.from("insumos").select("*").eq("id", id).maybeSingle(),
+    supabase.from("articulos").select("*").eq("id", id).maybeSingle(),
     datosFicha(supabase),
     datosProducto(supabase, id),
   ]);

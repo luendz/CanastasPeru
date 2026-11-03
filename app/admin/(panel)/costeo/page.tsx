@@ -10,14 +10,14 @@ export default async function CosteoPage() {
   const { supabase } = await requireAdmin();
   const [{ data: costeo }, { data: prods }, { data: recetas }, { data: costos }, { data: insumos }] = await Promise.all([
     supabase.from("v_costeo_canastas").select("*").order("precio"),
-    supabase.from("productos").select("id,categoria,activo"),
-    supabase.from("recetas").select("*").order("orden"),
-    supabase.from("v_costo_insumos").select("*"),
-    supabase.from("insumos").select("*").order("tipo").order("nombre"),
+    supabase.from("canastas").select("id,categoria,activo"),
+    supabase.from("canasta_articulos").select("*").order("orden"),
+    supabase.from("v_costo_articulos").select("*"),
+    supabase.from("articulos").select("*").order("tipo").order("nombre"),
   ]);
   const canastas = (costeo ?? []) as CosteoCanasta[];
   const lista = (recetas ?? []) as Receta[];
-  const costoDe = new Map(((costos ?? []) as CostoInsumo[]).map((c) => [c.insumo_id, c]));
+  const costoDe = new Map(((costos ?? []) as CostoInsumo[]).map((c) => [c.articulo_id, c]));
   const todos = (insumos ?? []) as Insumo[];
   const infoDe = new Map(((prods ?? []) as { id: string; categoria: string; activo: boolean }[]).map((x) => [x.id, x]));
   const normal = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -25,11 +25,11 @@ export default async function CosteoPage() {
     ...LINEAS.map((l) => ({
       titulo: l.titulo,
       id: l.id,
-      canastas: canastas.filter((c) => normal(infoDe.get(c.producto_id)?.categoria ?? "").startsWith(normal(l.categoria).slice(0, 6))),
+      canastas: canastas.filter((c) => normal(infoDe.get(c.canasta_id)?.categoria ?? "").startsWith(normal(l.categoria).slice(0, 6))),
     })),
   ];
-  const agrupadas = new Set(grupos.flatMap((g) => g.canastas.map((c) => c.producto_id)));
-  const otras = canastas.filter((c) => !agrupadas.has(c.producto_id));
+  const agrupadas = new Set(grupos.flatMap((g) => g.canastas.map((c) => c.canasta_id)));
+  const otras = canastas.filter((c) => !agrupadas.has(c.canasta_id));
   if (otras.length) grupos.push({ titulo: "Otras canastas", id: "economicas", canastas: otras });
 
   return (
@@ -46,8 +46,8 @@ export default async function CosteoPage() {
           <h2>{g.titulo}</h2>
           <div className="admCosteoGrid">
             {g.canastas.map((c) => (
-              <div key={c.producto_id} className="admCosteoCard">
-                <h3>{c.nombre}{infoDe.get(c.producto_id)?.activo === false && <small> · oculta</small>}</h3>
+              <div key={c.canasta_id} className="admCosteoCard">
+                <h3>{c.nombre}{infoDe.get(c.canasta_id)?.activo === false && <small> · oculta</small>}</h3>
                 <table>
                   <tbody>
                     <tr><td>Costo total de víveres</td><td>{soles(c.costo_viveres ?? 0)}</td></tr>
@@ -59,8 +59,8 @@ export default async function CosteoPage() {
                   </tbody>
                 </table>
                 <div className="admCosteoPie">
-                  <small className="admMuted">{Number(c.insumos_sin_costo) > 0 ? `${c.insumos_sin_costo} productos sin costo` : "Según receta y envase"}</small>
-                  <Link className="admLinkMuted" href={`/admin/catalogo/${c.producto_id}?seccion=receta`}>Editar</Link>
+                  <small className="admMuted">{Number(c.articulos_sin_costo) > 0 ? `${c.articulos_sin_costo} productos sin costo` : "Según receta y envase"}</small>
+                  <Link className="admLinkMuted" href={`/admin/catalogo/${c.canasta_id}?seccion=receta`}>Editar</Link>
                 </div>
               </div>
             ))}
@@ -69,18 +69,18 @@ export default async function CosteoPage() {
       ))}
 
       {canastas.map((c) => {
-        const items = lista.filter((r) => r.producto_id === c.producto_id);
+        const items = lista.filter((r) => r.canasta_id === c.canasta_id);
         return (
-          <section className="admCard" id={`receta-${c.slug}`} key={c.producto_id}>
-            <div className="admCardHead"><h2>Receta · {c.nombre}</h2><span className="admMuted">Costo {soles(c.costo)} · precio {soles(c.precio)} · <Link href={`/admin/catalogo/${c.producto_id}?seccion=receta`}>Editar receta</Link></span></div>
+          <section className="admCard" id={`receta-${c.slug}`} key={c.canasta_id}>
+            <div className="admCardHead"><h2>Receta · {c.nombre}</h2><span className="admMuted">Costo {soles(c.costo)} · precio {soles(c.precio)} · <Link href={`/admin/catalogo/${c.canasta_id}?seccion=receta`}>Editar receta</Link></span></div>
             <table className="admTable admTableCompact">
               <thead><tr><th>N.°</th><th>Insumo</th><th className="num">Cantidad</th><th className="num">Costo prom.</th><th className="num">Subtotal</th></tr></thead>
               <tbody>
                 {items.map((r, i) => {
-                  const insumo = todos.find((i) => i.id === r.insumo_id);
-                  const costo = costoDe.get(r.insumo_id)?.costo_actual;
+                  const insumo = todos.find((i) => i.id === r.articulo_id);
+                  const costo = costoDe.get(r.articulo_id)?.costo_actual;
                   return (
-                    <tr key={r.insumo_id}>
+                    <tr key={r.articulo_id}>
                       <td>{i + 1}</td>
                       <td>{insumo?.nombre}<small className="admMuted"> · {insumo?.unidad}</small></td>
                       <td className="num">{numero(r.cantidad, 2)}</td>

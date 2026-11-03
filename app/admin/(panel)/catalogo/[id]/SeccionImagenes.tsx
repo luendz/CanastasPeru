@@ -5,7 +5,7 @@ import EditorComposicion, { type InsumoVisual } from "./composicion/EditorCompos
 
 type Fila = {
   slug: string; nombre: string; categoria: string; precio: number; emoji: string; descripcion: string;
-  tipo_canasta_base: string; composicion: ProductVisualItem[] | null; ajuste_envase?: Record<string, AjusteEnvase>;
+  envase_base_id: string; composicion: ProductVisualItem[] | null; ajuste_envase?: Record<string, AjusteEnvase>;
 };
 type TipoFila = { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number };
 
@@ -13,9 +13,9 @@ type TipoFila = { id: string; nombre: string; imagen: string | null; descripcion
 export default async function SeccionImagenes({ id }: { id: string }) {
   const { supabase } = await requireAdmin();
   const [{ data: producto }, { data: tipos }, { data: insumos }] = await Promise.all([
-    supabase.from("productos").select("*").eq("id", id).maybeSingle(),
-    supabase.from("tipos_canasta").select("id,nombre,imagen,descripcion,recargo").order("orden"),
-    supabase.from("insumos").select("nombre,emoji,imagen").eq("tipo", "producto").order("nombre"),
+    supabase.from("canastas").select("*").eq("id", id).maybeSingle(),
+    supabase.from("envases").select("id,nombre,imagen,descripcion,recargo").order("orden"),
+    supabase.from("articulos").select("nombre,emoji,imagen").eq("tipo", "producto").order("nombre"),
   ]);
   if (!producto) return null;
   const p = producto as Fila;
@@ -25,7 +25,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
   const basketTypes: BasketType[] = ((tipos ?? []) as TipoFila[])
     .filter((t) => t.imagen)
     .map((t) => ({ id: t.id, label: t.nombre, image: t.imagen!, hint: t.descripcion ?? "", priceDelta: Number(t.recargo) }));
-  const base = basketTypes.find((t) => t.id === p.tipo_canasta_base);
+  const base = basketTypes.find((t) => t.id === p.envase_base_id);
 
   // Igual que en la tienda: la foto y el emoji salen del insumo con el mismo nombre.
   const visualItems = (p.composicion ?? []).map((it) => {
@@ -52,7 +52,7 @@ export default async function SeccionImagenes({ id }: { id: string }) {
           emoji: p.emoji,
           baseImage: base?.image,
           ajustesEnvase: Object.fromEntries(basketTypes.flatMap((t) => (p.ajuste_envase?.[t.id] ? [[t.image, p.ajuste_envase[t.id]]] : []))),
-          baseType: p.tipo_canasta_base,
+          baseType: p.envase_base_id,
           description: p.descripcion,
           items: [],
           visualItems,

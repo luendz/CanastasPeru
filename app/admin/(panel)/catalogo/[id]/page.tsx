@@ -24,10 +24,10 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
   const actual = SECCIONES.find((s) => s.id === seccion)?.id ?? "datos";
 
   const [{ data: producto }, { data: tipos }, { data: todos }, { data: envases }] = await Promise.all([
-    supabase.from("productos").select("*").eq("id", id).maybeSingle(),
-    supabase.from("tipos_canasta").select("*").order("orden"),
-    supabase.from("productos").select("categoria,insignia"),
-    supabase.from("canasta_envases").select("tipo_canasta").eq("producto_id", id),
+    supabase.from("canastas").select("*").eq("id", id).maybeSingle(),
+    supabase.from("envases").select("*").order("orden"),
+    supabase.from("canastas").select("categoria,insignia"),
+    supabase.from("canasta_envases").select("envase_id").eq("canasta_id", id),
   ]);
   if (!producto) notFound();
   const p = producto as CanastaEditable & { slug: string };
@@ -35,7 +35,7 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
   const categorias = [...new Set([...LINEAS.map((l) => l.categoria), ...filas.map((t) => t.categoria)])];
   const insignias = [...new Set(filas.flatMap((t) => separarInsignias(t.insignia)))];
   // El envase principal se elige entre los que tiene la canasta.
-  const propios = new Set(((envases ?? []) as { tipo_canasta: string }[]).map((e) => e.tipo_canasta));
+  const propios = new Set(((envases ?? []) as { envase_id: string }[]).map((e) => e.envase_id));
   const tiposPropios = ((tipos ?? []) as TipoCanasta[]).filter((t) => propios.has(t.id));
 
   return (
