@@ -41,7 +41,7 @@ export async function guardarComposicion(id: string, items: ProductVisualItem[],
     const x = numero(a?.x, -50, 50);
     const y = numero(a?.y, -50, 50);
     const escala = numero(a?.escala, 40, 200);
-    const giro = numero(a?.giro, -45, 45);
+    const giro = numero(a?.giro, -180, 180);
     if (x === null || y === null || escala === null || giro === null) return { error: "El ajuste del envase no es válido." };
     ajusteEnvase[tipo.slice(0, 80)] = { x, y, escala, giro };
   }

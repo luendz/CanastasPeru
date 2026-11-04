@@ -7,7 +7,8 @@ import type { AjusteEnvase, BasketType, Product, ProductVisualItem } from "@/lib
 import { guardarComposicion, type GuardarState } from "./actions";
 
 type Variant = "card" | "detail";
-export type InsumoVisual = { nombre: string; emoji: string; imagen: string | null };
+/** `cantidad`: unidades en el contenido; el producto puede ponerse esas veces en la imagen. */
+export type InsumoVisual = { nombre: string; emoji: string; imagen: string | null; cantidad?: number };
 
 const normalizar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
@@ -152,7 +153,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
   const resultados = useMemo(() => {
     const palabras = normalizar(busqueda).split(/\s+/).filter(Boolean);
     return insumos
-      .filter((ins) => !items.some((x) => x.name === ins.nombre))
+      .filter((ins) => items.filter((x) => x.name === ins.nombre).length < Math.max(1, Math.floor(ins.cantidad ?? 1)))
       .filter((ins) => palabras.every((w) => normalizar(ins.nombre).includes(w)));
   }, [busqueda, insumos, items]);
 
@@ -238,7 +239,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                 <button
                   aria-label={`Mover ${item.name}`}
                   className="devHandle devHandleTeclado"
-                  key={item.name}
+                  key={`${item.name}-${index}`}
                   onFocus={() => setSelected(index)}
                   onKeyDown={(event) => onKeyDown(event, index)}
                   style={{
@@ -263,7 +264,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
               {items.map((item, index) => index === selected && (
                 <div
                   className="devQuitarCaja"
-                  key={item.name}
+                  key={`${item.name}-${index}`}
                   style={{
                     top: `${item.top}%`,
                     left: `${item.left}%`,
@@ -288,7 +289,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                 </label>
                 <label>
                   Giro <strong>{ajuste.giro}°</strong>
-                  <input max="45" min="-45" onChange={(event) => patchEnvase({ giro: Number(event.target.value) })} step="1" type="range" value={ajuste.giro} />
+                  <input max="180" min="-180" onChange={(event) => patchEnvase({ giro: Number(event.target.value) })} step="1" type="range" value={ajuste.giro} />
                 </label>
               </div>
               <p className="devHint">Arrastra sobre la imagen, o usa las flechas con el recuadro enfocado. Este ajuste vale solo para este envase en esta canasta.</p>
@@ -304,7 +305,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                 </label>
                 <label>
                   Giro <strong>{current.rotate ?? 0}°</strong>
-                  <input max="45" min="-45" onChange={(event) => patch(selected, { rotate: Number(event.target.value) })} step="1" type="range" value={current.rotate ?? 0} />
+                  <input max="180" min="-180" onChange={(event) => patch(selected, { rotate: Number(event.target.value) })} step="1" type="range" value={current.rotate ?? 0} />
                 </label>
                 <label>
                   Capa (adelante / atrás) <strong>{current.zIndex ?? 5}</strong>
@@ -327,7 +328,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
           {items.length === 0 && <p className="devHint">Esta canasta aún no tiene composición. Agrega sus productos.</p>}
           <div className="devList">
             {items.map((item, index) => (
-              <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={item.name} onClick={() => setSelected(index)} type="button">
+              <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={`${item.name}-${index}`} onClick={() => setSelected(index)} type="button">
                 <span>{item.emoji} {item.name}</span>
                 {!insumos.some((ins) => ins.nombre === item.name) && <small className="admWarn"> · no está en el contenido</small>}
               </button>
@@ -367,7 +368,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                       {!ins.imagen && <small>sin foto</small>}
                     </button>
                   </li>
-                )) : <li className="admMuted admSmall">{busqueda ? "Sin resultados." : insumos.length ? "Todos los productos del contenido ya están en la imagen." : "Esta canasta aún no tiene contenido."}</li>}
+                )) : <li className="admMuted admSmall">{busqueda ? "Sin resultados." : insumos.length ? "Ya están en la imagen todas las unidades del contenido." : "Esta canasta aún no tiene contenido."}</li>}
               </ul>
             )}
           </div>
