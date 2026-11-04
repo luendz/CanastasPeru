@@ -39,7 +39,7 @@ type CatalogoWeb = {
     envases: { id: string; precio: number }[];
     composicion: ProductVisualItem[];
     contenido: string[];
-    contenido_fotos?: { nombre: string; imagen: string | null; emoji: string | null }[];
+    contenido_fotos?: { nombre: string; imagen: string | null; emoji: string | null; cantidad?: number }[];
   }[];
   envases: { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number }[];
   zonas: { distrito: string; tarifa: number }[];
@@ -81,7 +81,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       description: p.descripcion,
       fullDescription: p.descripcion_completa || undefined,
       items: p.contenido,
-      itemFotos: Object.fromEntries((p.contenido_fotos ?? []).map((f) => [f.nombre, { ...(f.imagen ? { image: f.imagen } : {}), ...(f.emoji ? { emoji: f.emoji } : {}) }])),
+      itemFotos: Object.fromEntries((p.contenido_fotos ?? []).map((f) => [f.nombre, { ...(f.imagen ? { image: f.imagen } : {}), ...(f.emoji ? { emoji: f.emoji } : {}), ...(f.cantidad != null ? { cantidad: Number(f.cantidad) } : {}) }])),
       visualItems: p.composicion ?? [],
     })),
     basketTypes: c.envases.map((t) => ({

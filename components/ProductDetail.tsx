@@ -30,6 +30,9 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
   const delta = selected.precio - ownBasket.precio;
   const unitPrice = selected.precio;
   const savings = delta === 0 && product.oldPrice ? product.oldPrice - product.price : 0;
+  // Cada producto cuenta por sus unidades (si no se sabe, 1).
+  const unidadesDe = (name: string) => product.itemFotos?.[name]?.cantidad ?? 1;
+  const totalUnidades = product.items.reduce((s, item) => s + unidadesDe(item), 0);
   const imageFor = (name: string) => product.visualItems.find((item) => item.name === name);
 
   return (
@@ -60,7 +63,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
         {delta !== 0 && <p className="basketNote">{delta > 0 ? `Incluye ${formatPrice(delta)} por la ${selected.label.toLowerCase()}.` : `Descuenta ${formatPrice(Math.abs(delta))} por la ${selected.label.toLowerCase()}.`}</p>}
 
         <div className="includesPanel" style={{ "--i": 4 } as React.CSSProperties}>
-          <h3>Incluye <small>{product.items.length} productos</small></h3>
+          <h3>Incluye <small>{totalUnidades} {totalUnidades === 1 ? "producto" : "productos"}</small></h3>
           <ul>
             {product.items.map((item, j) => {
               // La foto sale del artículo del contenido; si no la trae, de la imagen de la canasta.
@@ -70,7 +73,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
                   <span className="includesThumb">
                     {visual?.image ? <img src={visual.image} alt="" /> : <span aria-hidden="true">{visual?.emoji ?? "✦"}</span>}
                   </span>
-                  {item}
+                  <span>{item} - {unidadesDe(item)} {unidadesDe(item) === 1 ? "unidad" : "unidades"}</span>
                 </li>
               );
             })}

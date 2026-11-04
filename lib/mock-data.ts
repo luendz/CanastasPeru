@@ -32,8 +32,8 @@ export type Product = {
   envases?: { id: string; precio: number }[];
   description: string;
   items: string[];
-  /** Foto o emoji de cada producto del contenido (lista "Incluye"), por nombre. */
-  itemFotos?: Record<string, { image?: string; emoji?: string }>;
+  /** Foto, emoji y unidades de cada producto del contenido (lista "Incluye"), por nombre. */
+  itemFotos?: Record<string, { image?: string; emoji?: string; cantidad?: number }>;
   visualItems: ProductVisualItem[];
 };
 
