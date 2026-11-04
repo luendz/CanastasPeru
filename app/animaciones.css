@@ -105,8 +105,8 @@ html[data-motion] .heroTag { animation: swingIn .9s var(--ease-spring) 1.9s both
 html[data-motion] .heroStage > * { animation: floaty 6s ease-in-out 3s infinite; }
 
 /* ---------- Tarjetas ---------- */
-.productCard { transition: translate .4s var(--ease-out), box-shadow .4s ease; }
-.productCard:hover { transform: none; translate: 0 -8px; }
+.productCard { transition: translate .4s var(--ease-out), box-shadow .4s ease, border-color .4s ease; }
+.productCard:hover { transform: none; translate: 0 -8px; border-color: var(--wine); }
 .productVisual { overflow: hidden; }
 .productVisual::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 80%, rgba(201, 151, 63, .35), transparent 60%); opacity: 0; transition: opacity .5s ease; }
 .productCard:hover .productVisual::before { opacity: 1; }
