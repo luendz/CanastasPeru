@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import { soles } from "@/lib/admin/format";
+import { numero, soles } from "@/lib/admin/format";
 import { quitarRecetaItem } from "../../costeo/actions";
 import AgregarInsumo from "./AgregarInsumo";
 import CantidadReceta from "./CantidadReceta";
@@ -27,6 +27,7 @@ export default async function SeccionReceta({ productoId }: { productoId: string
     return { id: r.articulo_id, nombre: r.articulos.nombre, cantidad: Number(r.cantidad), costo, total: costo == null ? null : costo * Number(r.cantidad) };
   });
   const total = filas.reduce((s, f) => s + (f.total ?? 0), 0);
+  const unidades = filas.reduce((s, f) => s + f.cantidad, 0);
   const sinCosto = filas.filter((f) => f.costo == null).length;
   const disponibles = ((insumos ?? []) as { id: string; nombre: string; costo_referencia: number | null }[])
     .filter((i) => !filas.some((f) => f.id === i.id))
@@ -65,7 +66,9 @@ export default async function SeccionReceta({ productoId }: { productoId: string
         {filas.length > 0 && (
           <tfoot>
             <tr className="admFilaFuerte">
-              <td colSpan={4}>Costo del contenido{sinCosto > 0 && <small className="admWarn"> · {sinCosto} sin costo</small>}</td>
+              <td colSpan={2}>Costo del contenido{sinCosto > 0 && <small className="admWarn"> · {sinCosto} sin costo</small>}</td>
+              <td className="num">{numero(unidades, Number.isInteger(unidades) ? 0 : 2)} {unidades === 1 ? "unidad" : "unidades"}</td>
+              <td />
               <td className="num">{soles(total)}</td>
               <td />
             </tr>
