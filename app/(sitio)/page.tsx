@@ -53,7 +53,6 @@ export default async function HomePage() {
             <p>{t.heroTexto}</p>
             <div className="hmBotones">
               <Link className="btn btnPrimary hmBtnMayus" href="/canastas">{t.heroBoton1} <Icono nombre="flecha" /></Link>
-              <Link className="btn hmBtnBlanco hmBtnMayus" href="/boxes">{t.heroBoton2} <Icono nombre="flecha" /></Link>
             </div>
             <ul className="hmPuntos">
               {t.heroPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_HERO[n % ICONOS_HERO.length]} />{p}</li>)}
@@ -83,9 +82,10 @@ export default async function HomePage() {
         <Titulo titulo={t.tiposEtiqueta} />
         <Reveal className="hmTipos" threshold={0.1}>
           {LINEAS.map((l, n) => {
+            if (l.id === "boxes") return null; // Boxes oculto por ahora.
             const texto = catalogo.lineas[n] ?? { titulo: l.titulo, texto: "", imagen: "" };
             const muestra = productosDe(products, l.id)[0];
-            const href = l.id === "boxes" ? "/boxes" : `/canastas/${l.id}`;
+            const href = `/canastas/${l.id}`;
             return (
               <article key={l.id} className="hmTipo" data-reveal-item style={i(n)}>
                 <Link href={href} className="hmTipoImg" tabIndex={-1} aria-hidden="true">
@@ -94,7 +94,7 @@ export default async function HomePage() {
                 <div className="hmTipoCuerpo">
                   <h3><Icono nombre={ICONOS_LINEA[n]} /><span>{texto.titulo.split(" ")[0]}<br />{texto.titulo.split(" ").slice(1).join(" ")}</span></h3>
                   <p>{texto.texto}</p>
-                  <Link className="btn hmBtnPino" href={href}>{l.id === "boxes" ? "Ver boxes" : "Ver canastas"} <Icono nombre="flecha" /></Link>
+                  <Link className="btn hmBtnPino" href={href}>Ver canastas <Icono nombre="flecha" /></Link>
                 </div>
               </article>
             );

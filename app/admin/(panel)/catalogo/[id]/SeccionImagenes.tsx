@@ -17,15 +17,15 @@ export default async function SeccionImagenes({ id }: { id: string }) {
     supabase.from("envases").select("id,nombre,imagen,descripcion,recargo"),
     supabase.from("canasta_envases").select("envase_id").eq("canasta_id", id).order("orden").order("envase_id"),
     supabase.from("articulos").select("nombre,emoji,imagen").eq("tipo", "producto").order("nombre"),
-    supabase.from("canasta_articulos").select("articulos(nombre,emoji,imagen,tipo)").eq("canasta_id", id).order("orden"),
+    supabase.from("canasta_articulos").select("cantidad,articulos(nombre,emoji,imagen,tipo)").eq("canasta_id", id).order("orden"),
   ]);
   if (!producto) return null;
   const p = producto as Fila;
   const listaInsumos = (insumos ?? []) as InsumoVisual[];
   const fotoDe = new Map(listaInsumos.map((i) => [i.nombre, i]));
   // Para la imagen solo se eligen los productos del contenido (Contenido y envases).
-  const delContenido = ((receta ?? []) as unknown as { articulos: (InsumoVisual & { tipo: string }) | null }[])
-    .flatMap((r) => (r.articulos && r.articulos.tipo === "producto" ? [{ nombre: r.articulos.nombre, emoji: r.articulos.emoji, imagen: r.articulos.imagen }] : []));
+  const delContenido = ((receta ?? []) as unknown as { cantidad: number; articulos: (InsumoVisual & { tipo: string }) | null }[])
+    .flatMap((r) => (r.articulos && r.articulos.tipo === "producto" ? [{ nombre: r.articulos.nombre, emoji: r.articulos.emoji, imagen: r.articulos.imagen, cantidad: Number(r.cantidad) }] : []));
 
   // Solo los envases de esta canasta (Envases y precios), en su orden y con el principal primero.
   // Los que no tienen foto no se pueden ver en el editor.

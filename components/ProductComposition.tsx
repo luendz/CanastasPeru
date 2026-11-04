@@ -172,7 +172,7 @@ export default function ProductComposition({ product, variant = "card", baseImag
         <div
           className={`${styles.itemLayer} ${editor ? (index === resaltado ? styles.itemResaltado : "") : index === active ? styles.itemActive : ""}`}
           data-indice={index}
-          key={item.name}
+          key={`${item.name}-${index}`}
           ref={(node) => { layerRefs.current[index] = node; }}
           style={{
             top: `${item.top}%`,

@@ -12,7 +12,6 @@ import { enlaceWhatsApp } from "@/lib/whatsapp";
 const links = [
   { href: "/", label: "Inicio" },
   { href: "/canastas", label: "Canastas", sub: LINEAS.filter((l) => l.id !== "boxes") },
-  { href: "/boxes", label: "Boxes navideños" },
   { href: "/cotizacion", label: "Empresas" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/contacto", label: "Contacto" },
