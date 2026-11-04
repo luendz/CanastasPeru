@@ -147,7 +147,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     setCambios(false);
   }
 
-  // Cualquier insumo registrado se puede sumar; la foto sale de la ficha en Productos.
+  // Solo se suman productos del contenido de la canasta; la foto sale de su ficha en Artículos.
   // Sin texto muestra todos; al escribir filtra por cualquier parte del nombre (sin tildes ni mayúsculas, varias palabras).
   const resultados = useMemo(() => {
     const palabras = normalizar(busqueda).split(/\s+/).filter(Boolean);
@@ -329,6 +329,7 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             {items.map((item, index) => (
               <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={item.name} onClick={() => setSelected(index)} type="button">
                 <span>{item.emoji} {item.name}</span>
+                {!insumos.some((ins) => ins.nombre === item.name) && <small className="admWarn"> · no está en el contenido</small>}
               </button>
             ))}
           </div>
@@ -366,11 +367,11 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                       {!ins.imagen && <small>sin foto</small>}
                     </button>
                   </li>
-                )) : <li className="admMuted admSmall">Sin resultados.</li>}
+                )) : <li className="admMuted admSmall">{busqueda ? "Sin resultados." : insumos.length ? "Todos los productos del contenido ya están en la imagen." : "Esta canasta aún no tiene contenido."}</li>}
               </ul>
             )}
           </div>
-          <p className="devHint">¿Falta una foto o un artículo? Agrégalo en <Link href="/admin/productos">Artículos</Link>.</p>
+          <p className="devHint">Solo se pueden agregar los productos del contenido (pestaña Contenido y envases). ¿Falta una foto? Súbela en <Link href="/admin/productos">Artículos</Link>.</p>
 
         </aside>
       </div>

@@ -63,7 +63,8 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           <h3>Incluye <small>{product.items.length} productos</small></h3>
           <ul>
             {product.items.map((item, j) => {
-              const visual = imageFor(item);
+              // La foto sale del artículo del contenido; si no la trae, de la imagen de la canasta.
+              const visual = product.itemFotos?.[item] ?? imageFor(item);
               return (
                 <li key={item} style={{ "--j": j } as React.CSSProperties}>
                   <span className="includesThumb">
