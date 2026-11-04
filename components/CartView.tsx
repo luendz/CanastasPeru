@@ -58,7 +58,6 @@ export default function CartView({ products, basketTypes, opciones }: Props) {
         <p>Todavía hay tiempo de sorprender a alguien esta Navidad.</p>
         <div className="emptyActions">
           <Link className="btn btnPrimary" href="/canastas">Ver canastas</Link>
-          <Link className="btn btnGhost" href="/boxes">Ver boxes navideños</Link>
         </div>
       </div>
     );
