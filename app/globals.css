@@ -479,6 +479,8 @@ del { color: #a99a8e; font-size: 13px; }
 .devList { display: grid; gap: 4px; }
 .devListItem { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 5px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 12px; line-height: 1.25; text-align: left; }
 .devListItem small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.devConteo { margin: -4px 0 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.devConteoFalta { color: var(--wine); font-weight: 600; }
 .devListItemActive { border-color: var(--green); background: rgba(123, 30, 44, .06); font-weight: 700; }
 .devControls { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
 .devControls h3 { display: flex; justify-content: space-between; gap: 12px; margin: 0; font-size: 14px; }

@@ -150,12 +150,22 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
 
   // Solo se suman productos del contenido de la canasta; la foto sale de su ficha en Artículos.
   // Sin texto muestra todos; al escribir filtra por cualquier parte del nombre (sin tildes ni mayúsculas, varias palabras).
+  // Unidades de cada producto en el contenido y cuántas veces ya está en la imagen.
+  const unidadesDe = useMemo(() => new Map(insumos.map((ins) => [ins.nombre, Math.max(1, Math.floor(ins.cantidad ?? 1))])), [insumos]);
+  const puestasDe = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const it of items) m.set(it.name, (m.get(it.name) ?? 0) + 1);
+    return m;
+  }, [items]);
+  const totalUnidades = insumos.reduce((s, ins) => s + (unidadesDe.get(ins.nombre) ?? 1), 0);
+  const faltan = insumos.reduce((s, ins) => s + Math.max(0, (unidadesDe.get(ins.nombre) ?? 1) - (puestasDe.get(ins.nombre) ?? 0)), 0);
+
   const resultados = useMemo(() => {
     const palabras = normalizar(busqueda).split(/\s+/).filter(Boolean);
     return insumos
-      .filter((ins) => items.filter((x) => x.name === ins.nombre).length < Math.max(1, Math.floor(ins.cantidad ?? 1)))
+      .filter((ins) => (puestasDe.get(ins.nombre) ?? 0) < (unidadesDe.get(ins.nombre) ?? 1))
       .filter((ins) => palabras.every((w) => normalizar(ins.nombre).includes(w)));
-  }, [busqueda, insumos, items]);
+  }, [busqueda, insumos, puestasDe, unidadesDe]);
 
   function agregar(ins: InsumoVisual) {
     setItems((prev) => [...prev, { name: ins.nombre, emoji: ins.emoji, ...(ins.imagen ? { image: ins.imagen } : {}), top: 60, left: 50, size: 90, rotate: 0, zIndex: 20 }]);
@@ -325,12 +335,20 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
             </button>
           </div>
           <h3>Productos</h3>
+          {insumos.length > 0 && (
+            <p className={faltan ? "devConteo devConteoFalta" : "devConteo"}>
+              {items.length} de {totalUnidades} {totalUnidades === 1 ? "unidad" : "unidades"} en la imagen
+              {" · "}{faltan ? `${faltan === 1 ? "falta 1 imagen" : `faltan ${faltan} imágenes`} por poner` : "completa"}
+            </p>
+          )}
           {items.length === 0 && <p className="devHint">Esta canasta aún no tiene composición. Agrega sus productos.</p>}
           <div className="devList">
             {items.map((item, index) => (
               <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={`${item.name}-${index}`} onClick={() => setSelected(index)} type="button">
                 <span>{item.emoji} {item.name}</span>
-                {!insumos.some((ins) => ins.nombre === item.name) && <small className="admWarn"> · no está en el contenido</small>}
+                {unidadesDe.has(item.name)
+                  ? <small title="Veces en la imagen / unidades en el contenido">{items.slice(0, index + 1).filter((x) => x.name === item.name).length} de {unidadesDe.get(item.name)}</small>
+                  : <small className="admWarn"> · no está en el contenido</small>}
               </button>
             ))}
           </div>
@@ -365,7 +383,10 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
                     {/* onMouseDown evita que el campo pierda el foco y cierre la lista antes del clic. */}
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => agregar(ins)}>
                       <span>{ins.emoji} {ins.nombre}</span>
-                      {!ins.imagen && <small>sin foto</small>}
+                      <small>
+                        {(() => { const r = (unidadesDe.get(ins.nombre) ?? 1) - (puestasDe.get(ins.nombre) ?? 0); return r === 1 ? "falta 1" : `faltan ${r}`; })()}
+                        {!ins.imagen && " · sin foto"}
+                      </small>
                     </button>
                   </li>
                 )) : <li className="admMuted admSmall">{busqueda ? "Sin resultados." : insumos.length ? "Ya están en la imagen todas las unidades del contenido." : "Esta canasta aún no tiene contenido."}</li>}
