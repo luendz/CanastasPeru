@@ -12,5 +12,6 @@ export const MENSAJE_WHATSAPP = [
 export function enlaceWhatsApp(telefono: string, texto = MENSAJE_WHATSAPP) {
   let d = telefono.replace(/\D/g, "");
   if (d.length === 9) d = `51${d}`;
-  return `https://wa.me/${d}?text=${encodeURIComponent(texto)}`;
+  // wa.me rompe los emojis al redirigir a WhatsApp Web; api.whatsapp.com/send los conserva.
+  return `https://api.whatsapp.com/send?phone=${d}&text=${encodeURIComponent(texto)}`;
 }

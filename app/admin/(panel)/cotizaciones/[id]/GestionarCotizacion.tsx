@@ -92,7 +92,7 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
     }
     r.doc.save(r.nombre);
     if (via === "whatsapp") {
-      window.open(`https://wa.me/${numeroWhatsApp(cliente.telefono)}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener");
+      window.open(`https://api.whatsapp.com/send?phone=${numeroWhatsApp(cliente.telefono)}&text=${encodeURIComponent(mensaje)}`, "_blank", "noopener");
     } else {
       window.location.href = `mailto:${cliente.email ?? ""}?subject=${encodeURIComponent(`Cotización ${numero} · ${marca}`)}&body=${encodeURIComponent(mensaje)}`;
     }
