@@ -112,7 +112,7 @@ export type Contenido = {
     terminos: string;
     privacidad: string;
   };
-  nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; valores: Paso[] };
+  nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; lema: string; valores: Paso[] };
 };
 
 export type SeccionContenido = keyof Contenido;
@@ -298,7 +298,8 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     titulo: "Regalos que *conectan* personas.",
     texto: "En MKA Canastas Navideñas y Regalos somos una empresa dedicada a crear detalles que transmiten emociones y fortalecen vínculos.\n\nNos caracteriza la creatividad, la dedicación y el compromiso por brindar productos de calidad, cuidando cada detalle para convertir cada obsequio en una experiencia especial.",
     imagen: "",
-    historia: "Aquí va la historia de MKA: cómo empezó, qué nos mueve y cómo trabajamos cada pedido. Edita este texto en Panel → Contenido web → Nosotros.",
+    historia: "Trabajamos para que cada regalo represente mucho más que un presente: sea una muestra de agradecimiento, reconocimiento y aprecio.",
+    lema: "En MKA, cada detalle tiene un propósito y cada regalo cuenta una historia.",
     valores: [
       { titulo: "Calidad", texto: "Elegimos marcas y productos que sí se disfrutan." },
       { titulo: "Detalle", texto: "Cada canasta se arma y presenta a mano." },

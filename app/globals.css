@@ -1238,3 +1238,4 @@ del { color: #a99a8e; font-size: 13px; }
 .admEnvaseCheck { display: flex; align-items: center; gap: 8px; flex-direction: row; }
 .nosotrosIntro p { margin: 0; }
 .nosotrosIntro p + p { margin-top: 12px; }
+.nosotrosLema { margin-top: 22px; padding-left: 18px; border-left: 3px solid var(--wine); font-family: var(--font-display-stack); font-style: italic; font-size: clamp(20px, 2vw, 26px); line-height: 1.35; color: var(--wine); }

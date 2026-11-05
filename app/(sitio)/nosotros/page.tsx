@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Icono from "@/components/Icono";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
@@ -27,7 +26,7 @@ export default async function NosotrosPage() {
         </div>
         <div className="nosotrosTexto">
           {t.historia.split(/\n+/).map((p, n) => <p key={n}>{p}</p>)}
-          <Link className="btn btnPrimary" href="/canastas">Ver canastas <Icono nombre="flecha" /></Link>
+          {t.lema && <p className="nosotrosLema">{t.lema}</p>}
         </div>
       </section>
 

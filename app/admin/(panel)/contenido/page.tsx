@@ -124,6 +124,7 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "texto", etiqueta: "Texto de presentación", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
       { tipo: "imagen", clave: "imagen", etiqueta: "Imagen" },
       { tipo: "texto", clave: "historia", etiqueta: "Historia", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
+      { tipo: "texto", clave: "lema", etiqueta: "Frase destacada (debajo de la historia)", largo: true },
       { tipo: "filas", clave: "valores", etiqueta: "Valores", columnas: PASOS },
     ],
   },
