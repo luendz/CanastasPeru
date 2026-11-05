@@ -34,29 +34,34 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   const { data: producto } = await supabase.from("articulos").select("nombre").eq("id", id).maybeSingle();
   if (!producto) return { error: "El artículo ya no existe." };
 
-  const lista = [{ articulo_id: id }];
+  // En jsonb, .contains() con un arreglo de objetos arma un arreglo de Postgres ("{[object Object]}") y falla;
+  // con el JSON en texto PostgREST lo compara como jsonb.
+  const lista = JSON.stringify([{ articulo_id: id }]);
   const [recetas, envases, compositions, compras, ordenes, cotizaciones] = await Promise.all([
     supabase.from("canasta_articulos").select("canastas(nombre)").eq("articulo_id", id),
     supabase.from("envases").select("nombre").eq("articulo_id", id),
-    supabase.from("canastas").select("nombre").contains("composicion", [{ name: producto.nombre }]),
+    supabase.from("canastas").select("nombre").filter("composicion", "cs", JSON.stringify([{ name: producto.nombre }])),
     supabase.from("compras").select("id", { count: "exact", head: true }).eq("articulo_id", id),
-    supabase.from("orden_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
-    supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
+    supabase.from("orden_items").select("id", { count: "exact", head: true }).filter("contenido", "cs", lista),
+    supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).filter("contenido", "cs", lista),
   ]);
   const consulta = [recetas, envases, compositions, compras, ordenes, cotizaciones].find((r) => r.error);
   if (consulta?.error) return { error: consulta.error.message };
 
   const nombres = (filas: { nombre: string }[] | null) => (filas ?? []).map((f) => f.nombre).join(", ");
-  const canastas = ((recetas.data ?? []) as unknown as { canastas: { nombre: string } }[]).map((r) => r.canastas.nombre).join(", ");
+  // Canastas donde está configurado: en su contenido o en su imagen, sin repetir.
+  const enCanastas = [...new Set([
+    ...((recetas.data ?? []) as unknown as { canastas: { nombre: string } | null }[]).flatMap((r) => (r.canastas ? [r.canastas.nombre] : [])),
+    ...(compositions.data ?? []).map((c) => c.nombre),
+  ])].sort((x, y) => x.localeCompare(y, "es", { numeric: true }));
   const usos = [
-    canastas && `está en la receta de ${canastas}`,
+    enCanastas.length && `está configurado en ${enCanastas.length === 1 ? "la canasta" : "las canastas"} ${enCanastas.join(", ")}`,
     envases.data?.length && `es el artículo del envase ${nombres(envases.data)}`,
-    compositions.data?.length && `está en la composición visual de ${nombres(compositions.data)}`,
     compras.count && `tiene ${compras.count} ${compras.count === 1 ? "compra registrada" : "compras registradas"}`,
     ordenes.count && "está en órdenes",
     cotizaciones.count && "está en cotizaciones",
   ].filter(Boolean);
-  if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}.` };
+  if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}. Quítalo de ahí primero.` };
 
   const { error } = await supabase.from("articulos").delete().eq("id", id);
   if (error) return { error: error.message };
