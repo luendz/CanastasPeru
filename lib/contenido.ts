@@ -112,7 +112,7 @@ export type Contenido = {
     terminos: string;
     privacidad: string;
   };
-  nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; valores: Paso[] };
+  nosotros: { etiqueta: string; titulo: string; texto: string; imagen: string; historia: string; lema: string; valores: Paso[] };
 };
 
 export type SeccionContenido = keyof Contenido;
@@ -140,7 +140,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     porQue: [
       { titulo: "Productos seleccionados", texto: "Elegimos cuidadosamente cada producto." },
       { titulo: "Presentación especial", texto: "Cuidamos cada detalle para una experiencia única." },
-      { titulo: "Opciones para cada presupuesto", texto: "Económicas, Premium, Ejecutivas y Boxes Navideños." },
+      { titulo: "Opciones para cada presupuesto", texto: "Canastas económicas, premium y ejecutivas." },
       { titulo: "Atención personalizada", texto: "Te ayudamos a encontrar la opción ideal para tu pedido." },
     ],
     tiposEtiqueta: "Encuentra el regalo perfecto",
@@ -296,13 +296,23 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   nosotros: {
     etiqueta: "Nosotros",
     titulo: "Regalos que *conectan* personas.",
-    texto: "En MKA preparamos canastas y boxes navideños con productos seleccionados, pensados para celebrar, agradecer y compartir.",
+    texto: "En MKA Canastas Navideñas y Regalos somos una empresa dedicada a crear detalles que transmiten emociones y fortalecen vínculos.\n\nNos caracteriza la creatividad, la dedicación y el compromiso por brindar productos de calidad, cuidando cada detalle para convertir cada obsequio en una experiencia especial.",
     imagen: "",
-    historia: "Aquí va la historia de MKA: cómo empezó, qué nos mueve y cómo trabajamos cada pedido. Edita este texto en Panel → Contenido web → Nosotros.",
+    historia: "Trabajamos para que cada regalo represente mucho más que un presente: sea una muestra de agradecimiento, reconocimiento y aprecio.",
+    lema: "En MKA, cada detalle tiene un propósito y cada regalo cuenta una historia.",
     valores: [
-      { titulo: "Calidad", texto: "Elegimos marcas y productos que sí se disfrutan." },
-      { titulo: "Detalle", texto: "Cada canasta se arma y presenta a mano." },
-      { titulo: "Cumplimiento", texto: "Entregamos en la fecha y el lugar acordados." },
+      {
+        titulo: "Nuestro equipo",
+        texto: "Profesionalismo y dedicación en cada servicio.\n\nContamos con un equipo de profesionales comprometidos y capacitados, que se encarga de cada etapa del proceso con responsabilidad, agilidad y atención al detalle. Trabajamos para ofrecer soluciones eficientes, optimizar recursos y garantizar que cada evento se desarrolle de manera exitosa, brindando una experiencia de calidad a nuestros clientes.",
+      },
+      {
+        titulo: "Nuestra misión",
+        texto: "Llevar alegría y crear momentos especiales a través de nuestras canastas navideñas y box navideños, brindando alternativas que se adapten a las necesidades de cada cliente y organización.",
+      },
+      {
+        titulo: "Nuestra visión",
+        texto: "Llegar a más hogares y empresas con productos que transmitan cariño, gratitud y el verdadero espíritu de compartir.",
+      },
     ],
   },
 };

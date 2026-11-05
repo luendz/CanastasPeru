@@ -19,6 +19,9 @@ const TRAZOS = {
   correo: "M3 6h18v12H3zM3 7l9 6 9-6",
   telefono: "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z",
   flecha: "M5 12h14M13 6l6 6-6 6",
+  equipo: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 19c.6-3 3-5 6-5s5.4 2 6 5M16 11a2.5 2.5 0 1 0 0-5M17.5 14c2 .4 3.2 2 3.5 4.5",
+  diana: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-4a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm0-1 8-8m-3 0h3v3",
+  ojo: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
 } as const;
 
 export type NombreIcono = keyof typeof TRAZOS;

@@ -1236,3 +1236,25 @@ del { color: #a99a8e; font-size: 13px; }
 .detailAviso, .cartAviso { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: #fdecec; color: #9b1c1c; font-size: 13px; line-height: 1.4; }
 .cartAviso { display: block; }
 .admEnvaseCheck { display: flex; align-items: center; gap: 8px; flex-direction: row; }
+.nosotrosIntro p { margin: 0; }
+.nosotrosIntro p + p { margin-top: 12px; }
+/* Nosotros: historia con frase destacada y tarjetas de equipo, misión y visión con adornos navideños. */
+.nosotrosTexto { position: relative; padding: 24px 0 70px; }
+.nosotrosTexto p { color: var(--ink, #2a1a17); }
+.nosotrosRaya { display: block; width: 72px; height: 2px; margin: 22px 0; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); border-radius: 2px; }
+.nosotrosLema { margin: 0 !important; font-family: var(--font-display-stack); font-style: italic; font-weight: 700; font-size: clamp(26px, 2.6vw, 36px) !important; line-height: 1.25 !important; color: var(--wine); }
+.nosotrosEstrella { position: absolute; color: var(--gold); font-size: 22px; line-height: 1; opacity: .9; }
+.nosotrosEstrella1 { top: -14px; right: 2%; }
+.nosotrosEstrella2 { top: 46%; right: -10px; font-size: 15px; }
+.nosotrosRama { position: absolute; right: -24px; bottom: -6px; width: 220px; height: auto; transform: rotate(-12deg); }
+.nosotrosValores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; margin: 0 0 90px; padding: 0; list-style: none; }
+.nosotrosValores li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 28px 96px; border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 22px; background: linear-gradient(180deg, #fffdf8, #fbf3e6); box-shadow: 0 14px 34px rgba(91, 33, 28, .07); text-align: center; overflow: hidden; }
+.nosotrosIcono { width: 76px; height: 76px; display: grid; place-items: center; border-radius: 50%; background: var(--wine); color: #fff; box-shadow: 0 8px 20px rgba(123, 30, 44, .28); }
+.nosotrosIcono .icono { width: 36px; height: 36px; }
+.nosotrosValores h3 { margin: 8px 0 0; font-family: var(--font-display-stack); font-size: clamp(26px, 2.3vw, 32px); font-weight: 600; color: var(--wine); }
+.nosotrosValores .nosotrosRaya { margin: 4px auto; width: 64px; }
+.nosotrosValores p { margin: 0; color: var(--ink, #2a1a17); font-size: 14.5px; line-height: 1.65; }
+.nosotrosValores .nosotrosSubtitulo { font-family: var(--font-display-stack); font-style: italic; font-size: 19px; line-height: 1.35; }
+.nosotrosValores .nosotrosCursiva { font-style: italic; font-size: 15.5px; }
+.nosotrosAdorno { position: absolute; left: 50%; bottom: 4px; width: min(250px, 86%); height: auto; transform: translateX(-50%); }
+@media (max-width: 980px) { .nosotrosValores { grid-template-columns: 1fr; } .nosotrosRama { width: 160px; right: 0; } }
