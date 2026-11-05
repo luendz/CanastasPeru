@@ -49,16 +49,19 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   if (consulta?.error) return { error: consulta.error.message };
 
   const nombres = (filas: { nombre: string }[] | null) => (filas ?? []).map((f) => f.nombre).join(", ");
-  const canastas = ((recetas.data ?? []) as unknown as { canastas: { nombre: string } }[]).map((r) => r.canastas.nombre).join(", ");
+  // Canastas donde está configurado: en su contenido o en su imagen, sin repetir.
+  const enCanastas = [...new Set([
+    ...((recetas.data ?? []) as unknown as { canastas: { nombre: string } | null }[]).flatMap((r) => (r.canastas ? [r.canastas.nombre] : [])),
+    ...(compositions.data ?? []).map((c) => c.nombre),
+  ])].sort((x, y) => x.localeCompare(y, "es", { numeric: true }));
   const usos = [
-    canastas && `está en la receta de ${canastas}`,
+    enCanastas.length && `está configurado en ${enCanastas.length === 1 ? "la canasta" : "las canastas"} ${enCanastas.join(", ")}`,
     envases.data?.length && `es el artículo del envase ${nombres(envases.data)}`,
-    compositions.data?.length && `está en la composición visual de ${nombres(compositions.data)}`,
     compras.count && `tiene ${compras.count} ${compras.count === 1 ? "compra registrada" : "compras registradas"}`,
     ordenes.count && "está en órdenes",
     cotizaciones.count && "está en cotizaciones",
   ].filter(Boolean);
-  if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}.` };
+  if (usos.length) return { error: `No se puede eliminar: ${usos.join("; ")}. Quítalo de ahí primero.` };
 
   const { error } = await supabase.from("articulos").delete().eq("id", id);
   if (error) return { error: error.message };
