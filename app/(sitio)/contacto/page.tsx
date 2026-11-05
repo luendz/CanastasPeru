@@ -6,6 +6,8 @@ import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export const metadata = { title: "Contacto" };
 
+const MOSTRAR_UBICACION = false;
+
 export default async function ContactoPage() {
   const { contacto } = await getContenido();
   const canales = [
@@ -39,12 +41,13 @@ export default async function ContactoPage() {
             )}
           </article>
         ))}
-        <article className="contactoCard">
+        {/* "Dónde estamos" oculto por ahora: cambiar a true para volver a mostrarlo. */}
+        {MOSTRAR_UBICACION && <article className="contactoCard">
           <span className="hmIconoCirculo"><Icono nombre="ubicacion" /></span>
           <h3>Dónde estamos</h3>
           <p>{contacto.ciudad}</p>
           <p className="muted">Entregas programadas en Lima y envíos a provincias.</p>
-        </article>
+        </article>}
       </section>
     </>
   );
