@@ -140,7 +140,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     porQue: [
       { titulo: "Productos seleccionados", texto: "Elegimos cuidadosamente cada producto." },
       { titulo: "Presentación especial", texto: "Cuidamos cada detalle para una experiencia única." },
-      { titulo: "Opciones para cada presupuesto", texto: "Económicas, Premium, Ejecutivas y Boxes Navideños." },
+      { titulo: "Opciones para cada presupuesto", texto: "Canastas económicas, premium y ejecutivas." },
       { titulo: "Atención personalizada", texto: "Te ayudamos a encontrar la opción ideal para tu pedido." },
     ],
     tiposEtiqueta: "Encuentra el regalo perfecto",
