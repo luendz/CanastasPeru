@@ -35,9 +35,10 @@ export default async function NosotrosPage() {
           <Reveal as="ul" className="hmPorQue nosotrosValores" threshold={0.15}>
             {t.valores.map((v, n) => (
               <li key={n} data-reveal-item style={{ "--i": n } as React.CSSProperties}>
-                <span className="hmIconoCirculo"><Icono nombre={(["estrella", "lazo", "camion", "persona"] as const)[n % 4]} /></span>
+                <span className="hmIconoCirculo"><Icono nombre={(["persona", "regalo", "estrella", "lazo"] as const)[n % 4]} /></span>
                 <h3>{v.titulo}</h3>
-                <p>{v.texto}</p>
+                {/* Con varios párrafos, el primero se destaca como subtítulo. */}
+                {v.texto.split(/\n+/).map((p, k, todos) => <p key={k} className={todos.length > 1 && k === 0 ? "nosotrosSubtitulo" : undefined}>{p}</p>)}
               </li>
             ))}
           </Reveal>

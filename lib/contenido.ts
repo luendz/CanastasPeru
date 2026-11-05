@@ -301,9 +301,18 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     historia: "Trabajamos para que cada regalo represente mucho más que un presente: sea una muestra de agradecimiento, reconocimiento y aprecio.",
     lema: "En MKA, cada detalle tiene un propósito y cada regalo cuenta una historia.",
     valores: [
-      { titulo: "Calidad", texto: "Elegimos marcas y productos que sí se disfrutan." },
-      { titulo: "Detalle", texto: "Cada canasta se arma y presenta a mano." },
-      { titulo: "Cumplimiento", texto: "Entregamos en la fecha y el lugar acordados." },
+      {
+        titulo: "Nuestro equipo",
+        texto: "Profesionalismo y dedicación en cada servicio.\n\nContamos con un equipo de profesionales comprometidos y capacitados, que se encarga de cada etapa del proceso con responsabilidad, agilidad y atención al detalle. Trabajamos para ofrecer soluciones eficientes, optimizar recursos y garantizar que cada evento se desarrolle de manera exitosa, brindando una experiencia de calidad a nuestros clientes.",
+      },
+      {
+        titulo: "Nuestra misión",
+        texto: "Llevar alegría y crear momentos especiales a través de nuestras canastas navideñas y box navideños, brindando alternativas que se adapten a las necesidades de cada cliente y organización.",
+      },
+      {
+        titulo: "Nuestra visión",
+        texto: "Llegar a más hogares y empresas con productos que transmitan cariño, gratitud y el verdadero espíritu de compartir.",
+      },
     ],
   },
 };

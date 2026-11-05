@@ -125,7 +125,7 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "imagen", clave: "imagen", etiqueta: "Imagen" },
       { tipo: "texto", clave: "historia", etiqueta: "Historia", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
       { tipo: "texto", clave: "lema", etiqueta: "Frase destacada (debajo de la historia)", largo: true },
-      { tipo: "filas", clave: "valores", etiqueta: "Valores", columnas: PASOS },
+      { tipo: "filas", clave: "valores", etiqueta: "Equipo, misión y visión", columnas: PASOS, ayuda: "En el texto, una línea en blanco separa párrafos; si hay varios, el primero sale como subtítulo." },
     ],
   },
   {
