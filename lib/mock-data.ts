@@ -124,6 +124,11 @@ export type BasketType = {
   image: string;
   hint: string;
   priceDelta: number;
+  /** Condición del envase (p. ej. "Pedido mínimo 35 unidades"); se muestra bajo la imagen si `mostrarCondicion`. */
+  condicion?: string;
+  mostrarCondicion?: boolean;
+  /** Mínimo de unidades de una misma canasta con este envase. */
+  minimo?: number;
 };
 
 export const basketTypes: BasketType[] = [
@@ -168,6 +173,12 @@ export const findBasketType = (types: BasketType[], product: Pick<Product, "base
 export const separarInsignias = (texto?: string | null) => (texto ?? "").split(",").map((i) => i.trim()).filter(Boolean);
 
 export type EnvaseProducto = BasketType & { precio: number };
+
+/** Si la cantidad no llega al mínimo del envase, el mensaje para el cliente; si cumple, null. */
+export function faltaMinimo(envase: Pick<BasketType, "label" | "minimo">, cantidad: number): string | null {
+  if (!envase.minimo || cantidad >= envase.minimo) return null;
+  return `Con el envase ${envase.label} el pedido mínimo es de ${envase.minimo} unidades de esta canasta.`;
+}
 
 /** Envases que ofrece una canasta, cada uno con su precio. Sin lista propia (demostración), todos con su recargo. */
 export function envasesDe(types: BasketType[], product: Product): EnvaseProducto[] {

@@ -41,7 +41,7 @@ type CatalogoWeb = {
     contenido: string[];
     contenido_fotos?: { nombre: string; imagen: string | null; emoji: string | null; cantidad?: number }[];
   }[];
-  envases: { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number }[];
+  envases: { id: string; nombre: string; imagen: string | null; descripcion: string | null; recargo: number; condicion?: string | null; mostrar_condicion?: boolean; minimo_unidades?: number | null }[];
   zonas: { distrito: string; tarifa: number }[];
 };
 
@@ -90,6 +90,9 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       image: t.imagen ?? "",
       hint: t.descripcion ?? "",
       priceDelta: Number(t.recargo),
+      ...(t.condicion ? { condicion: t.condicion } : {}),
+      ...(t.mostrar_condicion ? { mostrarCondicion: true } : {}),
+      ...(t.minimo_unidades ? { minimo: Number(t.minimo_unidades) } : {}),
     })),
     deliveryZones: c.zonas.map((z) => ({ district: z.distrito, fee: Number(z.tarifa) })),
   };

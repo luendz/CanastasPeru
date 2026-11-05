@@ -6,7 +6,7 @@ import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { esFechaReparto } from "@/lib/entrega";
 import { PASARELA_MP, crearPreferencia, mercadoPagoConfigurado } from "@/lib/mercadopago";
-import { envaseElegido } from "@/lib/mock-data";
+import { envaseElegido, faltaMinimo } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,6 +33,15 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
     return { error: "No pudimos leer tu carrito." };
   }
   if (!items.length) return { error: "Tu carrito está vacío." };
+
+  // El mínimo de unidades de cada envase se vuelve a revisar aquí: el carrito vive en el navegador.
+  const catalogo = await getCatalogo();
+  for (const i of items) {
+    const p = catalogo.products.find((x) => x.slug === i.slug);
+    if (!p) continue;
+    const falta = faltaMinimo(envaseElegido(catalogo.basketTypes, p, i.envase_id), Number(i.cantidad) || 0);
+    if (falta) return { error: `${p.name}: ${falta}` };
+  }
 
   // Sin Supabase configurado, la tienda funciona como demostración.
   if (!supabaseConfigurado) redirect("/confirmacion");

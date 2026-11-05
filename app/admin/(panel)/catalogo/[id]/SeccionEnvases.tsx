@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import EnvasesPrecios, { type CanastaDestino, type FilaEnvase, type OpcionEnvase } from "./EnvasesPrecios";
 
-type Tipo = { id: string; nombre: string; descripcion: string | null; imagen: string | null; articulo_id: string | null };
+type Tipo = { id: string; nombre: string; descripcion: string | null; imagen: string | null; articulo_id: string | null; condicion: string | null; mostrar_condicion: boolean; minimo_unidades: number | null };
 type Empaque = { id: string; nombre: string; imagen: string | null; costo_referencia: number | null };
 
 /** Envases de la canasta con el cálculo de cada uno, y los que se le pueden agregar. */
@@ -9,7 +9,7 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
   const { supabase } = await requireAdmin();
   const [{ data: envases }, { data: tipos }, { data: empaques }, { data: canastas }, { data: usos }, { data: costos }, { data: armado }] = await Promise.all([
     supabase.from("v_envases_canasta").select("*").eq("canasta_id", productoId).order("orden").order("envase_id"),
-    supabase.from("envases").select("id,nombre,descripcion,imagen,articulo_id").order("orden"),
+    supabase.from("envases").select("id,nombre,descripcion,imagen,articulo_id,condicion,mostrar_condicion,minimo_unidades").order("orden"),
     supabase.from("articulos").select("id,nombre,imagen,costo_referencia").eq("tipo", "envase").order("nombre"),
     supabase.from("canastas").select("id,nombre,precio").neq("id", productoId).order("orden").order("precio"),
     supabase.from("canasta_envases").select("canasta_id,envase_id"),
@@ -17,8 +17,12 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
     supabase.from("v_armado_canasta").select("costo").eq("canasta_id", productoId).maybeSingle(),
   ]);
   const listaTipos = (tipos ?? []) as Tipo[];
-  const descripcionDe = new Map(listaTipos.map((t) => [t.id, t.descripcion]));
-  const filas = ((envases ?? []) as Omit<FilaEnvase, "descripcion">[]).map((f) => ({ ...f, descripcion: descripcionDe.get(f.envase_id) ?? null }));
+  const tipoDe = new Map(listaTipos.map((t) => [t.id, t]));
+  type Propios = "descripcion" | "condicion" | "mostrar_condicion" | "minimo_unidades";
+  const filas = ((envases ?? []) as Omit<FilaEnvase, Propios>[]).map((f) => {
+    const t = tipoDe.get(f.envase_id);
+    return { ...f, descripcion: t?.descripcion ?? null, condicion: t?.condicion ?? null, mostrar_condicion: t?.mostrar_condicion ?? false, minimo_unidades: t?.minimo_unidades ?? null };
+  });
   const listaEmpaques = (empaques ?? []) as Empaque[];
   const relacionados = new Set(listaTipos.map((t) => t.articulo_id));
 
