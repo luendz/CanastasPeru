@@ -34,14 +34,16 @@ export async function eliminarProducto(id: string): Promise<ProductoState> {
   const { data: producto } = await supabase.from("articulos").select("nombre").eq("id", id).maybeSingle();
   if (!producto) return { error: "El artículo ya no existe." };
 
-  const lista = [{ articulo_id: id }];
+  // En jsonb, .contains() con un arreglo de objetos arma un arreglo de Postgres ("{[object Object]}") y falla;
+  // con el JSON en texto PostgREST lo compara como jsonb.
+  const lista = JSON.stringify([{ articulo_id: id }]);
   const [recetas, envases, compositions, compras, ordenes, cotizaciones] = await Promise.all([
     supabase.from("canasta_articulos").select("canastas(nombre)").eq("articulo_id", id),
     supabase.from("envases").select("nombre").eq("articulo_id", id),
-    supabase.from("canastas").select("nombre").contains("composicion", [{ name: producto.nombre }]),
+    supabase.from("canastas").select("nombre").filter("composicion", "cs", JSON.stringify([{ name: producto.nombre }])),
     supabase.from("compras").select("id", { count: "exact", head: true }).eq("articulo_id", id),
-    supabase.from("orden_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
-    supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).contains("contenido", lista),
+    supabase.from("orden_items").select("id", { count: "exact", head: true }).filter("contenido", "cs", lista),
+    supabase.from("cotizacion_items").select("id", { count: "exact", head: true }).filter("contenido", "cs", lista),
   ]);
   const consulta = [recetas, envases, compositions, compras, ordenes, cotizaciones].find((r) => r.error);
   if (consulta?.error) return { error: consulta.error.message };
