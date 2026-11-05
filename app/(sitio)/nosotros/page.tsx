@@ -16,7 +16,8 @@ export default async function NosotrosPage() {
             <span className="eyebrow">{t.etiqueta}</span>
             <h1><SplitWords text={t.titulo} immediate /></h1>
           </div>
-          <p>{t.texto}</p>
+          {/* Varios párrafos: se separan con una línea en blanco. */}
+          <div className="nosotrosIntro">{t.texto.split(/\n+/).map((p, n) => <p key={n}>{p}</p>)}</div>
         </div>
       </section>
 

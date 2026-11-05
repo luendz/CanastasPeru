@@ -121,7 +121,7 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
     campos: [
       { tipo: "texto", clave: "etiqueta", etiqueta: "Etiqueta" },
       { tipo: "texto", clave: "titulo", etiqueta: "Título", ayuda: ENFASIS },
-      { tipo: "texto", clave: "texto", etiqueta: "Texto de presentación", largo: true },
+      { tipo: "texto", clave: "texto", etiqueta: "Texto de presentación", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
       { tipo: "imagen", clave: "imagen", etiqueta: "Imagen" },
       { tipo: "texto", clave: "historia", etiqueta: "Historia", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
       { tipo: "filas", clave: "valores", etiqueta: "Valores", columnas: PASOS },

@@ -296,7 +296,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   nosotros: {
     etiqueta: "Nosotros",
     titulo: "Regalos que *conectan* personas.",
-    texto: "En MKA preparamos canastas y boxes navideños con productos seleccionados, pensados para celebrar, agradecer y compartir.",
+    texto: "En MKA Canastas Navideñas y Regalos somos una empresa dedicada a crear detalles que transmiten emociones y fortalecen vínculos.\n\nNos caracteriza la creatividad, la dedicación y el compromiso por brindar productos de calidad, cuidando cada detalle para convertir cada obsequio en una experiencia especial.",
     imagen: "",
     historia: "Aquí va la historia de MKA: cómo empezó, qué nos mueve y cómo trabajamos cada pedido. Edita este texto en Panel → Contenido web → Nosotros.",
     valores: [

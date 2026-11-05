@@ -1236,3 +1236,5 @@ del { color: #a99a8e; font-size: 13px; }
 .detailAviso, .cartAviso { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: #fdecec; color: #9b1c1c; font-size: 13px; line-height: 1.4; }
 .cartAviso { display: block; }
 .admEnvaseCheck { display: flex; align-items: center; gap: 8px; flex-direction: row; }
+.nosotrosIntro p { margin: 0; }
+.nosotrosIntro p + p { margin-top: 12px; }
