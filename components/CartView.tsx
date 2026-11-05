@@ -7,7 +7,7 @@ import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import { carrito, unidades, useCarrito } from "@/lib/carrito";
 import { UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import type { Contenido } from "@/lib/contenido";
-import { envaseElegido, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
+import { envaseElegido, faltaMinimo, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 type Props = {
   products: Product[];
@@ -82,6 +82,7 @@ export default function CartView({ products, basketTypes, opciones }: Props) {
                   <Link className="cartName" href={`/producto/${l.product.slug}`}>{l.product.name}</Link>
                   <span className="cartMeta">{l.tipo.label} · {l.product.items.length} productos</span>
                   <span className="cartUnit">{formatPrice(l.precio)} c/u</span>
+                  {faltaMinimo(l.tipo, l.cantidad) && <span className="cartAviso" role="alert">{faltaMinimo(l.tipo, l.cantidad)}</span>}
                 </div>
                 <div className="cartControls">
                   <div className="stepper stepperSm">
@@ -149,7 +150,14 @@ export default function CartView({ products, basketTypes, opciones }: Props) {
         <div className="summaryTotal"><span>Total</span><strong><AnimatedPrice value={subtotal} /></strong></div>
         <p className="muted summaryTax">{opciones.notaImpuestos}</p>
         {savings > 0 && <p className="saveTag summarySave">Estás ahorrando <AnimatedPrice value={savings} /> en promociones</p>}
-        <Link className="btn btnPrimary full" href="/checkout">Continuar con la compra →</Link>
+        {lines.some((l) => faltaMinimo(l.tipo, l.cantidad)) ? (
+          <>
+            <p className="cartAviso">Hay canastas que no llegan al mínimo de su envase. Ajusta la cantidad para continuar.</p>
+            <button type="button" className="btn btnPrimary full" disabled>Continuar con la compra →</button>
+          </>
+        ) : (
+          <Link className="btn btnPrimary full" href="/checkout">Continuar con la compra →</Link>
+        )}
         <Link className="btn btnGhost full" href="/canastas">← Seguir comprando</Link>
         <ul className="summaryPerks">
           <li>✦ Boleta o factura electrónica</li>

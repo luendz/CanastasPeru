@@ -5,8 +5,8 @@ import { useState, ViewTransition } from "react";
 import ProductComposition from "@/components/ProductComposition";
 import AnimatedPrice from "@/components/motion/AnimatedPrice";
 import SplitWords from "@/components/motion/SplitWords";
-import { carrito } from "@/lib/carrito";
-import { BasketType, EnvaseProducto, Product, envaseElegido, envasesDe, formatPrice, separarInsignias } from "@/lib/mock-data";
+import { carrito, useCarrito } from "@/lib/carrito";
+import { BasketType, EnvaseProducto, Product, envaseElegido, envasesDe, faltaMinimo, formatPrice, separarInsignias } from "@/lib/mock-data";
 
 function deltaLabel(delta: number) {
   if (delta === 0) return "Incluida";
@@ -19,8 +19,17 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
   const [selected, setSelected] = useState<EnvaseProducto>(ownBasket);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+  // Lo que ya hay en el carrito de esta canasta con este envase también cuenta para el mínimo.
+  const enCarrito = useCarrito().lineas.find((l) => l.slug === product.slug && l.tipo === selected.id)?.cantidad ?? 0;
 
   function addToCart() {
+    const falta = faltaMinimo(selected, enCarrito + qty);
+    if (falta) {
+      setAviso(`${falta} Aumenta la cantidad para agregarla al carrito.`);
+      return;
+    }
+    setAviso(null);
     // Se guarda con el tipo de canasta elegido; el header anima el contador.
     carrito.agregar(product.slug, selected.id, qty);
     setAdded(true);
@@ -47,6 +56,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           </ViewTransition>
           <span className="detailHint">Pasa el cursor sobre cada producto</span>
         </div>
+        {selected.mostrarCondicion && selected.condicion && <p className="detailCondicion">{selected.condicion}</p>}
         {product.fullDescription && <p className="detailDescripcion">{product.fullDescription}</p>}
       </div>
 
@@ -85,7 +95,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           <div className="basketGrid">
             {envases.map((type) => (
               <label className="basketOption" key={type.id}>
-                <input checked={type.id === selected.id} name="tipoCanasta" onChange={() => setSelected(type)} type="radio" value={type.id} />
+                <input checked={type.id === selected.id} name="tipoCanasta" onChange={() => { setSelected(type); setAviso(null); }} type="radio" value={type.id} />
                 <span className="basketCheck" aria-hidden="true">✓</span>
                 <img alt="" className="basketThumb" src={type.image} />
                 <span className="basketLabel">{type.label}</span>
@@ -100,9 +110,9 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
             <div>
               <span className="buyLabel"><span className="stepNum">2</span> Cantidad</span>
               <div className="stepper">
-                <button type="button" aria-label="Quitar una" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-                <input aria-label="Cantidad" inputMode="numeric" value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value.replace(/\D/g, "")) || 1))} />
-                <button type="button" aria-label="Agregar una" onClick={() => setQty((q) => q + 1)}>+</button>
+                <button type="button" aria-label="Quitar una" disabled={qty <= 1} onClick={() => { setQty((q) => Math.max(1, q - 1)); setAviso(null); }}>−</button>
+                <input aria-label="Cantidad" inputMode="numeric" value={qty} onChange={(e) => { setQty(Math.max(1, Number(e.target.value.replace(/\D/g, "")) || 1)); setAviso(null); }} />
+                <button type="button" aria-label="Agregar una" onClick={() => { setQty((q) => q + 1); setAviso(null); }}>+</button>
               </div>
             </div>
             <div className="buyTotal">
@@ -115,6 +125,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
             <b className="addLabel">Agregar al carrito</b>
             <b className="addDone" aria-hidden={!added}>✓ Agregada al carrito</b>
           </button>
+          {aviso && <p className="detailAviso" role="alert">{aviso}</p>}
           <p className="addFollow" data-show={added || undefined}>
             <Link href="/carrito">Ver carrito →</Link>
           </p>

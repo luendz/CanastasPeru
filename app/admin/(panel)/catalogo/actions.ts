@@ -144,7 +144,8 @@ export async function crearZona(fd: FormData) {
 
 const precioValido = (precio: number) => Number.isFinite(precio) && precio > 0;
 
-type DatosEnvase = { nombre: string; descripcion: string; insumoId: string | null };
+/** `condicion`, `mostrarCondicion` y `minimo` son la regla del envase: valen para todas las canastas que lo usan. */
+type DatosEnvase = { nombre: string; descripcion: string; insumoId: string | null; condicion: string; mostrarCondicion: boolean; minimo: number | null };
 
 /**
  * Guarda un envase de la canasta: su precio y costo manual (usado si su producto
@@ -156,10 +157,14 @@ export async function guardarEnvase(productoId: string, tipo: string, precio: nu
   if (costoManual !== null && !(Number.isFinite(costoManual) && costoManual >= 0)) return { error: "El costo no es válido." };
   const nombre = datos.nombre.trim().slice(0, 80);
   if (!nombre) return { error: "Falta el nombre del envase." };
+  const minimo = datos.minimo === null ? null : Math.round(datos.minimo);
+  if (minimo !== null && !(Number.isFinite(minimo) && minimo >= 1 && minimo <= 500)) return { error: "El mínimo de unidades debe estar entre 1 y 500." };
+  const condicion = datos.condicion.trim().slice(0, 200);
+  if (datos.mostrarCondicion && !condicion) return { error: "Escribe el texto de la condición para mostrarlo en la tienda." };
 
   const { error: errorDatos } = await supabase
     .from("envases")
-    .update({ nombre, descripcion: datos.descripcion.trim().slice(0, 120) || null, articulo_id: datos.insumoId })
+    .update({ nombre, descripcion: datos.descripcion.trim().slice(0, 120) || null, articulo_id: datos.insumoId, condicion: condicion || null, mostrar_condicion: datos.mostrarCondicion, minimo_unidades: minimo })
     .eq("id", tipo);
   if (errorDatos) return { error: errorDatos.message };
 

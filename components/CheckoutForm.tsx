@@ -11,7 +11,7 @@ import type { Contenido } from "@/lib/contenido";
 import { lineasCarrito } from "@/components/CartView";
 import { useCarrito } from "@/lib/carrito";
 import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
-import { formatPrice, type BasketType, type Product } from "@/lib/mock-data";
+import { faltaMinimo, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -36,6 +36,10 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
   const c = useCarrito();
   const lines = lineasCarrito(c.lineas, products, basketTypes);
   const units = lines.reduce((sum, l) => sum + l.cantidad, 0);
+  const sinMinimo = lines.flatMap((l) => {
+    const falta = faltaMinimo(l.tipo, l.cantidad);
+    return falta ? [`${l.product.name}: ${falta}`] : [];
+  });
   const tarjetas = c.tarjetas.activa ? c.tarjetas.cantidad : 0;
   const totalTarjetas = tarjetas * opciones.tarjetaPrecio;
   const subtotal = lines.reduce((sum, l) => sum + l.precio * l.cantidad, 0) + totalTarjetas;
@@ -168,8 +172,9 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           <input type="checkbox" name="terminos" form="checkout" defaultChecked />
           <span>Acepto los términos y la política de privacidad.</span>
         </label>
+        {sinMinimo.map((m) => <p className="checkoutError" role="alert" key={m}>{m} <Link href="/carrito">Ajustar en el carrito →</Link></p>)}
         {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
-        <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending || lines.length === 0}>
+        <button className="btn btnPrimary full payBtn" type="submit" form="checkout" disabled={pending || lines.length === 0 || sinMinimo.length > 0}>
           {pending ? (metodo?.enLinea ? "Yendo a Mercado Pago…" : "Registrando pedido…") : <>{metodo?.enLinea ? "Pagar" : "Confirmar pedido"}&nbsp;<AnimatedPrice value={total} /></>}
         </button>
         <p className="muted summaryFoot">{metodo?.enLinea ? "Pago seguro con Mercado Pago: aquí no se ingresan datos de tarjeta." : "Registramos tu pedido y te contactamos para confirmar el pago."}</p>

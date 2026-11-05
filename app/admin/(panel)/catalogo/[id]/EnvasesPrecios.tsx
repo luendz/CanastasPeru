@@ -10,6 +10,9 @@ export type FilaEnvase = {
   envase_id: string;
   envase_nombre: string;
   descripcion: string | null;
+  condicion: string | null;
+  mostrar_condicion: boolean;
+  minimo_unidades: number | null;
   articulo_id: string | null;
   articulo_nombre: string | null;
   imagen: string | null;
@@ -38,6 +41,9 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
   const [costo, setCosto] = useState("");
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [condicion, setCondicion] = useState("");
+  const [mostrarCondicion, setMostrarCondicion] = useState(false);
+  const [minimo, setMinimo] = useState("");
   const [insumo, setInsumo] = useState("");
   const [agregando, setAgregando] = useState(false);
   const [opcion, setOpcion] = useState("");
@@ -68,6 +74,9 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
     setCosto(f.costo_manual == null ? "" : String(f.costo_manual));
     setNombre(f.envase_nombre);
     setDescripcion(f.descripcion ?? "");
+    setCondicion(f.condicion ?? "");
+    setMostrarCondicion(f.mostrar_condicion);
+    setMinimo(f.minimo_unidades == null ? "" : String(f.minimo_unidades));
     setInsumo(f.articulo_id ?? "");
   }
 
@@ -265,6 +274,9 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <div className="admEnvaseDatos">
                       <label>Nombre<input className="admInput" value={nombre} maxLength={80} required onChange={(e) => setNombre(e.target.value)} /></label>
                       <label>Descripción<input className="admInput" value={descripcion} maxLength={120} onChange={(e) => setDescripcion(e.target.value)} /></label>
+                      <label>Condición<input className="admInput" value={condicion} maxLength={200} placeholder="Ej.: Pedido mínimo 35 unidades" onChange={(e) => setCondicion(e.target.value)} /></label>
+                      <label className="admEnvaseCheck"><input type="checkbox" checked={mostrarCondicion} onChange={(e) => setMostrarCondicion(e.target.checked)} /> Mostrar la condición en la tienda</label>
+                      <label>Mínimo de unidades por canasta<input className="admInput" type="number" min={1} max={500} step={1} value={minimo} placeholder="Sin mínimo" onChange={(e) => setMinimo(e.target.value)} /></label>
                       <label>Artículo (costo)
                         <select className="admInput" value={insumo} onChange={(e) => setInsumo(e.target.value)}>
                           <option value="">Sin relacionar</option>
@@ -276,6 +288,11 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                     <>
                       <strong>{f.envase_nombre}</strong>
                       {f.descripcion && <small className="admMuted admBlock">{f.descripcion}</small>}
+                      {(f.condicion || f.minimo_unidades) && (
+                        <small className="admBlock admWarn">
+                          {[f.minimo_unidades ? `Mínimo ${f.minimo_unidades} unid.` : "", f.condicion ? `${f.condicion}${f.mostrar_condicion ? "" : " (oculta en la tienda)"}` : ""].filter(Boolean).join(" · ")}
+                        </small>
+                      )}
                       <small className={`admBlock ${f.articulo_nombre ? "admMuted" : "admWarn"}`}>{f.articulo_nombre ? `Artículo: ${f.articulo_nombre}` : "Sin artículo relacionado"}</small>
                     </>
                   )}
@@ -335,7 +352,7 @@ export default function EnvasesPrecios({ productoId, costoReceta, filas, opcione
                 <td className="num admEnvaseAcciones">
                   {enEdicion ? (
                     <>
-                      <button type="button" className="admLinkMuted" disabled={guardando} onClick={() => ejecutar(() => guardarEnvase(productoId, f.envase_id, Number(precio), costo.trim() === "" ? null : Number(costo), { nombre, descripcion, insumoId: insumo || null }), () => setEditando(null))}>Guardar</button>
+                      <button type="button" className="admLinkMuted" disabled={guardando} onClick={() => ejecutar(() => guardarEnvase(productoId, f.envase_id, Number(precio), costo.trim() === "" ? null : Number(costo), { nombre, descripcion, insumoId: insumo || null, condicion, mostrarCondicion, minimo: minimo.trim() === "" ? null : Number(minimo) }), () => setEditando(null))}>Guardar</button>
                       <button type="button" className="admLinkMuted" onClick={() => setEditando(null)}>Cancelar</button>
                     </>
                   ) : (
