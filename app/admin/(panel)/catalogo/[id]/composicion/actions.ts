@@ -18,7 +18,10 @@ const numero = (v: unknown, min: number, max: number) => {
 export async function guardarComposicion(id: string, items: ProductVisualItem[], ajustes: Record<string, AjusteEnvase>): Promise<GuardarState> {
   const { supabase } = await requireAdmin();
 
-  if (!Array.isArray(items) || items.length > 20) return { error: "Composición inválida." };
+  // Un producto puede ir tantas veces como unidades tenga, así que el tope es amplio.
+  const MAX_ITEMS = 150;
+  if (!Array.isArray(items)) return { error: "Composición inválida." };
+  if (items.length > MAX_ITEMS) return { error: `La imagen admite hasta ${MAX_ITEMS} productos (tiene ${items.length}).` };
   const limpio: ProductVisualItem[] = [];
   for (const it of items) {
     const top = numero(it.top, 0, 100);
