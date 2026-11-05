@@ -158,6 +158,20 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
     return m;
   }, [items]);
   const totalUnidades = insumos.reduce((s, ins) => s + (unidadesDe.get(ins.nombre) ?? 1), 0);
+  // La lista sigue el N.° de orden de Contenido y envases; lo que no está en el contenido va al final.
+  // Solo cambia cómo se lista: el orden de las capas en la imagen no se toca.
+  const listaOrdenada = useMemo(() => {
+    const posDe = new Map(insumos.map((ins, n) => [ins.nombre, n]));
+    const vistos = new Map<string, number>();
+    return items
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => (posDe.get(a.item.name) ?? Infinity) - (posDe.get(b.item.name) ?? Infinity) || a.index - b.index)
+      .map((f) => {
+        const vez = (vistos.get(f.item.name) ?? 0) + 1;
+        vistos.set(f.item.name, vez);
+        return { ...f, vez };
+      });
+  }, [insumos, items]);
   const faltan = insumos.reduce((s, ins) => s + Math.max(0, (unidadesDe.get(ins.nombre) ?? 1) - (puestasDe.get(ins.nombre) ?? 0)), 0);
 
   const resultados = useMemo(() => {
@@ -343,11 +357,11 @@ export default function EditorComposicion({ id, product, basketTypes, insumos }:
           )}
           {items.length === 0 && <p className="devHint">Esta canasta aún no tiene composición. Agrega sus productos.</p>}
           <div className="devList">
-            {items.map((item, index) => (
+            {listaOrdenada.map(({ item, index, vez }) => (
               <button className={index === selected ? "devListItem devListItemActive" : "devListItem"} key={`${item.name}-${index}`} onClick={() => setSelected(index)} type="button">
                 <span>{item.emoji} {item.name}</span>
                 {unidadesDe.has(item.name)
-                  ? <small title="Veces en la imagen / unidades en el contenido">{items.slice(0, index + 1).filter((x) => x.name === item.name).length} de {unidadesDe.get(item.name)}</small>
+                  ? <small title="Veces en la imagen / unidades en el contenido">{vez} de {unidadesDe.get(item.name)}</small>
                   : <small className="admWarn"> · no está en el contenido</small>}
               </button>
             ))}
