@@ -5,6 +5,7 @@ import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
+import { lineaDe } from "@/lib/lineas";
 import { SLUGS_ANTIGUOS } from "@/lib/slugs-antiguos";
 
 export default async function ProductoPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,7 +18,15 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
     notFound();
   }
 
-  const related = products.filter((item) => item.slug !== product.slug).slice(0, 3);
+  // Primero las canastas de la misma línea (Premium con Premium…), las de precio más cercano;
+  // si no alcanzan para 3, se completa con las de otras líneas (sin Boxes, que está oculto).
+  const linea = lineaDe(product)?.id;
+  const cercania = (item: typeof product) => Math.abs(item.price - product.price);
+  const otras = products.filter((item) => item.slug !== product.slug && lineaDe(item)?.id !== "boxes");
+  const related = [
+    ...otras.filter((item) => lineaDe(item)?.id === linea).sort((a, b) => cercania(a) - cercania(b)),
+    ...otras.filter((item) => lineaDe(item)?.id !== linea).sort((a, b) => cercania(a) - cercania(b)),
+  ].slice(0, 3);
 
   return (
     <>
@@ -35,7 +44,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
         <div className="shell">
           <Reveal className="sectionHead">
             <div><span className="eyebrow" data-reveal-item style={{ "--i": 0 } as React.CSSProperties}>Sigue explorando</span><h2><SplitWords text="También te puede *gustar*" /></h2></div>
-            <Link className="textLink" data-reveal-item style={{ "--i": 4 } as React.CSSProperties} href="/catalogo">Ver catálogo →</Link>
+            <Link className="textLink" data-reveal-item style={{ "--i": 4 } as React.CSSProperties} href={linea && linea !== "boxes" ? `/canastas/${linea}` : "/canastas"}>Ver catálogo →</Link>
           </Reveal>
           <Reveal className="productGrid relatedGrid" threshold={0.1}>
             {related.map((item, n) => (
