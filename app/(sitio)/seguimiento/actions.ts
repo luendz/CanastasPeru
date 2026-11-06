@@ -1,5 +1,7 @@
 "use server";
 
+import { getCatalogo } from "@/lib/catalogo";
+import { envaseElegido, type Product } from "@/lib/mock-data";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,7 +19,16 @@ export type PedidoSeguimiento = {
   subtotal: number;
   delivery: number;
   total: number;
-  items: { nombre: string; envase: string | null; cantidad: number; subtotal: number }[];
+  items: {
+    nombre: string;
+    envase: string | null;
+    cantidad: number;
+    subtotal: number;
+    /** Canasta y envase del catálogo, para dibujar su foto (si aún existen). */
+    producto?: Product;
+    envaseId?: string;
+    envaseImagen?: string;
+  }[];
 };
 
 export type SeguimientoState = { error?: string; pedido?: PedidoSeguimiento; numero?: string };
@@ -40,5 +51,15 @@ export async function buscarPedido(_prev: SeguimientoState, fd: FormData): Promi
     return { error: "No pudimos consultar tu pedido. Inténtalo de nuevo en unos minutos.", numero };
   }
   if (!data) return { error: "No encontramos un pedido con esos datos. Revisa el número y usa el mismo correo o celular de la compra.", numero };
-  return { pedido: data as PedidoSeguimiento, numero };
+  // La base guarda el nombre de la canasta y del envase; con ellos se busca su foto en el catálogo.
+  const pedido = data as PedidoSeguimiento;
+  const { products, basketTypes } = await getCatalogo();
+  pedido.items = pedido.items.map((i) => {
+    const producto = products.find((p) => p.name === i.nombre);
+    if (!producto) return i;
+    const tipo = basketTypes.find((t) => t.label === i.envase);
+    const envase = envaseElegido(basketTypes, producto, tipo?.id);
+    return { ...i, producto, envaseId: envase.id, envaseImagen: envase.image };
+  });
+  return { pedido, numero };
 }
