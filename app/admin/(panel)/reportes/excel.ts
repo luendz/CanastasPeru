@@ -2,7 +2,7 @@ import type { Workbook, Worksheet } from "exceljs";
 import { labelCanal, labelEstado, labelDocumento, labelTipoCosto, TIPOS_COSTO } from "@/lib/admin/types";
 import type { DatosReporte } from "./actions";
 
-export type TipoReporte = "canastas" | "ordenes" | "compras" | "resumen" | "completo";
+export type TipoReporte = "canastas" | "ordenes" | "compras" | "resumen" | "clientes" | "completo";
 
 const SOLES = '"S/" #,##0.00';
 const VINO = "FF7B1E2C";
@@ -158,6 +158,26 @@ function hojaResumen(wb: Workbook, d: DatosReporte, periodo: string) {
   ws.addRow(["Ticket promedio", validas.length ? ventas / validas.length : 0]);
 }
 
+/** Clientes con el formato de la plantilla "DATOS DE CLIENTES": encabezado negro en la fila 1. */
+function hojaClientes(wb: Workbook, d: DatosReporte) {
+  const ws = wb.addWorksheet("Clientes");
+  const columnas = ["N°", "NOMBRE O RAZON SOCIAL", "DNI O RUC", "DIRECCION", "DISTRITO", "DEPARTAMENTO", "CORREO ELECTRONICO", "PERSONA DE CONTACTO", "TELEFONO DE CONTACTO"];
+  const header = ws.addRow(columnas);
+  header.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF000000" } };
+    cell.alignment = { vertical: "middle" };
+  });
+  [7.8, 34, 16, 38, 20, 16, 30, 28, 20].forEach((w, i) => (ws.getColumn(i + 1).width = w));
+  d.clientes.forEach((c, i) => {
+    ws.addRow([i + 1, c.nombre, c.documento, c.direccion, c.distrito, c.departamento, c.correo, c.contacto, c.telefono]);
+  });
+  // DNI, RUC y teléfonos como texto, para no perder ceros ni verlos como números.
+  [3, 9].forEach((n) => (ws.getColumn(n).numFmt = "@"));
+  ws.views = [{ state: "frozen", ySplit: 1 }];
+  ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: columnas.length } };
+}
+
 /** Genera y descarga el Excel en el navegador (exceljs se carga solo al usarlo). */
 export async function descargarExcel(tipo: TipoReporte, d: DatosReporte) {
   const ExcelJS = (await import("exceljs")).default;
@@ -170,6 +190,7 @@ export async function descargarExcel(tipo: TipoReporte, d: DatosReporte) {
   if (tipo === "ordenes" || tipo === "completo") hojaOrdenes(wb, d, periodo);
   if (tipo === "compras" || tipo === "completo") hojaCompras(wb, d, periodo);
   if (tipo === "resumen" || tipo === "completo") hojaResumen(wb, d, periodo);
+  if (tipo === "clientes" || tipo === "completo") hojaClientes(wb, d);
 
   const buffer = await wb.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
