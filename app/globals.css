@@ -1261,9 +1261,13 @@ del { color: #a99a8e; font-size: 13px; }
 /* Seguimiento de pedido */
 .seguimiento { display: grid; gap: 28px; }
 .seguimientoForm { display: grid; gap: 14px; max-width: 760px; }
-.seguimientoForm .btn { justify-self: start; }
 .seguimientoCabecera { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 20px; margin-bottom: 22px; }
 .seguimientoCabecera h2 { margin: 10px 0 4px; font-family: var(--font-display-stack); font-size: clamp(26px, 3vw, 34px); }
 .seguimientoCabecera p { margin: 0; }
 .seguimiento .pill[data-estado="anulada"] { background: #f6dede; color: #8a1c1c; }
 .seguimiento .pill[data-estado="entregada"] { background: var(--pine); color: #fff; }
+.seguimientoAcciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.seguimientoWsp { display: inline-flex; align-items: center; gap: 8px; background: #1f8f4e; color: #fff; border-color: #1f8f4e; }
+.seguimientoWsp:hover { background: #17733e; color: #fff; }
+.seguimientoWsp svg { width: 19px; height: 19px; fill: currentColor; flex: none; }
+.seguimientoAyuda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }

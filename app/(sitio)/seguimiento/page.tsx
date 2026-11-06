@@ -20,7 +20,7 @@ export default async function SeguimientoPage({ searchParams }: { searchParams: 
         </div>
       </section>
       <section className="shell cartPage">
-        <SeguimientoPedido numeroInicial={numero} correoContacto={contacto.correo} />
+        <SeguimientoPedido numeroInicial={numero} correoContacto={contacto.correo} telefono={contacto.telefono} />
       </section>
     </>
   );

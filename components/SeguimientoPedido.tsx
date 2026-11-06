@@ -1,8 +1,26 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { buscarPedido, type PedidoSeguimiento, type SeguimientoState } from "@/app/(sitio)/seguimiento/actions";
 import { formatPrice } from "@/lib/mock-data";
+import { enlaceWhatsApp } from "@/lib/whatsapp";
+
+/** Mensaje de WhatsApp para pedir ayuda con un pedido; incluye el número si el cliente ya lo escribió. */
+function mensajeSeguimiento(numero: string, estado?: string) {
+  const n = numero.trim();
+  if (!n) return "¡Hola! 👋 Quiero hacer seguimiento a mi pedido, pero no tengo el número a la mano. ¿Me ayudan a encontrarlo? Les comparto mi nombre y el correo o celular con el que compré:";
+  if (estado) return `¡Hola! 👋 Quiero consultar por mi pedido *${n}* (estado: ${estado}). ¿Me pueden dar más detalles?`;
+  return `¡Hola! 👋 Quiero hacer seguimiento a mi pedido *${n}*. ¿Me ayudan a encontrarlo?`;
+}
+
+function BotonWhatsApp({ telefono, texto, children }: { telefono: string; texto: string; children: React.ReactNode }) {
+  return (
+    <a className="btn seguimientoWsp" href={enlaceWhatsApp(telefono, texto)} target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Zm4.6 12.6c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.7s.7-1.9.9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.5-.3.4c-.1.1-.2.3-.1.5.2.3.7 1.1 1.4 1.8 1 .9 1.8 1.2 2.1 1.3.2.1.4.1.5 0l.8-.9c.2-.2.3-.2.6-.1l1.9.9c.2.1.4.2.4.3.1.1.1.6-.1 1.2Z" /></svg>
+      {children}
+    </a>
+  );
+}
 
 const fechaLarga = (iso: string | null) =>
   iso && /^\d{4}-\d{2}-\d{2}/.test(iso)
@@ -47,8 +65,10 @@ function etiquetaEstado(p: PedidoSeguimiento) {
   return p.estado_pago === "pagado" ? "Pago confirmado" : "Pago pendiente";
 }
 
-export default function SeguimientoPedido({ numeroInicial, correoContacto }: { numeroInicial?: string; correoContacto: string }) {
+export default function SeguimientoPedido({ numeroInicial, correoContacto, telefono }: { numeroInicial?: string; correoContacto: string; telefono: string }) {
   const [state, action, pending] = useActionState<SeguimientoState, FormData>(buscarPedido, { numero: numeroInicial });
+  // Número que va escribiendo el cliente, para ponerlo en el mensaje de WhatsApp.
+  const [numero, setNumero] = useState(numeroInicial ?? "");
   const p = state.pedido;
 
   return (
@@ -57,7 +77,7 @@ export default function SeguimientoPedido({ numeroInicial, correoContacto }: { n
         <div className="formGrid">
           <label>
             Número de pedido
-            <input className="input" name="numero" defaultValue={state.numero ?? ""} placeholder="OP-0012" required maxLength={20} autoComplete="off" />
+            <input className="input" name="numero" value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="OP-0012" required maxLength={20} autoComplete="off" />
           </label>
           <label>
             Correo o celular de la compra
@@ -66,7 +86,10 @@ export default function SeguimientoPedido({ numeroInicial, correoContacto }: { n
         </div>
         <small className="muted">El número de pedido aparece en la confirmación de tu compra.</small>
         {state.error && <p className="checkoutError" role="alert">{state.error}</p>}
-        <button className="btn btnPrimary" type="submit" disabled={pending}>{pending ? "Buscando…" : "Ver mi pedido"}</button>
+        <div className="seguimientoAcciones">
+          <button className="btn btnPrimary" type="submit" disabled={pending}>{pending ? "Buscando…" : "Ver mi pedido"}</button>
+          {telefono && <BotonWhatsApp telefono={telefono} texto={mensajeSeguimiento(numero)}>{state.error ? "Te ayudamos por WhatsApp" : "¿No encuentras tu pedido? Escríbenos"}</BotonWhatsApp>}
+        </div>
       </form>
 
       {p && (
@@ -92,6 +115,12 @@ export default function SeguimientoPedido({ numeroInicial, correoContacto }: { n
                     </li>
                   ))}
                 </ol>
+              )}
+              {telefono && (
+                <div className="seguimientoAyuda">
+                  <span className="muted">¿Tienes alguna consulta sobre este pedido?</span>
+                  <BotonWhatsApp telefono={telefono} texto={mensajeSeguimiento(p.numero, etiquetaEstado(p))}>Consultar por WhatsApp</BotonWhatsApp>
+                </div>
               )}
             </section>
           </div>
