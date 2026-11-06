@@ -143,6 +143,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
             ) : (
               <Link className="btn btnPrimary" href="/canastas">Seguir comprando</Link>
             )}
+            {numero && <Link className="btn btnGhost" href={`/seguimiento?pedido=${encodeURIComponent(numero)}`}>Seguir mi pedido</Link>}
             {contacto.telefono && numero && (
               <a className="btn btnGhost" href={enlaceWhatsApp(contacto.telefono, `Hola, acabo de registrar el pedido ${numero}.`)} target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
             )}
@@ -171,6 +172,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
               {r.pago && <div><dt>Pago</dt><dd>{r.pago}</dd></div>}
             </dl>
             <p className="summaryB2B">¿Dudas con tu pedido? Escríbenos a <strong>{contacto.correo}</strong></p>
+            {numero && <p className="summaryB2B">Guarda tu número <strong>{numero}</strong>: con él y tu correo o celular puedes ver el estado en <Link href={`/seguimiento?pedido=${encodeURIComponent(numero)}`}>Seguir mi pedido</Link>.</p>}
           </aside>
         )}
       </div>
