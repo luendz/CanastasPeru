@@ -74,6 +74,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
 
         <div className="includesPanel" style={{ "--i": 4 } as React.CSSProperties}>
           <h3>Incluye <small>{totalUnidades} {totalUnidades === 1 ? "producto" : "productos"}</small></h3>
+          <div className="includesCabecera" aria-hidden="true"><span>Producto</span><span>Cantidad</span></div>
           <ul>
             {product.items.map((item, j) => {
               // La foto sale del artículo del contenido; si no la trae, de la imagen de la canasta.
@@ -83,7 +84,8 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
                   <span className="includesThumb">
                     {visual?.image ? <img src={visual.image} alt="" /> : <span aria-hidden="true">{visual?.emoji ?? "✦"}</span>}
                   </span>
-                  <span>{item} - {unidadesDe(item)} {unidadesDe(item) === 1 ? "unidad" : "unidades"}</span>
+                  <span className="includesNombre">{item}</span>
+                  <span className="includesCantidad">{unidadesDe(item)} {unidadesDe(item) === 1 ? "unidad" : "unidades"}</span>
                 </li>
               );
             })}

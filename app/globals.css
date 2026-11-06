@@ -1274,3 +1274,12 @@ del { color: #a99a8e; font-size: 13px; }
 /* Detalle: cantidad y botón alineados con "Elige el envase" (sin la caja con margen interno). */
 .detailInfo .buyBox { padding: 14px 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
 @media (min-width: 641px) { .detailInfo .buyBox .addBtn { align-self: end; } }
+/* Incluye: lista de una columna con imagen, descripción y cantidad por producto. */
+.includesPanel .includesCabecera { display: flex; justify-content: space-between; gap: 12px; padding: 4px 10px 4px 40px; border: 1px solid var(--line); border-bottom: 0; border-radius: 12px 12px 0 0; background: color-mix(in srgb, var(--cream) 80%, var(--paper)); color: var(--muted); font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.includesPanel ul { display: flex !important; flex-direction: column; gap: 0 !important; border: 1px solid var(--line); border-radius: 0 0 12px 12px; background: color-mix(in srgb, var(--cream) 45%, var(--paper)); padding: 0 !important; }
+.includesPanel li { gap: 8px !important; padding: 3px 10px 3px 6px !important; border: 0 !important; border-radius: 0 !important; background: none !important; font-size: 12.5px !important; line-height: 1.25 !important; }
+.includesPanel li + li { border-top: 1px solid color-mix(in srgb, var(--gold) 25%, transparent) !important; }
+.includesPanel .includesThumb { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: #fff; }
+.includesPanel .includesThumb img { max-width: 22px; max-height: 22px; }
+.includesNombre { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); }
+.includesCantidad { flex: none; padding: 1px 7px; border-radius: 99px; background: var(--pine); color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; }
