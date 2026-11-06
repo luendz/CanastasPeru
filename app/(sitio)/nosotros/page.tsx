@@ -10,7 +10,7 @@ export default async function NosotrosPage() {
   const { nosotros: t } = await getContenido();
   return (
     <>
-      <section className="catalogHero">
+      <section className="catalogHero heroPortada">
         <div className="shell catalogHeroInner">
           <div>
             <span className="eyebrow">{t.etiqueta}</span>
