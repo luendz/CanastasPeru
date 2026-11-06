@@ -14,6 +14,8 @@ type Props = {
   distritos: string[];
   /** Días de reparto disponibles (martes, jueves y sábados, desde hoy + 5 días). */
   fechas: string[];
+  /** Hoy + 5 días: el calendario se muestra desde esa fecha. */
+  desde: string;
 };
 
 const ICONOS_PERSONALIZACION: NombreIcono[] = ["logo", "lazo", "tarjeta", "caja"];
@@ -31,7 +33,7 @@ function Seccion({ n, titulo, nota, children }: { n: number; titulo: string; not
   );
 }
 
-export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props) {
+export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }: Props) {
   const cantidades = opciones.cantidades;
   const [tipos, setTipos] = useState<string[]>([]);
   const [cantidad, setCantidad] = useState<number | "">("");
@@ -126,7 +128,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props
       <Seccion n={3} titulo="¿Dónde y cuándo debemos entregar?">
         <div className="cotGrid">
           <div className="campoFecha">Fecha requerida *
-            <CalendarioEntrega name="fecha_requerida" fechas={fechas} />
+            <CalendarioEntrega name="fecha_requerida" fechas={fechas} desde={desde} />
           </div>
           <label>Dirección de entrega *<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Calle / Jr. / Número" required maxLength={220} /></label>
           <label>Distrito *

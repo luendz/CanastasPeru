@@ -13,7 +13,7 @@ const aIso = (d: Date) => d.toISOString().slice(0, 10);
  * Calendario de fecha de entrega: solo se pueden elegir las fechas de reparto
  * (martes, jueves y sábados con anticipación) que llegan desde el servidor.
  */
-export default function CalendarioEntrega({ name, fechas }: { name: string; fechas: string[] }) {
+export default function CalendarioEntrega({ name, fechas, desde }: { name: string; fechas: string[]; /** Si se indica, el calendario no muestra los días anteriores a esta fecha. */ desde?: string }) {
   const [valor, setValor] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [mes, setMes] = useState(() => inicioMes(fechas[0]));
@@ -36,7 +36,12 @@ export default function CalendarioEntrega({ name, fechas }: { name: string; fech
   // Celdas del mes, semanas de lunes a domingo.
   const celdas: (Date | null)[] = Array((mes.getUTCDay() + 6) % 7).fill(null);
   const total = new Date(Date.UTC(mes.getUTCFullYear(), mes.getUTCMonth() + 1, 0)).getUTCDate();
-  for (let dia = 1; dia <= total; dia++) celdas.push(new Date(Date.UTC(mes.getUTCFullYear(), mes.getUTCMonth(), dia)));
+  for (let dia = 1; dia <= total; dia++) {
+    const d = new Date(Date.UTC(mes.getUTCFullYear(), mes.getUTCMonth(), dia));
+    celdas.push(desde && aIso(d) < desde ? null : d);
+  }
+  // Sin días anteriores a `desde`: se quitan las semanas que quedaron vacías.
+  while (celdas.length >= 7 && celdas.slice(0, 7).every((c) => c === null)) celdas.splice(0, 7);
 
   return (
     <div className="calEntrega" ref={caja}>
