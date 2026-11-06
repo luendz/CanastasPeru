@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     }
     return new Response(null, { status: 200 });
   } catch (e) {
-    console.error("No se pudo registrar el aviso de Mercado Pago.", e);
+    console.error(`No se pudo registrar el aviso de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);
     return new Response("Error", { status: 500 });
   }
 }

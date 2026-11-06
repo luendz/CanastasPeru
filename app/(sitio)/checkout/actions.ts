@@ -132,7 +132,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   try {
     urlPago = await crearPreferencia({ numero, total: Number(total), email: campo(fd, "email"), nombre });
   } catch (e) {
-    console.error("No se pudo crear la preferencia de Mercado Pago.", e);
+    console.error(`No se pudo crear la preferencia de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);
     redirect(`${confirmacion}&status=error`);
   }
   redirect(urlPago);

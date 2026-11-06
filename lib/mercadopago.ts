@@ -11,7 +11,8 @@ const API = "https://api.mercadopago.com";
 /** Valor de la columna "Pasarela" de un método de pago que cobra con Mercado Pago. */
 export const PASARELA_MP = "mercadopago";
 
-const token = () => process.env.MP_ACCESS_TOKEN ?? "";
+// Sin espacios ni saltos de línea que se cuelan al pegar el token en Cloudflare.
+const token = () => process.env.MP_ACCESS_TOKEN?.trim() ?? "";
 
 /** Sin access token, los métodos marcados con Mercado Pago se comportan como manuales. */
 export const mercadoPagoConfigurado = () => Boolean(token());
@@ -89,7 +90,7 @@ export const obtenerPago = (id: string) => api<PagoMP>(`/v1/payments/${encodeURI
  * secreta del webhook, según la documentación de Mercado Pago).
  */
 export async function firmaValida({ firma, requestId, dataId }: { firma: string | null; requestId: string | null; dataId: string }) {
-  const secreto = process.env.MP_WEBHOOK_SECRET;
+  const secreto = process.env.MP_WEBHOOK_SECRET?.trim();
   if (!secreto || !firma) return false;
   const partes = Object.fromEntries(firma.split(",").map((p) => p.trim().split("=", 2) as [string, string]));
   if (!partes.ts || !partes.v1) return false;
