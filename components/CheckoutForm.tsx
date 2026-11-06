@@ -9,9 +9,13 @@ import CalendarioEntrega from "@/components/CalendarioEntrega";
 import type { DeliveryZone } from "@/lib/catalogo";
 import type { Contenido } from "@/lib/contenido";
 import { lineasCarrito } from "@/components/CartView";
+import { useBorrador } from "@/lib/borrador";
 import { useCarrito } from "@/lib/carrito";
 import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import { faltaMinimo, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
+
+/** Clave del borrador del checkout en el navegador; la confirmación del pedido lo borra. */
+export const BORRADOR_CHECKOUT = "mka-borrador-checkout";
 
 function Section({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -32,6 +36,15 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
   const [pay, setPay] = useState("0");
+  const [fecha, setFecha] = useState("");
+  // Los datos escritos se conservan si el cliente vuelve al carrito a editar y regresa.
+  const borrador = useBorrador(BORRADOR_CHECKOUT, { district, otherReceiver, doc, pay, fecha }, (e) => {
+    if (typeof e.district === "string" && deliveryZones.some((z) => z.district === e.district)) setDistrict(e.district);
+    if (typeof e.otherReceiver === "boolean") setOtherReceiver(e.otherReceiver);
+    if (e.doc === "boleta" || e.doc === "factura") setDoc(e.doc);
+    if (typeof e.pay === "string" && payMethods.some((m) => m.id === e.pay)) setPay(e.pay);
+    if (typeof e.fecha === "string" && fechas.includes(e.fecha)) setFecha(e.fecha);
+  });
 
   const c = useCarrito();
   const lines = lineasCarrito(c.lineas, products, basketTypes);
@@ -55,7 +68,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
 
   return (
     <div className="checkoutLayout">
-      <form id="checkout" className="checkoutForm" action={action}>
+      <form id="checkout" className="checkoutForm" action={action} {...borrador}>
         <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ slug: l.slug, envase_id: l.tipo.id, cantidad: l.cantidad })))} />
         <input type="hidden" name="tarjetas" value={tarjetas} />
         <input type="hidden" name="dedicatoria" value={tarjetas ? c.tarjetas.dedicatoria : ""} />
@@ -73,13 +86,13 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         <Section n={2} title="Entrega" hint={`Repartimos ${DIAS_REPARTO_TEXTO}, con ${DIAS_ANTICIPACION} días de anticipación para preparar tu pedido.`}>
           <div className="formGrid">
             <label>Distrito
-              <select className="select" name="distrito" value={district} onChange={(e) => setDistrict(e.target.value)} required>
+              <select className="select" name="distrito" data-borrador="no" value={district} onChange={(e) => setDistrict(e.target.value)} required>
                 <option value="">Selecciona distrito</option>
                 {deliveryZones.map((z) => <option key={z.district} value={z.district}>{z.district} · {gratis ? "Gratis" : formatPrice(z.fee)}</option>)}
               </select>
             </label>
             <div className="campoFecha">Fecha de entrega
-              <CalendarioEntrega name="fecha_entrega" fechas={fechas} />
+              <CalendarioEntrega name="fecha_entrega" fechas={fechas} valor={fecha} onValor={setFecha} />
             </div>
             <label className="wide">Dirección<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Jr. / Calle, número, dpto." maxLength={300} /></label>
             <label className="wide">Referencia<input className="input" name="referencia" placeholder="Frente al parque, portón negro…" maxLength={300} /></label>
