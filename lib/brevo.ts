@@ -9,6 +9,10 @@
  * - BREVO_LISTA_NOVEDADES    número de la lista de Brevo para los suscriptores.
  * - AVISOS_CORREO            correo del negocio que recibe los avisos de pedidos y cotizaciones.
  *
+ * La clave de API es "restringida" (solo emails transaccionales y contactos) y
+ * Brevo la desactiva tras 90 días sin uso: si dejan de llegar correos, genera
+ * una nueva en Brevo → SMTP y API y reemplázala en el Worker.
+ *
  * Sin BREVO_API_KEY no se envía nada y la web funciona igual. Un fallo de
  * Brevo nunca interrumpe un pedido: solo queda en el registro del Worker.
  */
