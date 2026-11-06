@@ -23,7 +23,7 @@ export async function reintentarPago() {
   try {
     urlPago = await crearPreferencia({ numero: r.numero, total: r.total, email: r.correo, nombre: r.nombre });
   } catch (e) {
-    console.error("No se pudo crear la preferencia de Mercado Pago.", e);
+    console.error(`No se pudo crear la preferencia de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);
     redirect(`${confirmacion}&status=error`);
   }
   redirect(urlPago);
