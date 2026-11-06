@@ -1282,4 +1282,4 @@ del { color: #a99a8e; font-size: 13px; }
 .includesPanel .includesThumb { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: #fff; }
 .includesPanel .includesThumb img { max-width: 22px; max-height: 22px; }
 .includesNombre { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); }
-.includesCantidad { flex: none; padding: 1px 8px; border-radius: 99px; background: #fff; color: var(--wine); font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+.includesCantidad { flex: none; padding: 1px 8px; border-radius: 99px; background: var(--wine); color: #fff; font-size: 11.5px; font-weight: 800; white-space: nowrap; }
