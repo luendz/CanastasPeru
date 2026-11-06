@@ -45,7 +45,7 @@ export async function buscarPedido(_prev: SeguimientoState, fd: FormData): Promi
   if (!supabaseConfigurado) return { error: "El seguimiento no está disponible por ahora.", numero };
 
   const supabase = await createClient();
-  const { data, error } = numero === "OP-0000" ? { data: { numero, nombre: "Prueba", estado: "pendiente", estado_pago: "pendiente", creado: "2026-11-06T11:05:00Z", actualizado: "2026-11-06T11:05:00Z", fecha_entrega: "2026-11-12", horario: null, distrito: "Santiago de Surco", metodo_pago: "Tarjeta", subtotal: 263.4, delivery: 18, total: 281.4, items: [{ nombre: "Canasta Económica 1", envase: "Caja navideña mediana", cantidad: 6, subtotal: 251.4 }, { nombre: "Tarjeta navideña de dedicatoria", envase: null, cantidad: 6, subtotal: 12 }] }, error: null } : /* TEMPORAL */await supabase.rpc("seguimiento_pedido", { p_numero: numero, p_contacto: contacto });
+  const { data, error } = await supabase.rpc("seguimiento_pedido", { p_numero: numero, p_contacto: contacto });
   if (error) {
     console.error("No se pudo consultar el seguimiento.", error);
     return { error: "No pudimos consultar tu pedido. Inténtalo de nuevo en unos minutos.", numero };
