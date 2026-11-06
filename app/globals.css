@@ -1273,3 +1273,4 @@ del { color: #a99a8e; font-size: 13px; }
 .seguimientoAyuda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
 /* Detalle: cantidad y botón alineados con "Elige el envase" (sin la caja con margen interno). */
 .detailInfo .buyBox { padding: 14px 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
+@media (min-width: 641px) { .detailInfo .buyBox .addBtn { align-self: end; } }
