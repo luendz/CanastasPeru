@@ -10,7 +10,7 @@ export default async function SeguimientoPage({ searchParams }: { searchParams: 
   const numero = pedido && /^OP-\d{1,9}$/.test(pedido) ? pedido : undefined;
   return (
     <>
-      <section className="catalogHero">
+      <section className="catalogHero heroPortada">
         <div className="shell catalogHeroInner">
           <div>
             <span className="eyebrow">Tu pedido</span>

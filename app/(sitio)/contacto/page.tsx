@@ -18,7 +18,7 @@ export default async function ContactoPage() {
 
   return (
     <>
-      <section className="catalogHero">
+      <section className="catalogHero heroPortada">
         <div className="shell catalogHeroInner">
           <div>
             <span className="eyebrow">Contacto</span>
