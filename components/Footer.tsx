@@ -29,6 +29,7 @@ export default function Footer({ marca, contacto, pie }: FooterProps) {
         <nav aria-label="Información">
           <h4>Información</h4>
           <Link href="/nosotros">Nosotros</Link>
+          <Link href="/seguimiento">Seguir mi pedido</Link>
           <Link href="/preguntas-frecuentes">Preguntas frecuentes</Link>
           <Link href="/terminos">Términos y condiciones</Link>
           <Link href="/privacidad">Política de privacidad</Link>

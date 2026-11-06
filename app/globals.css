@@ -1258,3 +1258,12 @@ del { color: #a99a8e; font-size: 13px; }
 .nosotrosValores .nosotrosCursiva { font-style: italic; font-size: 15.5px; }
 .nosotrosAdorno { position: absolute; left: 50%; bottom: 4px; width: min(250px, 86%); height: auto; transform: translateX(-50%); }
 @media (max-width: 980px) { .nosotrosValores { grid-template-columns: 1fr; } .nosotrosRama { width: 160px; right: 0; } }
+/* Seguimiento de pedido */
+.seguimiento { display: grid; gap: 28px; }
+.seguimientoForm { display: grid; gap: 14px; max-width: 760px; }
+.seguimientoForm .btn { justify-self: start; }
+.seguimientoCabecera { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 20px; margin-bottom: 22px; }
+.seguimientoCabecera h2 { margin: 10px 0 4px; font-family: var(--font-display-stack); font-size: clamp(26px, 3vw, 34px); }
+.seguimientoCabecera p { margin: 0; }
+.seguimiento .pill[data-estado="anulada"] { background: #f6dede; color: #8a1c1c; }
+.seguimiento .pill[data-estado="entregada"] { background: var(--pine); color: #fff; }
