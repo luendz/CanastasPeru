@@ -18,6 +18,13 @@ function hoyLima() {
 
 const aIso = (d: Date) => d.toISOString().slice(0, 10);
 
+/** Primer día posible de entrega (hoy + 5 días), AAAA-MM-DD. */
+export function fechaMinima() {
+  const d = hoyLima();
+  d.setUTCDate(d.getUTCDate() + DIAS_ANTICIPACION);
+  return aIso(d);
+}
+
 /** Próximas fechas de reparto disponibles (desde hoy + 5 días). */
 export function fechasReparto(cantidad = 24): string[] {
   const d = hoyLima();
