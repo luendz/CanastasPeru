@@ -1271,3 +1271,5 @@ del { color: #a99a8e; font-size: 13px; }
 .seguimientoWsp:hover { background: #17733e; color: #fff; }
 .seguimientoWsp svg { width: 19px; height: 19px; fill: currentColor; flex: none; }
 .seguimientoAyuda { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+/* Detalle: cantidad y botón alineados con "Elige el envase" (sin la caja con margen interno). */
+.detailInfo .buyBox { padding: 14px 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; box-shadow: none; }
