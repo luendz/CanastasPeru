@@ -2,11 +2,13 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { esFechaReparto } from "@/lib/entrega";
 import { PASARELA_MP, crearPreferencia, mercadoPagoConfigurado } from "@/lib/mercadopago";
 import { envaseElegido, faltaMinimo } from "@/lib/mock-data";
+import { notificarPedidoRegistrado } from "@/lib/notificaciones";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -85,6 +87,23 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   });
   const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));
   if (tarjetas) lineas.push({ nombre: "Tarjeta de dedicatoria", detalle: "", cantidad: tarjetas, precio: checkout.tarjetaPrecio });
+  // Correos (Brevo) después de responder: confirmación al cliente y aviso al negocio.
+  const subtotalLineas = lineas.reduce((s, l) => s + l.precio * l.cantidad, 0);
+  after(() =>
+    notificarPedidoRegistrado({
+      numero,
+      nombre,
+      email: campo(fd, "email") || null,
+      telefono: campo(fd, "telefono") || null,
+      total: Number(total),
+      delivery: Math.max(0, Math.round((Number(total) - subtotalLineas) * 100) / 100),
+      fechaEntrega: campo(fd, "fecha_entrega"),
+      distrito: campo(fd, "distrito"),
+      metodoPago: campo(fd, "metodo_pago"),
+      lineas: lineas.map((l) => ({ nombre: l.nombre, detalle: l.detalle, cantidad: l.cantidad, subtotal: l.precio * l.cantidad })),
+    }),
+  );
+
   // El método se busca en el contenido del servidor: el navegador solo envía su nombre.
   const metodo = checkout.metodosPago.find((m) => m.nombre === campo(fd, "metodo_pago"));
   const enLinea = metodo?.pasarela === PASARELA_MP && mercadoPagoConfigurado();

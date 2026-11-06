@@ -1,11 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { CANALES, ESTADOS_ORDEN, type Orden, type OrdenItem } from "@/lib/admin/types";
 import { getContenido } from "@/lib/contenido";
 import type { DatosPdfOrden } from "@/lib/admin/pdf";
 import { productosPersonalizados, productosPorCanasta } from "@/lib/admin/recetas";
+import { cambiosNotificables, notificarCambioPedido, pedidoDesdeOrden } from "@/lib/notificaciones";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** Estado actual de una orden, para saber después qué cambió. */
+async function estadoDe(supabase: SupabaseClient, id: string) {
+  const { data } = await supabase.from("ordenes").select("estado,estado_pago").eq("id", id).maybeSingle();
+  return data as { estado: string; estado_pago: string } | null;
+}
+
+/** Correo al cliente si la orden pasó a pagada, en preparación o entregada. */
+async function avisarCambios(supabase: SupabaseClient, id: string, antes: { estado: string; estado_pago: string } | null) {
+  const despues = await estadoDe(supabase, id);
+  if (!antes || !despues) return;
+  const cambios = cambiosNotificables(antes, despues);
+  if (!cambios.length) return;
+  const pedido = await pedidoDesdeOrden(supabase, id);
+  if (pedido) after(() => Promise.all(cambios.map((c) => notificarCambioPedido(pedido, c))));
+}
 
 export async function actualizarOrden(formData: FormData) {
   const { supabase } = await requireAdmin();
@@ -19,8 +38,10 @@ export async function actualizarOrden(formData: FormData) {
   if (estadoPago !== "pendiente" && estadoPago !== "pagado") throw new Error("Estado de pago inválido");
   if (!CANALES.some((c) => c.id === canal)) throw new Error("Canal inválido");
 
+  const antes = await estadoDe(supabase, id);
   const { error } = await supabase.from("ordenes").update({ estado, estado_pago: estadoPago, canal, notas: notas || null }).eq("id", id);
   if (error) throw new Error(error.message);
+  await avisarCambios(supabase, id, antes);
 
   revalidatePath("/admin/ordenes");
   revalidatePath(`/admin/ordenes/${id}`);
@@ -61,8 +82,10 @@ export async function datosPdfOrden(id: string): Promise<DatosPdfOrden> {
 export async function cambiarEstadoOrden(id: string, estado: string) {
   const { supabase } = await requireAdmin();
   if (!ESTADOS_ORDEN.some((e) => e.id === estado)) throw new Error("Estado inválido");
+  const antes = await estadoDe(supabase, id);
   const { error } = await supabase.from("ordenes").update({ estado }).eq("id", id);
   if (error) throw new Error(error.message);
+  await avisarCambios(supabase, id, antes);
   revalidatePath("/admin/ordenes");
   revalidatePath(`/admin/ordenes/${id}`);
   revalidatePath("/admin");

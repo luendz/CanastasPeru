@@ -1,6 +1,8 @@
 "use server";
 
+import { after } from "next/server";
 import { esFechaReparto } from "@/lib/entrega";
+import { notificarCotizacion } from "@/lib/notificaciones";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,5 +45,20 @@ export async function solicitarCotizacion(_prev: CotizacionState, fd: FormData):
   });
   if (error || !data) return { error: "No pudimos enviar tu solicitud. Inténtalo de nuevo en unos minutos." };
 
-  return { enviada: true, numero: (data as { numero: string }).numero };
+  const numero = (data as { numero: string }).numero;
+  after(() =>
+    notificarCotizacion({
+      numero,
+      empresa: campo(fd, "empresa"),
+      ruc,
+      contacto: campo(fd, "contacto"),
+      email: campo(fd, "email"),
+      telefono: campo(fd, "telefono"),
+      cantidad: campo(fd, "cantidad_estimada"),
+      fecha: campo(fd, "fecha_requerida"),
+      distrito: campo(fd, "distrito"),
+      requerimientos,
+    }),
+  );
+  return { enviada: true, numero };
 }
