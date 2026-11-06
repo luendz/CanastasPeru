@@ -10,10 +10,10 @@ const inicioMes = (iso: string) => new Date(`${iso.slice(0, 7)}-01T00:00:00Z`);
 const aIso = (d: Date) => d.toISOString().slice(0, 10);
 
 /**
- * Calendario de fecha de entrega: solo se pueden elegir las fechas que llegan
- * desde el servidor (días de reparto con anticipación, o todos los días en cotizaciones).
+ * Calendario de fecha de entrega: solo se pueden elegir las fechas de reparto
+ * (martes, jueves y sábados con anticipación) que llegan desde el servidor.
  */
-export default function CalendarioEntrega({ name, fechas, vacio = "Elige un día de reparto", nota = `Repartimos ${DIAS_REPARTO_TEXTO}.` }: { name: string; fechas: string[]; vacio?: string; nota?: string }) {
+export default function CalendarioEntrega({ name, fechas }: { name: string; fechas: string[] }) {
   const [valor, setValor] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [mes, setMes] = useState(() => inicioMes(fechas[0]));
@@ -41,7 +41,7 @@ export default function CalendarioEntrega({ name, fechas, vacio = "Elige un día
   return (
     <div className="calEntrega" ref={caja}>
       <button type="button" className={`select calTrigger${valor ? "" : " calVacio"}`} aria-haspopup="dialog" aria-expanded={abierto} onClick={() => setAbierto((a) => !a)}>
-        {valor ? fechaReparto(valor) : vacio}
+        {valor ? fechaReparto(valor) : "Elige un día de reparto"}
       </button>
       {/* Input real para que el navegador exija la fecha antes de enviar. */}
       <input className="calValidar" name={name} value={valor} onChange={() => {}} onFocus={() => setAbierto(true)} required tabIndex={-1} aria-hidden="true" />
@@ -73,7 +73,7 @@ export default function CalendarioEntrega({ name, fechas, vacio = "Elige un día
               );
             })}
           </div>
-          {nota && <p className="calNota">{nota}</p>}
+          <p className="calNota">Repartimos {DIAS_REPARTO_TEXTO}.</p>
         </div>
       )}
     </div>

@@ -18,29 +18,26 @@ function hoyLima() {
 
 const aIso = (d: Date) => d.toISOString().slice(0, 10);
 
-/**
- * Próximas fechas de reparto disponibles (desde hoy + 5 días). Con
- * `todosLosDias` (cotizaciones) vale cualquier día, no solo los de reparto.
- */
-export function fechasReparto(cantidad = 24, todosLosDias = false): string[] {
+/** Próximas fechas de reparto disponibles (desde hoy + 5 días). */
+export function fechasReparto(cantidad = 24): string[] {
   const d = hoyLima();
   d.setUTCDate(d.getUTCDate() + DIAS_ANTICIPACION);
   const fechas: string[] = [];
   while (fechas.length < cantidad) {
-    if (todosLosDias || DIAS_REPARTO.includes(d.getUTCDay())) fechas.push(aIso(d));
+    if (DIAS_REPARTO.includes(d.getUTCDay())) fechas.push(aIso(d));
     d.setUTCDate(d.getUTCDate() + 1);
   }
   return fechas;
 }
 
-/** ¿La fecha (AAAA-MM-DD) es día de reparto (o cualquier día, con `todosLosDias`) y respeta la anticipación? */
-export function esFechaReparto(iso: string, todosLosDias = false) {
+/** ¿La fecha (AAAA-MM-DD) es día de reparto y respeta la anticipación? */
+export function esFechaReparto(iso: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
   const d = new Date(`${iso}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return false;
   const minima = hoyLima();
   minima.setUTCDate(minima.getUTCDate() + DIAS_ANTICIPACION);
-  return d >= minima && (todosLosDias || DIAS_REPARTO.includes(d.getUTCDay()));
+  return d >= minima && DIAS_REPARTO.includes(d.getUTCDay());
 }
 
 /** "martes 13 de octubre" */

@@ -63,7 +63,7 @@ export default async function CotizacionPage() {
               ))}
             </ol>
           </header>
-          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} fechas={fechasReparto(90, true)} />
+          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} fechas={fechasReparto(40)} />
         </div>
       </div>
     </section>
