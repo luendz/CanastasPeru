@@ -10,7 +10,8 @@ const REPORTES: { id: TipoReporte; titulo: string; texto: string }[] = [
   { id: "ordenes", titulo: "Listado de órdenes", texto: "Todas las órdenes con cliente, canastas, entrega, estado, pago y totales." },
   { id: "compras", titulo: "Costos totales", texto: "Compras y gastos por tipo de costo, con proveedor, comprobante y totales." },
   { id: "resumen", titulo: "Resumen del período", texto: "Ventas, costos, ganancia estimada y ticket promedio." },
-  { id: "completo", titulo: "Todo en un archivo", texto: "Los cuatro reportes, cada uno en su hoja." },
+  { id: "clientes", titulo: "Datos de clientes", texto: "Clientes de las órdenes y cotizaciones del período, sin repetir: nombre o razón social, DNI/RUC, dirección y contacto." },
+  { id: "completo", titulo: "Todo en un archivo", texto: "Los cinco reportes, cada uno en su hoja." },
 ];
 
 export default function Reportes({ desdeInicial, hastaInicial }: { desdeInicial: string; hastaInicial: string }) {

@@ -1,7 +1,8 @@
 "use server";
 
 import { requireAdmin } from "@/lib/admin/auth";
-import type { Compra, Orden, OrdenItem, Producto } from "@/lib/admin/types";
+import { juntarClientes, type ClienteReporte } from "@/lib/admin/clientes";
+import type { Compra, Cotizacion, Orden, OrdenItem, Producto } from "@/lib/admin/types";
 
 export type DatosReporte = {
   desde: string;
@@ -9,6 +10,7 @@ export type DatosReporte = {
   porCanasta: { canasta: string; pedidos: number; cantidad: number; precioCatalogo: number | null; precioPromedio: number; total: number }[];
   ordenes: (Orden & { items: OrdenItem[] })[];
   compras: Compra[];
+  clientes: ClienteReporte[];
 };
 
 const fechaValida = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -21,12 +23,14 @@ export async function obtenerDatosReporte(desde: string, hasta: string): Promise
   const inicio = `${desde}T00:00:00-05:00`;
   const fin = `${hasta}T23:59:59.999-05:00`;
 
-  const [{ data: ordenes, error: e1 }, { data: compras, error: e2 }, { data: productos }] = await Promise.all([
+  const [{ data: ordenes, error: e1 }, { data: compras, error: e2 }, { data: productos }, { data: cotizaciones, error: e3 }, { data: zonas }] = await Promise.all([
     supabase.from("ordenes").select("*, orden_items(*)").gte("created_at", inicio).lte("created_at", fin).order("created_at"),
     supabase.from("compras").select("*").gte("fecha", desde).lte("fecha", hasta).order("fecha"),
     supabase.from("canastas").select("nombre,precio"),
+    supabase.from("cotizaciones").select("*").gte("created_at", inicio).lte("created_at", fin).order("created_at"),
+    supabase.from("zonas_delivery").select("distrito"),
   ]);
-  if (e1 || e2) throw new Error((e1 ?? e2)!.message);
+  if (e1 || e2 || e3) throw new Error((e1 ?? e2 ?? e3)!.message);
 
   const lista = ((ordenes ?? []) as (Orden & { orden_items: OrdenItem[] })[]).map(({ orden_items, ...o }) => ({ ...o, items: orden_items }));
   const precioDe = new Map(((productos ?? []) as Pick<Producto, "nombre" | "precio">[]).map((p) => [p.nombre, Number(p.precio)]));
@@ -53,5 +57,8 @@ export async function obtenerDatosReporte(desde: string, hasta: string): Promise
     }))
     .sort((a, b) => b.cantidad - a.cantidad);
 
-  return { desde, hasta, porCanasta, ordenes: lista, compras: (compras ?? []) as Compra[] };
+  const distritosLima = new Set(((zonas ?? []) as { distrito: string }[]).map((z) => z.distrito));
+  const clientes = juntarClientes(lista, (cotizaciones ?? []) as Cotizacion[], distritosLima);
+
+  return { desde, hasta, porCanasta, ordenes: lista, compras: (compras ?? []) as Compra[], clientes };
 }
