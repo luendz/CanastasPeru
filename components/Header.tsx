@@ -15,6 +15,7 @@ const links = [
   { href: "/cotizacion", label: "Cotizar" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/contacto", label: "Contacto" },
+  { href: "/seguimiento", label: "Seguimiento" },
 ];
 
 /** Número para mostrar: 913196780 / +51 913196780 → 913 196 780. */
