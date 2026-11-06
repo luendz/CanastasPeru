@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { buscarPedido, type PedidoSeguimiento, type SeguimientoState } from "@/app/(sitio)/seguimiento/actions";
+import ProductComposition from "@/components/ProductComposition";
 import { formatPrice } from "@/lib/mock-data";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
@@ -130,7 +131,14 @@ export default function SeguimientoPedido({ numeroInicial, correoContacto, telef
             <ul className="summaryItems">
               {p.items.map((l, i) => (
                 <li key={i}>
-                  <span className="summaryThumb summaryThumbCard" aria-hidden="true">✦<b>{l.cantidad}</b></span>
+                  {l.producto ? (
+                    <span className="summaryThumb">
+                      <span className="cartThumbStage"><ProductComposition product={l.producto} baseImage={l.envaseImagen} envaseId={l.envaseId} /></span>
+                      <b>{l.cantidad}</b>
+                    </span>
+                  ) : (
+                    <span className="summaryThumb summaryThumbCard" aria-hidden="true">{/tarjeta/i.test(l.nombre) ? "✉" : "✦"}<b>{l.cantidad}</b></span>
+                  )}
                   <span className="summaryItemName">{l.nombre}{l.envase && <small>{l.envase}</small>}</span>
                   <strong>{formatPrice(Number(l.subtotal))}</strong>
                 </li>
