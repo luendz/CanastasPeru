@@ -13,8 +13,20 @@ const aIso = (d: Date) => d.toISOString().slice(0, 10);
  * Calendario de fecha de entrega: solo se pueden elegir las fechas de reparto
  * (martes, jueves y sábados con anticipación) que llegan desde el servidor.
  */
-export default function CalendarioEntrega({ name, fechas, desde }: { name: string; fechas: string[]; /** Si se indica, el calendario no muestra los días anteriores a esta fecha. */ desde?: string }) {
-  const [valor, setValor] = useState("");
+type Props = {
+  name: string;
+  fechas: string[];
+  /** Si se indica, el calendario no muestra los días anteriores a esta fecha. */
+  desde?: string;
+  /** Fecha elegida, cuando el formulario la controla (por ejemplo, para recuperar un borrador). */
+  valor?: string;
+  onValor?: (iso: string) => void;
+};
+
+export default function CalendarioEntrega({ name, fechas, desde, valor: valorExterno, onValor }: Props) {
+  const [valorInterno, setValorInterno] = useState("");
+  const valor = valorExterno ?? valorInterno;
+  const setValor = (iso: string) => (onValor ? onValor(iso) : setValorInterno(iso));
   const [abierto, setAbierto] = useState(false);
   const [mes, setMes] = useState(() => inicioMes(fechas[0]));
   const caja = useRef<HTMLDivElement>(null);
@@ -49,7 +61,7 @@ export default function CalendarioEntrega({ name, fechas, desde }: { name: strin
         {valor ? fechaReparto(valor) : "Elige un día de reparto"}
       </button>
       {/* Input real para que el navegador exija la fecha antes de enviar. */}
-      <input className="calValidar" name={name} value={valor} onChange={() => {}} onFocus={() => setAbierto(true)} required tabIndex={-1} aria-hidden="true" />
+      <input className="calValidar" data-borrador="no" name={name} value={valor} onChange={() => {}} onFocus={() => setAbierto(true)} required tabIndex={-1} aria-hidden="true" />
       {abierto && (
         <div className="calPopover" role="dialog" aria-label="Elegir fecha de entrega">
           <div className="calHead">

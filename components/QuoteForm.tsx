@@ -1,12 +1,15 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizacion/actions";
 import CalendarioEntrega from "@/components/CalendarioEntrega";
 import Icono, { type NombreIcono } from "@/components/Icono";
 import type { Contenido } from "@/lib/contenido";
 import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO } from "@/lib/entrega";
+import { borrarBorrador, useBorrador } from "@/lib/borrador";
 import { LINEAS } from "@/lib/lineas";
+
+const BORRADOR_COTIZACION = "mka-borrador-cotizacion";
 
 type Props = {
   opciones: Pick<Contenido["cotizacion"], "cantidades" | "presupuestos" | "personalizacion" | "notaEntrega">;
@@ -42,6 +45,18 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }
   const [state, action, pending] = useActionState<CotizacionState, FormData>(solicitarCotizacion, {});
   // Estado ya mostrado y cerrado; sirve para volver al formulario y enviar otra solicitud.
   const [cerrado, setCerrado] = useState<CotizacionState | null>(null);
+  const [fecha, setFecha] = useState("");
+  // Los datos escritos se conservan si el cliente sale de la página y vuelve; se borran al enviar.
+  const borrador = useBorrador(BORRADOR_COTIZACION, { tipos, cantidad, exacta, presupuesto, fecha }, (e) => {
+    if (Array.isArray(e.tipos)) setTipos(e.tipos.filter((t): t is string => typeof t === "string"));
+    if (typeof e.cantidad === "number" || e.cantidad === "") setCantidad(e.cantidad);
+    if (typeof e.exacta === "string") setExacta(e.exacta.replace(/\D/g, "").slice(0, 5));
+    if (typeof e.presupuesto === "string") setPresupuesto(e.presupuesto);
+    if (typeof e.fecha === "string" && fechas.includes(e.fecha)) setFecha(e.fecha);
+  });
+  useEffect(() => {
+    if (state.enviada) borrarBorrador(BORRADOR_COTIZACION);
+  }, [state]);
 
   const opcionesTipo = [
     ...LINEAS.map((l, n) => ({ id: l.titulo, titulo: lineas[n]?.titulo ?? l.titulo, imagen: lineas[n]?.imagen ?? "" })),
@@ -68,7 +83,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }
   }
 
   return (
-    <form className="cotForm" action={action} key={cerrado ? cerrado.numero ?? "demo" : "nuevo"}>
+    <form className="cotForm" action={action} key={cerrado ? cerrado.numero ?? "demo" : "nuevo"} {...borrador}>
       <input type="hidden" name="cantidad_estimada" value={cantidadFinal || ""} />
       <input type="hidden" name="presupuesto" value={presupuesto} />
       {tipos.map((t) => <input key={t} type="hidden" name="canastas_base" value={t} />)}
@@ -128,7 +143,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }
       <Seccion n={3} titulo="¿Dónde y cuándo debemos entregar?">
         <div className="cotGrid">
           <div className="campoFecha">Fecha requerida *
-            <CalendarioEntrega name="fecha_requerida" fechas={fechas} desde={desde} />
+            <CalendarioEntrega name="fecha_requerida" fechas={fechas} desde={desde} valor={fecha} onValor={setFecha} />
           </div>
           <label>Dirección de entrega *<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Calle / Jr. / Número" required maxLength={220} /></label>
           <label>Distrito *
