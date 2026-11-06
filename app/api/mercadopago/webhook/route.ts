@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { firmaValida, obtenerPago } from "@/lib/mercadopago";
+import { notificarCambioPedido, pedidoDesdeOrden } from "@/lib/notificaciones";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /*
@@ -41,6 +43,7 @@ export async function POST(request: Request) {
       return new Response(null, { status: 200 });
     }
 
+    const { data: antes } = await supabase.from("ordenes").select("id,estado_pago").eq("numero", pago.external_reference).maybeSingle();
     const { data, error } = await supabase.rpc("registrar_pago_mp", {
       p: {
         numero: pago.external_reference,
@@ -52,6 +55,15 @@ export async function POST(request: Request) {
     });
     if (error) throw new Error(error.message);
     if (data === "orden_no_encontrada") console.error(`Pago ${pago.id} con referencia ${pago.external_reference}: la orden no existe.`);
+
+    // Si este aviso dejó la orden pagada, se avisa al cliente por correo.
+    if (antes && antes.estado_pago !== "pagado") {
+      const { data: ahora } = await supabase.from("ordenes").select("estado_pago").eq("id", antes.id).maybeSingle();
+      if (ahora?.estado_pago === "pagado") {
+        const pedido = await pedidoDesdeOrden(supabase, antes.id);
+        if (pedido) after(() => notificarCambioPedido(pedido, "pagado"));
+      }
+    }
     return new Response(null, { status: 200 });
   } catch (e) {
     console.error("No se pudo registrar el aviso de Mercado Pago.", e);

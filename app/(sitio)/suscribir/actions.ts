@@ -1,5 +1,7 @@
 "use server";
 
+import { after } from "next/server";
+import { agregarSuscriptor } from "@/lib/brevo";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,5 +15,7 @@ export async function suscribir(_prev: SuscripcionState, fd: FormData): Promise<
   const supabase = await createClient();
   const { error } = await supabase.rpc("suscribir_novedades", { p_email: email });
   if (error) return { error: "No pudimos registrarte. Inténtalo de nuevo." };
+  // También va a la lista de novedades de Brevo (bienvenida, campañas y baja se manejan allá).
+  after(() => agregarSuscriptor(email));
   return { ok: true };
 }
