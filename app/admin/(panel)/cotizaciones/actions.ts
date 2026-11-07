@@ -257,14 +257,20 @@ export async function editarDatosCotizacion(_prev: EstadoForm, fd: FormData): Pr
   return { ok: true, en: Date.now() };
 }
 
-/** Borra una cotización y sus líneas. Si generó una orden, la orden se conserva (sin el vínculo). */
+/** Elimina una cotización de forma lógica (se puede restaurar). Si generó una orden, la orden no cambia. */
 export async function eliminarCotizacion(fd: FormData) {
+  await marcarCotizacion(fd, new Date().toISOString());
+  if (fd.get("volver")) redirect("/admin/cotizaciones");
+}
+
+export async function restaurarCotizacion(fd: FormData) {
+  await marcarCotizacion(fd, null);
+}
+
+async function marcarCotizacion(fd: FormData, eliminado: string | null) {
   const { supabase } = await requireAdmin();
   const id = String(fd.get("id") ?? "");
-  const { error } = await supabase.from("cotizaciones").delete().eq("id", id);
+  const { error } = await supabase.from("cotizaciones").update({ eliminado_at: eliminado }).eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/cotizaciones");
-  revalidatePath("/admin/ordenes");
-  revalidatePath("/admin");
-  if (fd.get("volver")) redirect("/admin/cotizaciones");
+  refrescar(id);
 }

@@ -24,10 +24,10 @@ export async function obtenerDatosReporte(desde: string, hasta: string): Promise
   const fin = `${hasta}T23:59:59.999-05:00`;
 
   const [{ data: ordenes, error: e1 }, { data: compras, error: e2 }, { data: productos }, { data: cotizaciones, error: e3 }, { data: zonas }] = await Promise.all([
-    supabase.from("ordenes").select("*, orden_items(*)").gte("created_at", inicio).lte("created_at", fin).order("created_at"),
+    supabase.from("ordenes").select("*, orden_items(*)").is("eliminado_at", null).gte("created_at", inicio).lte("created_at", fin).order("created_at"),
     supabase.from("compras").select("*").gte("fecha", desde).lte("fecha", hasta).order("fecha"),
     supabase.from("canastas").select("nombre,precio"),
-    supabase.from("cotizaciones").select("*").gte("created_at", inicio).lte("created_at", fin).order("created_at"),
+    supabase.from("cotizaciones").select("*").is("eliminado_at", null).gte("created_at", inicio).lte("created_at", fin).order("created_at"),
     supabase.from("zonas_delivery").select("distrito"),
   ]);
   if (e1 || e2 || e3) throw new Error((e1 ?? e2 ?? e3)!.message);

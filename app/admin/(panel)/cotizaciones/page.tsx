@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fechaCorta, numero } from "@/lib/admin/format";
 import BotonEliminar from "../BotonEliminar";
-import { eliminarCotizacion } from "./actions";
+import { eliminarCotizacion, restaurarCotizacion } from "./actions";
 import BotonPdfCotizacion from "./BotonPdfCotizacion";
 import { ESTADOS_COTIZACION, labelEstado, type Cotizacion } from "@/lib/admin/types";
 
@@ -13,7 +13,10 @@ export default async function CotizacionesPage({ searchParams }: { searchParams:
   const { estado = "" } = await searchParams;
 
   let query = supabase.from("cotizaciones").select("*").order("created_at", { ascending: false }).limit(200);
-  if (estado) query = query.eq("estado", estado);
+  // "eliminadas" muestra solo lo eliminado; el resto, solo lo vigente.
+  const eliminadas = estado === "eliminadas";
+  query = eliminadas ? query.not("eliminado_at", "is", null) : query.is("eliminado_at", null);
+  if (estado && !eliminadas) query = query.eq("estado", estado);
   const { data, error } = await query;
   const cotizaciones = (data ?? []) as Cotizacion[];
 
@@ -32,6 +35,7 @@ export default async function CotizacionesPage({ searchParams }: { searchParams:
         {ESTADOS_COTIZACION.map((e) => (
           <Link key={e.id} href={`/admin/cotizaciones?estado=${e.id}`} aria-current={estado === e.id ? "page" : undefined}>{e.label}</Link>
         ))}
+        <Link href="/admin/cotizaciones?estado=eliminadas" aria-current={eliminadas ? "page" : undefined}>Eliminadas</Link>
       </nav>
 
       {error && <p className="admError">No se pudieron cargar: {error.message}</p>}
@@ -55,7 +59,11 @@ export default async function CotizacionesPage({ searchParams }: { searchParams:
                   <td>
                     <div className="admFilaAcciones">
                       <BotonPdfCotizacion id={c.id} numero={c.numero} compacto />
-                      <BotonEliminar id={c.id} accion={eliminarCotizacion} mensaje={`¿Eliminar la cotización ${c.numero}? No se puede deshacer.`} />
+                      {c.eliminado_at ? (
+                        <BotonEliminar id={c.id} accion={restaurarCotizacion} tipo="restaurar" mensaje={`¿Restaurar la cotización ${c.numero}?`} />
+                      ) : (
+                        <BotonEliminar id={c.id} accion={eliminarCotizacion} mensaje={`¿Eliminar la cotización ${c.numero}? Podrás restaurarla desde Eliminadas.`} />
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -133,21 +133,25 @@ export async function editarDatosOrden(_prev: EstadoEdicion, fd: FormData): Prom
 }
 
 /**
- * Borra una orden y sus productos. Si vino de una cotización, la cotización
- * vuelve a quedar pendiente para poder aprobarla otra vez.
+ * Elimina una orden de forma lógica: se oculta de listas, panel, reportes,
+ * inventario y seguimiento, pero se puede restaurar. Su número no se reutiliza.
  */
 export async function eliminarOrden(fd: FormData) {
+  await marcarOrden(fd, new Date().toISOString());
+  if (fd.get("volver")) redirect("/admin/ordenes");
+}
+
+export async function restaurarOrden(fd: FormData) {
+  await marcarOrden(fd, null);
+}
+
+async function marcarOrden(fd: FormData, eliminado: string | null) {
   const { supabase } = await requireAdmin();
   const id = String(fd.get("id") ?? "");
-  const { data: orden } = await supabase.from("ordenes").select("cotizacion_id").eq("id", id).maybeSingle();
-  const { error } = await supabase.from("ordenes").delete().eq("id", id);
+  const { error } = await supabase.from("ordenes").update({ eliminado_at: eliminado }).eq("id", id);
   if (error) throw new Error(error.message);
-  if (orden?.cotizacion_id) {
-    await supabase.from("cotizaciones").update({ estado: "pendiente" }).eq("id", orden.cotizacion_id).eq("estado", "aprobada");
-    revalidatePath(`/admin/cotizaciones/${orden.cotizacion_id}`);
-  }
   revalidatePath("/admin/ordenes");
+  revalidatePath(`/admin/ordenes/${id}`);
   revalidatePath("/admin/cotizaciones");
   revalidatePath("/admin");
-  if (fd.get("volver")) redirect("/admin/ordenes");
 }

@@ -70,6 +70,7 @@ export type Orden = {
   total: number;
   notas: string | null;
   created_at: string;
+  eliminado_at: string | null;
 };
 
 /** Producto dentro de una canasta personalizada. */
@@ -115,6 +116,7 @@ export type Cotizacion = {
   valida_hasta: string | null;
   notas: string | null;
   created_at: string;
+  eliminado_at: string | null;
 };
 
 export type CotizacionItem = OrdenItem & { cotizacion_id: string };

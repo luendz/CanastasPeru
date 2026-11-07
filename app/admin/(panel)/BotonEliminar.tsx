@@ -4,19 +4,23 @@ type Props = {
   id: string;
   accion: (fd: FormData) => Promise<void>;
   mensaje: string;
-  /** En el detalle: después de borrar vuelve a la lista. */
+  /** En el detalle: después de eliminar vuelve a la lista. */
   volver?: boolean;
-  /** "enlace": texto rojo pequeño (tablas); "boton": botón (cabecera). */
+  /** "enlace": texto pequeño (tablas); "boton": botón (cabecera). */
   variante?: "enlace" | "boton";
+  /** "restaurar": devuelve un elemento eliminado. */
+  tipo?: "eliminar" | "restaurar";
 };
 
-/** Botón Eliminar con confirmación. */
-export default function BotonEliminar({ id, accion, mensaje, volver, variante = "enlace" }: Props) {
+/** Botón Eliminar o Restaurar con confirmación (eliminación lógica). */
+export default function BotonEliminar({ id, accion, mensaje, volver, variante = "enlace", tipo = "eliminar" }: Props) {
+  const restaurar = tipo === "restaurar";
+  const clase = variante === "boton" ? (restaurar ? "admBtn" : "admBtn admBtnDanger") : restaurar ? "admLinkMuted" : "admLinkDanger";
   return (
     <form action={accion} className="admFormInline">
       <input type="hidden" name="id" value={id} />
       {volver && <input type="hidden" name="volver" value="1" />}
-      <ConfirmButton className={variante === "boton" ? "admBtn admBtnDanger" : "admLinkDanger"} message={mensaje}>Eliminar</ConfirmButton>
+      <ConfirmButton className={clase} message={mensaje}>{restaurar ? "Restaurar" : "Eliminar"}</ConfirmButton>
     </form>
   );
 }

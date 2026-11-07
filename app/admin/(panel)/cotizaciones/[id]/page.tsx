@@ -8,7 +8,7 @@ import { getContenido } from "@/lib/contenido";
 import ConfirmButton from "../../ConfirmButton";
 import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
 import EditarDatos from "../../EditarDatos";
-import { editarDatosCotizacion, eliminarCotizacion } from "../actions";
+import { editarDatosCotizacion, eliminarCotizacion, restaurarCotizacion } from "../actions";
 import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import BotonPdfCotizacion from "../BotonPdfCotizacion";
 import EditarLinea from "./EditarLinea";
@@ -79,11 +79,15 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
       <header className="admHead">
         <div>
           <Link href="/admin/cotizaciones" className="admLinkMuted">← Cotizaciones</Link>
-          <h1>{c.numero} <span className="admBadge" data-estado={c.estado}>{labelEstado(c.estado)}</span></h1>
+          <h1>{c.numero} <span className="admBadge" data-estado={c.estado}>{labelEstado(c.estado)}</span>{c.eliminado_at && <> <span className="admBadge" data-estado="anulada">Eliminada el {fechaCorta(c.eliminado_at)}</span></>}</h1>
           <p className="admMuted">{c.empresa} · creada el {fechaCorta(c.created_at)} · {labelCanal(c.canal)}</p>
         </div>
         <div className="admHeadAcciones">
-          <BotonEliminar id={c.id} accion={eliminarCotizacion} volver variante="boton" mensaje={`¿Eliminar la cotización ${c.numero}?${orden ? ` La orden ${orden.numero} se conserva.` : ""} No se puede deshacer.`} />
+          {c.eliminado_at ? (
+            <BotonEliminar id={c.id} accion={restaurarCotizacion} tipo="restaurar" variante="boton" mensaje={`¿Restaurar la cotización ${c.numero}?`} />
+          ) : (
+            <BotonEliminar id={c.id} accion={eliminarCotizacion} volver variante="boton" mensaje={`¿Eliminar la cotización ${c.numero}?${orden ? ` La orden ${orden.numero} no cambia.` : ""} Podrás restaurarla desde Eliminadas.`} />
+          )}
           {orden && <Link className="admBtn" href={`/admin/ordenes/${orden.id}`}>Ver orden {orden.numero} →</Link>}
         </div>
       </header>

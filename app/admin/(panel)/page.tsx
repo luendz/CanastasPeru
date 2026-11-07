@@ -10,13 +10,13 @@ export default async function DashboardPage() {
   const desde = inicioMesLima();
 
   const [ordenesMes, compras, abiertas, items, cotPend, inventario, entregas] = await Promise.all([
-    supabase.from("ordenes").select("id,total,estado").gte("created_at", `${desde}T00:00:00-05:00`).neq("estado", "anulada"),
+    supabase.from("ordenes").select("id,total,estado").gte("created_at", `${desde}T00:00:00-05:00`).neq("estado", "anulada").is("eliminado_at", null),
     supabase.from("compras").select("categoria,total").gte("fecha", desde),
-    supabase.from("ordenes").select("estado").neq("estado", "anulada"),
-    supabase.from("orden_items").select("canasta_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada"),
-    supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]),
+    supabase.from("ordenes").select("estado").neq("estado", "anulada").is("eliminado_at", null),
+    supabase.from("orden_items").select("canasta_nombre,cantidad,subtotal,ordenes!inner(created_at,estado)").gte("ordenes.created_at", `${desde}T00:00:00-05:00`).neq("ordenes.estado", "anulada").is("ordenes.eliminado_at", null),
+    supabase.from("cotizaciones").select("id", { count: "exact", head: true }).in("estado", ["pendiente", "enviada"]).is("eliminado_at", null),
     supabase.from("v_inventario").select("*"),
-    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,estado,estado_pago").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").order("fecha_entrega").limit(8),
+    supabase.from("ordenes").select("id,numero,cliente_nombre,distrito,fecha_entrega,estado,estado_pago").gte("fecha_entrega", desde).not("estado", "in", "(entregada,anulada)").is("eliminado_at", null).order("fecha_entrega").limit(8),
   ]);
 
   const ventas = (ordenesMes.data ?? []) as Pick<Orden, "id" | "total" | "estado">[];
