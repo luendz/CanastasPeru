@@ -7,6 +7,8 @@ export type CampoEditable = {
   etiqueta: string;
   tipo?: "texto" | "email" | "tel" | "fecha" | "numero" | "area" | "select";
   opciones?: { valor: string; texto: string }[];
+  /** Para texto: lista que se filtra al escribir (se puede poner otro valor). */
+  sugerencias?: { valor: string; texto?: string }[];
   ancho?: boolean;
   max?: number;
   ayuda?: string;
@@ -75,7 +77,14 @@ export default function EditarDatos({ titulo, id, campos, valores, accion, etiqu
                         {...comun}
                         type={c.tipo === "email" ? "email" : c.tipo === "tel" ? "tel" : c.tipo === "fecha" ? "date" : c.tipo === "numero" ? "number" : "text"}
                         inputMode={c.tipo === "numero" ? "numeric" : undefined}
+                        list={c.sugerencias ? `sug-${c.clave}` : undefined}
+                        autoComplete={c.sugerencias ? "off" : undefined}
                       />
+                    )}
+                    {c.sugerencias && (
+                      <datalist id={`sug-${c.clave}`}>
+                        {c.sugerencias.map((s) => <option key={s.valor} value={s.valor} label={s.texto} />)}
+                      </datalist>
                     )}
                     {c.ayuda && <small className="admMuted">{c.ayuda}</small>}
                   </label>

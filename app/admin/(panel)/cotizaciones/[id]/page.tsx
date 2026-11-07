@@ -13,6 +13,7 @@ import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import BotonPdfCotizacion from "../BotonPdfCotizacion";
 import EditarLinea from "./EditarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
+import { distritosDelivery, sugerenciasDistrito } from "../distritos";
 
 export const metadata = { title: "Cotización" };
 
@@ -20,7 +21,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   const { supabase } = await requireAdmin();
   const { id } = await params;
 
-  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }, { data: envasesCanasta }] = await Promise.all([
+  const [{ data: cot }, { data: items }, { data: productos }, { data: tipos }, { data: orden }, { data: insumos }, trae, contenido, { data: recetas }, { data: costos }, { data: envasesCanasta }, distritos] = await Promise.all([
     supabase.from("cotizaciones").select("*").eq("id", id).maybeSingle(),
     supabase.from("cotizacion_items").select("*").eq("cotizacion_id", id),
     supabase.from("canastas").select("*").order("precio"),
@@ -32,6 +33,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
     supabase.from("canasta_articulos").select("canasta_id,articulo_id,cantidad,articulos!inner(tipo)").eq("articulos.tipo", "producto").order("orden"),
     supabase.from("v_costo_articulos").select("articulo_id,costo_actual"),
     supabase.from("v_envases_canasta").select("canasta_id,envase_id,precio,costo_presentacion"),
+    distritosDelivery(supabase),
   ]);
   if (!cot) notFound();
   const c = cot as Cotizacion;
@@ -99,7 +101,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                     { clave: "cantidad_estimada", etiqueta: "Cantidad estimada", tipo: "numero" },
                     { clave: "presupuesto", etiqueta: "Presupuesto por canasta", max: 60 },
                     { clave: "fecha_requerida", etiqueta: "Fecha requerida", tipo: "fecha" },
-                    { clave: "distrito", etiqueta: "Ciudad / Distrito", max: 120 },
+                    { clave: "distrito", etiqueta: "Ciudad / Distrito", max: 120, sugerencias: sugerenciasDistrito(distritos) },
                     { clave: "lugar_entrega", etiqueta: "Dirección de entrega", ancho: true, max: 300 },
                     { clave: "requerimientos", etiqueta: "Requerimientos", tipo: "area", ancho: true, max: 2000 },
                   ]}
@@ -196,6 +198,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                 cliente={{ contacto: c.contacto, telefono: c.telefono, email: c.email }}
                 resumen={{ unidades, total }}
                 marca={contenido.marca.nombre}
+                distritos={distritos}
               />
 
               <form action={aprobarCotizacion} className="admApprove">

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
+import { distritosDelivery } from "../distritos";
 import NuevaCotizacionForm from "./NuevaCotizacionForm";
 
 export const metadata = { title: "Nueva cotización" };
 
 export default async function NuevaCotizacionPage() {
-  await requireAdmin();
+  const { supabase } = await requireAdmin();
+  const distritos = await distritosDelivery(supabase);
   return (
     <>
       <header className="admHead">
@@ -16,7 +18,7 @@ export default async function NuevaCotizacionPage() {
         </div>
       </header>
       <section className="admCard admNarrow">
-        <NuevaCotizacionForm />
+        <NuevaCotizacionForm distritos={distritos} />
       </section>
     </>
   );

@@ -3,9 +3,10 @@
 import { useActionState } from "react";
 import { CANALES } from "@/lib/admin/types";
 import { crearCotizacion, type EstadoForm } from "../actions";
+import { ListaDistritos, type DistritoDelivery } from "../distritos";
 
 /** Cotización registrada desde el panel; después se arma la propuesta en su detalle. */
-export default function NuevaCotizacionForm() {
+export default function NuevaCotizacionForm({ distritos }: { distritos: DistritoDelivery[] }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(crearCotizacion, {});
   return (
     <form action={accion} className="admForm admFormGrid">
@@ -47,7 +48,8 @@ export default function NuevaCotizacionForm() {
         <input className="admInput" name="lugar_entrega" maxLength={300} placeholder="Av., calle y número" />
       </label>
       <label>Ciudad / Distrito
-        <input className="admInput" name="distrito" maxLength={120} placeholder="Ej. Lima / Miraflores" />
+        <input className="admInput" name="distrito" maxLength={120} list="distritos-delivery" autoComplete="off" placeholder="Busca el distrito o escribe otro lugar" />
+        <ListaDistritos id="distritos-delivery" distritos={distritos} />
       </label>
       <label className="admSpan2">Requerimientos
         <textarea className="admInput" name="requerimientos" rows={3} maxLength={2000} placeholder="Productos, marcas, restricciones, tarjeta con logo…" />
