@@ -4,7 +4,8 @@ import { numero, soles } from "@/lib/admin/format";
 import type { TipoCanasta } from "@/lib/admin/types";
 import { LINEAS, lineaDe } from "@/lib/lineas";
 import { separarInsignias } from "@/lib/mock-data";
-import { alternarCanasta, crearZona, guardarZona } from "./actions";
+import ConfirmButton from "../ConfirmButton";
+import { alternarCanasta, crearZona, eliminarZona, guardarZona } from "./actions";
 
 export const metadata = { title: "Catálogo" };
 
@@ -125,10 +126,16 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
                   <td className="num"><input className="admInput admInputSm" form={form} name="orden" type="number" step="1" defaultValue={z.orden} aria-label={`Orden de ${z.distrito}`} /></td>
                   <td><label className="admCheck"><input type="checkbox" form={form} name="activo" defaultChecked={z.activo} /><span>Con cobertura</span></label></td>
                   <td className="num">
-                    <form id={form} action={guardarZona}>
-                      <input type="hidden" name="distrito" value={z.distrito} />
-                      <button className="admLinkMuted" type="submit">Guardar</button>
-                    </form>
+                    <div className="admAccionesLinea">
+                      <form id={form} action={guardarZona}>
+                        <input type="hidden" name="distrito" value={z.distrito} />
+                        <button className="admLinkMuted" type="submit">Guardar</button>
+                      </form>
+                      <form action={eliminarZona}>
+                        <input type="hidden" name="distrito" value={z.distrito} />
+                        <ConfirmButton className="admLinkDanger" message={`¿Eliminar ${z.distrito} de la lista de delivery? Los pedidos ya hechos no cambian.`}>Eliminar</ConfirmButton>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               );

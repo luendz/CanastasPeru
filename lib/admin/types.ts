@@ -97,6 +97,8 @@ export type Cotizacion = {
   forma_pago: string | null;
   horario_entrega: string | null;
   distrito: string | null;
+  /** Tarifa del distrito (Delivery por distrito); con más de 100 canastas no se cobra. */
+  delivery: number;
   empresa: string;
   ruc: string | null;
   contacto: string;

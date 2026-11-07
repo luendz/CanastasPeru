@@ -1,15 +1,18 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import SelectorBuscable from "./SelectorBuscable";
 
 export type CampoEditable = {
   clave: string;
   etiqueta: string;
-  tipo?: "texto" | "email" | "tel" | "fecha" | "numero" | "area" | "select";
+  /** "buscar": desplegable con búsqueda que solo acepta las opciones. */
+  tipo?: "texto" | "email" | "tel" | "fecha" | "numero" | "area" | "select" | "buscar";
   opciones?: { valor: string; texto: string }[];
   ancho?: boolean;
   max?: number;
   ayuda?: string;
+  requerido?: boolean;
 };
 
 type Estado = { ok?: boolean; error?: string; en?: number };
@@ -66,6 +69,8 @@ export default function EditarDatos({ titulo, id, campos, valores, accion, etiqu
                   <label key={c.clave} className={c.ancho ? "admSpan2" : undefined}>{c.etiqueta}
                     {c.tipo === "area" ? (
                       <textarea {...comun} rows={3} />
+                    ) : c.tipo === "buscar" ? (
+                      <SelectorBuscable name={c.clave} opciones={c.opciones ?? []} valorInicial={String(v)} requerido={c.requerido} />
                     ) : c.tipo === "select" ? (
                       <select className="admInput" name={c.clave} defaultValue={String(v)}>
                         {c.opciones?.map((o) => <option key={o.valor} value={o.valor}>{o.texto}</option>)}

@@ -142,6 +142,14 @@ export async function crearZona(fd: FormData) {
   refrescar();
 }
 
+/** Borra un distrito de la lista. Los pedidos ya hechos guardan el distrito como texto: no se ven afectados. */
+export async function eliminarZona(fd: FormData) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("zonas_delivery").delete().eq("distrito", txt(fd, "distrito", 80));
+  if (error) throw new Error(error.message);
+  refrescar();
+}
+
 const precioValido = (precio: number) => Number.isFinite(precio) && precio > 0;
 
 /** `condicion`, `mostrarCondicion` y `minimo` son la regla del envase: valen para todas las canastas que lo usan. */

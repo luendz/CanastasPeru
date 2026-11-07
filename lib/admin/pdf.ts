@@ -6,6 +6,7 @@
  * Se importa de forma dinámica para no cargar la librería hasta que se use.
  */
 import type { jsPDF } from "jspdf";
+import { deliveryCotizacion } from "@/lib/admin/delivery";
 import { fechaCorta, soles } from "@/lib/admin/format";
 import type { ProductoCanasta } from "@/lib/admin/recetas";
 import { type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
@@ -346,8 +347,10 @@ const conIgv = (total: number) => {
 };
 
 export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, textos }: DatosPdfCotizacion) {
-  const total = items.reduce((s, it) => s + Number(it.subtotal), 0);
+  const canastas = items.reduce((s, it) => s + Number(it.subtotal), 0);
   const unidades = items.reduce((s, it) => s + it.cantidad, 0);
+  const delivery = deliveryCotizacion(c.delivery, unidades);
+  const total = canastas + delivery;
   const { valor, igv } = conIgv(total);
   return documentoComercial({
     titulo: "COTIZACIÓN COMERCIAL",
@@ -366,7 +369,14 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
       ["Dirección de entrega", c.lugar_entrega], ["Ciudad / Distrito", c.distrito],
     ]]],
     items,
-    totales: [["SUBTOTAL", valor], ["IGV (18 %)", igv]],
+    totales: [
+      ["Canastas", canastas],
+      ...(c.distrito || delivery > 0
+        ? ([[delivery > 0 ? `Delivery · ${c.distrito ?? ""}` : `Delivery · ${c.distrito} (gratis)`, delivery]] as [string, number][])
+        : []),
+      ["SUBTOTAL (sin IGV)", valor],
+      ["IGV (18 %)", igv],
+    ],
     total,
     etiquetaTotal: `TOTAL${unidades ? ` · ${unidades} canastas` : ""}`,
     notas: [],

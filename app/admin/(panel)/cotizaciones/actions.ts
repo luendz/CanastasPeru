@@ -19,6 +19,16 @@ const refrescar = (id: string) => {
 const txt = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").trim().slice(0, max);
 const canalValido = (c: string) => CANALES.some((x) => x.id === c);
 
+type Cliente = Awaited<ReturnType<typeof requireAdmin>>["supabase"];
+
+/** El distrito es obligatorio y debe ser uno de "Delivery por distrito" (Catálogo) con cobertura. */
+async function distritoValido(supabase: Cliente, fd: FormData) {
+  const distrito = txt(fd, "distrito", 120);
+  if (!distrito) return { error: "Elige el distrito de entrega." };
+  const { data } = await supabase.from("zonas_delivery").select("distrito").eq("distrito", distrito).eq("activo", true).maybeSingle();
+  return data ? { distrito } : { error: "Ese distrito no está en la lista de delivery. Elígelo del desplegable." };
+}
+
 /** Cotización cargada desde el panel (pedidos que llegan por WhatsApp o correo). */
 export async function crearCotizacion(_prev: EstadoForm, fd: FormData): Promise<EstadoForm> {
   const { supabase } = await requireAdmin();
@@ -27,6 +37,8 @@ export async function crearCotizacion(_prev: EstadoForm, fd: FormData): Promise<
   const canal = txt(fd, "canal", 20);
   if (!empresa || !contacto) return { error: "Completa el cliente / empresa y el nombre de contacto." };
   if (!canalValido(canal)) return { error: "Elige por dónde llegó el pedido." };
+  const zona = await distritoValido(supabase, fd);
+  if ("error" in zona) return { error: zona.error };
   const cantidad = Math.round(Number(fd.get("cantidad_estimada") || 0));
 
   const { data, error } = await supabase
@@ -43,7 +55,7 @@ export async function crearCotizacion(_prev: EstadoForm, fd: FormData): Promise<
       presupuesto: txt(fd, "presupuesto", 60) || null,
       fecha_requerida: txt(fd, "fecha_requerida", 10) || null,
       lugar_entrega: txt(fd, "lugar_entrega", 300) || null,
-      distrito: txt(fd, "distrito", 120) || null,
+      distrito: zona.distrito,
       requerimientos: txt(fd, "requerimientos", 2000) || null,
     })
     .select("id")
@@ -149,6 +161,8 @@ export async function actualizarCotizacion(_prev: EstadoForm, formData: FormData
   const canal = String(formData.get("canal") ?? "");
   if (!["pendiente", "enviada", "rechazada"].includes(estado)) return { error: "Estado inválido." };
   if (!canalValido(canal)) return { error: "Origen inválido." };
+  const zona = await distritoValido(supabase, formData);
+  if ("error" in zona) return { error: zona.error };
 
   const { error } = await supabase
     .from("cotizaciones")
@@ -158,7 +172,7 @@ export async function actualizarCotizacion(_prev: EstadoForm, formData: FormData
       valida_hasta: String(formData.get("valida_hasta") ?? "") || null,
       asesor: txt(formData, "asesor", 120) || null,
       forma_pago: txt(formData, "forma_pago", 200) || null,
-      distrito: txt(formData, "distrito", 120) || null,
+      distrito: zona.distrito,
       notas: String(formData.get("notas") ?? "").slice(0, 2000) || null,
     })
     .eq("id", id)
@@ -217,6 +231,8 @@ export async function editarDatosCotizacion(_prev: EstadoForm, fd: FormData): Pr
   const ruc = txt(fd, "ruc", 11).replace(/\D/g, "");
   if (!empresa || !contacto) return { error: "Completa la empresa / razón social y el contacto." };
   if (ruc && !/^\d{11}$/.test(ruc)) return { error: "El RUC debe tener 11 dígitos." };
+  const zona = await distritoValido(supabase, fd);
+  if ("error" in zona) return { error: zona.error };
   const cantidad = Math.round(Number(fd.get("cantidad_estimada") || 0));
 
   const { error } = await supabase
@@ -232,7 +248,7 @@ export async function editarDatosCotizacion(_prev: EstadoForm, fd: FormData): Pr
       presupuesto: txt(fd, "presupuesto", 60) || null,
       fecha_requerida: txt(fd, "fecha_requerida", 10) || null,
       lugar_entrega: txt(fd, "lugar_entrega", 300) || null,
-      distrito: txt(fd, "distrito", 120) || null,
+      distrito: zona.distrito,
       requerimientos: txt(fd, "requerimientos", 2000) || null,
     })
     .eq("id", id);

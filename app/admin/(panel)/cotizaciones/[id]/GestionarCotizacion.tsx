@@ -5,6 +5,8 @@ import { soles } from "@/lib/admin/format";
 import { pdfCotizacion } from "@/lib/admin/pdf";
 import { CANALES, type Canal } from "@/lib/admin/types";
 import { actualizarCotizacion, datosPdfCotizacion, type EstadoForm } from "../actions";
+import SelectorBuscable from "../../SelectorBuscable";
+import { opcionesDistrito, type DistritoDelivery } from "../distritos";
 
 type Props = {
   id: string;
@@ -18,6 +20,7 @@ type Props = {
   cliente: { contacto: string; telefono: string | null; email: string | null };
   resumen: { unidades: number; total: number };
   marca: string;
+  distritos: DistritoDelivery[];
 };
 
 /** Celular peruano a formato internacional para WhatsApp (51 + 9 dígitos). */
@@ -27,7 +30,7 @@ const numeroWhatsApp = (tel: string | null) => {
   return d.length >= 10 ? d : "";
 };
 
-export default function GestionarCotizacion({ id, numero, estado, canal, validaHasta, notas, extra, porDefecto, cliente, resumen, marca }: Props) {
+export default function GestionarCotizacion({ id, numero, estado, canal, validaHasta, notas, extra, porDefecto, cliente, resumen, marca, distritos }: Props) {
   const [resultado, guardar, guardando] = useActionState<EstadoForm, FormData>(actualizarCotizacion, {});
   // Campos controlados: así no vuelven a su valor inicial después de guardar.
   const [valores, setValores] = useState({
@@ -121,7 +124,7 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
           <input className="admInput" name="asesor" maxLength={120} value={valores.asesor} onChange={(e) => setValores({ ...valores, asesor: e.target.value })} placeholder="Quién atiende al cliente" />
         </label>
         <label>Ciudad / Distrito
-          <input className="admInput" name="distrito" maxLength={120} value={valores.distrito} onChange={(e) => setValores({ ...valores, distrito: e.target.value })} placeholder="Ej. Lima / Miraflores" />
+          <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} valor={valores.distrito} onValor={(distrito) => setValores({ ...valores, distrito })} placeholder="Busca el distrito" requerido />
         </label>
         <label>Forma de pago
           <input className="admInput" name="forma_pago" maxLength={200} value={valores.forma_pago} onChange={(e) => setValores({ ...valores, forma_pago: e.target.value })} placeholder={porDefecto.formaPago} />
