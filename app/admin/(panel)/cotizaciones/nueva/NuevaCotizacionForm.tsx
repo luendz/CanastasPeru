@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { CANALES } from "@/lib/admin/types";
 import { crearCotizacion, type EstadoForm } from "../actions";
-import { ListaDistritos, type DistritoDelivery } from "../distritos";
+import SelectorBuscable from "../../SelectorBuscable";
+import { opcionesDistrito, type DistritoDelivery } from "../distritos";
 
 /** Cotización registrada desde el panel; después se arma la propuesta en su detalle. */
 export default function NuevaCotizacionForm({ distritos }: { distritos: DistritoDelivery[] }) {
@@ -47,9 +48,8 @@ export default function NuevaCotizacionForm({ distritos }: { distritos: Distrito
       <label>Dirección de entrega
         <input className="admInput" name="lugar_entrega" maxLength={300} placeholder="Av., calle y número" />
       </label>
-      <label>Ciudad / Distrito
-        <input className="admInput" name="distrito" maxLength={120} list="distritos-delivery" autoComplete="off" placeholder="Busca el distrito o escribe otro lugar" />
-        <ListaDistritos id="distritos-delivery" distritos={distritos} />
+      <label>Distrito de entrega *
+        <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} placeholder="Busca el distrito" requerido />
       </label>
       <label className="admSpan2">Requerimientos
         <textarea className="admInput" name="requerimientos" rows={3} maxLength={2000} placeholder="Productos, marcas, restricciones, tarjeta con logo…" />

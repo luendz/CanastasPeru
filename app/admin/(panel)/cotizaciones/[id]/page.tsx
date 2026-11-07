@@ -13,7 +13,8 @@ import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import BotonPdfCotizacion from "../BotonPdfCotizacion";
 import EditarLinea from "./EditarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
-import { distritosDelivery, sugerenciasDistrito } from "../distritos";
+import { distritosDelivery, opcionesDistrito } from "../distritos";
+import { DELIVERY_GRATIS_DESDE, deliveryCotizacion } from "@/lib/admin/delivery";
 
 export const metadata = { title: "Cotización" };
 
@@ -38,8 +39,11 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
   if (!cot) notFound();
   const c = cot as Cotizacion;
   const lineas = (items ?? []) as CotizacionItem[];
-  const total = lineas.reduce((s, it) => s + Number(it.subtotal), 0);
+  const subtotal = lineas.reduce((s, it) => s + Number(it.subtotal), 0);
   const unidades = lineas.reduce((s, it) => s + it.cantidad, 0);
+  const delivery = deliveryCotizacion(c.delivery, unidades);
+  const deliveryGratis = Number(c.delivery) > 0 && delivery === 0;
+  const total = subtotal + delivery;
   const editable = c.estado !== "aprobada";
 
   // Costo unitario: el de la última compra; si no hay compras, el de referencia.
@@ -101,7 +105,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                     { clave: "cantidad_estimada", etiqueta: "Cantidad estimada", tipo: "numero" },
                     { clave: "presupuesto", etiqueta: "Presupuesto por canasta", max: 60 },
                     { clave: "fecha_requerida", etiqueta: "Fecha requerida", tipo: "fecha" },
-                    { clave: "distrito", etiqueta: "Ciudad / Distrito", max: 120, sugerencias: sugerenciasDistrito(distritos) },
+                    { clave: "distrito", etiqueta: "Ciudad / Distrito", tipo: "buscar", opciones: opcionesDistrito(distritos), requerido: true },
                     { clave: "lugar_entrega", etiqueta: "Dirección de entrega", ancho: true, max: 300 },
                     { clave: "requerimientos", etiqueta: "Requerimientos", tipo: "area", ancho: true, max: 2000 },
                   ]}
@@ -118,7 +122,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
               {dato("Presupuesto por unidad", c.presupuesto)}
               {dato("Fecha requerida", fecha(c.fecha_requerida))}
               {dato("Dirección de entrega", c.lugar_entrega)}
-              {dato("Ciudad / Distrito", c.distrito)}
+              {dato("Ciudad / Distrito", c.distrito ? `${c.distrito}${Number(c.delivery) > 0 ? ` · delivery ${soles(c.delivery)}` : ""}` : null)}
               {dato("Canastas de referencia", c.canastas_base.join(", "))}
               {dato("Personalización", c.personalizacion.join(", "))}
             </dl>
@@ -165,6 +169,15 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
                   ))}
                 </tbody>
                 <tfoot>
+                  <tr className="admSubtotalRow"><td colSpan={4}>Canastas</td><td className="num">{soles(subtotal)}</td>{editable && <td />}</tr>
+                  <tr className="admSubtotalRow">
+                    <td colSpan={4}>
+                      Delivery{c.distrito ? ` · ${c.distrito}` : ""}
+                      {!c.distrito && <span className="admMuted"> · elige el distrito en Gestionar</span>}
+                      {deliveryGratis && <span className="admMuted"> · gratis por más de {DELIVERY_GRATIS_DESDE} canastas</span>}
+                    </td>
+                    <td className="num">{deliveryGratis ? "Gratis" : soles(delivery)}</td>{editable && <td />}
+                  </tr>
                   <tr className="admTotalRow"><td colSpan={2}>Total</td><td className="num">{numero(unidades)}</td><td /><td className="num">{soles(total)}</td>{editable && <td />}</tr>
                 </tfoot>
               </table>
@@ -203,7 +216,7 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
 
               <form action={aprobarCotizacion} className="admApprove">
                 <input type="hidden" name="id" value={c.id} />
-                <p>Aprobar crea una orden de pedido con estas {numero(unidades)} canastas por {soles(total)}.</p>
+                <p>Aprobar crea una orden de pedido con estas {numero(unidades)} canastas por {soles(total)}{delivery > 0 ? ` (incluye delivery ${soles(delivery)})` : ""}.</p>
                 <ConfirmButton className="admBtn admBtnPrimary" disabled={lineas.length === 0} message={`¿Aprobar ${c.numero} y crear la orden de pedido?`}>
                   Aprobar y crear orden
                 </ConfirmButton>

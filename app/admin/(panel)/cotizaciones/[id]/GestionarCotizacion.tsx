@@ -5,7 +5,8 @@ import { soles } from "@/lib/admin/format";
 import { pdfCotizacion } from "@/lib/admin/pdf";
 import { CANALES, type Canal } from "@/lib/admin/types";
 import { actualizarCotizacion, datosPdfCotizacion, type EstadoForm } from "../actions";
-import { ListaDistritos, type DistritoDelivery } from "../distritos";
+import SelectorBuscable from "../../SelectorBuscable";
+import { opcionesDistrito, type DistritoDelivery } from "../distritos";
 
 type Props = {
   id: string;
@@ -123,8 +124,7 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
           <input className="admInput" name="asesor" maxLength={120} value={valores.asesor} onChange={(e) => setValores({ ...valores, asesor: e.target.value })} placeholder="Quién atiende al cliente" />
         </label>
         <label>Ciudad / Distrito
-          <input className="admInput" name="distrito" maxLength={120} value={valores.distrito} onChange={(e) => setValores({ ...valores, distrito: e.target.value })} list="distritos-gestion" autoComplete="off" placeholder="Busca el distrito o escribe otro lugar" />
-          <ListaDistritos id="distritos-gestion" distritos={distritos} />
+          <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} valor={valores.distrito} onValor={(distrito) => setValores({ ...valores, distrito })} placeholder="Busca el distrito" requerido />
         </label>
         <label>Forma de pago
           <input className="admInput" name="forma_pago" maxLength={200} value={valores.forma_pago} onChange={(e) => setValores({ ...valores, forma_pago: e.target.value })} placeholder={porDefecto.formaPago} />

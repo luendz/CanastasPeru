@@ -9,14 +9,5 @@ export async function distritosDelivery(supabase: SupabaseClient): Promise<Distr
   return (data ?? []).map((z) => ({ distrito: z.distrito, tarifa: Number(z.tarifa) }));
 }
 
-/** Sugerencias para el campo Ciudad / Distrito: se filtran al escribir y se puede poner otro lugar. */
-export const sugerenciasDistrito = (lista: DistritoDelivery[]) => lista.map((z) => ({ valor: z.distrito, texto: `Delivery ${soles(z.tarifa)}` }));
-
-/** <datalist> para un input con list={id}. */
-export function ListaDistritos({ id, distritos }: { id: string; distritos: DistritoDelivery[] }) {
-  return (
-    <datalist id={id}>
-      {sugerenciasDistrito(distritos).map((s) => <option key={s.valor} value={s.valor} label={s.texto} />)}
-    </datalist>
-  );
-}
+/** Opciones del selector de distrito: el nombre y su tarifa. */
+export const opcionesDistrito = (lista: DistritoDelivery[]) => lista.map((z) => ({ valor: z.distrito, texto: `Delivery ${soles(z.tarifa)}` }));
