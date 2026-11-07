@@ -5,7 +5,8 @@ import { fecha, fechaCorta, soles } from "@/lib/admin/format";
 import { labelCanal, labelEstado, type Orden, type OrdenItem } from "@/lib/admin/types";
 import { etiquetaProducto, productosPorCanasta } from "@/lib/admin/recetas";
 import EditarDatos from "../../EditarDatos";
-import { editarDatosOrden } from "../actions";
+import BotonEliminar from "../../BotonEliminar";
+import { editarDatosOrden, eliminarOrden } from "../actions";
 import BotonPdfOrden from "../BotonPdfOrden";
 import GestionarOrden from "./GestionarOrden";
 
@@ -46,6 +47,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
           </p>
         </div>
         <div className="admHeadAcciones">
+          <BotonEliminar id={o.id} accion={eliminarOrden} volver variante="boton" mensaje={`¿Eliminar la orden ${o.numero}?${o.cotizacion_id ? " Su cotización volverá a quedar pendiente." : ""} No se puede deshacer.`} />
           <EditarDatos
             variante="boton"
             etiquetaBoton="Editar"

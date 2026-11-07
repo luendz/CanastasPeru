@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { CANALES, ESTADOS_ORDEN, type Orden, type OrdenItem } from "@/lib/admin/types";
@@ -129,4 +130,24 @@ export async function editarDatosOrden(_prev: EstadoEdicion, fd: FormData): Prom
   revalidatePath("/admin/ordenes");
   revalidatePath("/admin");
   return { ok: true, en: Date.now() };
+}
+
+/**
+ * Borra una orden y sus productos. Si vino de una cotización, la cotización
+ * vuelve a quedar pendiente para poder aprobarla otra vez.
+ */
+export async function eliminarOrden(fd: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = String(fd.get("id") ?? "");
+  const { data: orden } = await supabase.from("ordenes").select("cotizacion_id").eq("id", id).maybeSingle();
+  const { error } = await supabase.from("ordenes").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  if (orden?.cotizacion_id) {
+    await supabase.from("cotizaciones").update({ estado: "pendiente" }).eq("id", orden.cotizacion_id).eq("estado", "aprobada");
+    revalidatePath(`/admin/cotizaciones/${orden.cotizacion_id}`);
+  }
+  revalidatePath("/admin/ordenes");
+  revalidatePath("/admin/cotizaciones");
+  revalidatePath("/admin");
+  if (fd.get("volver")) redirect("/admin/ordenes");
 }

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fecha, fechaCorta, soles } from "@/lib/admin/format";
 import { CANALES, ESTADOS_ORDEN, labelCanal, type Orden } from "@/lib/admin/types";
+import BotonEliminar from "../BotonEliminar";
+import { eliminarOrden } from "./actions";
 import BotonPdfOrden from "./BotonPdfOrden";
 import EstadoRapido from "./EstadoRapido";
 
@@ -52,7 +54,7 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
         ) : (
           <table className="admTable">
             <thead>
-              <tr><th>N.º</th><th>Creada</th><th>Cliente</th><th>Origen</th><th>Entrega</th><th className="num">Total</th><th>Pago</th><th>Estado</th><th><span className="admSrOnly">PDF</span></th></tr>
+              <tr><th>N.º</th><th>Creada</th><th>Cliente</th><th>Origen</th><th>Entrega</th><th className="num">Total</th><th>Pago</th><th>Estado</th><th><span className="admSrOnly">Acciones</span></th></tr>
             </thead>
             <tbody>
               {ordenes.map((o) => (
@@ -65,7 +67,12 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
                   <td className="num">{soles(o.total)}</td>
                   <td><span className="admBadge" data-pago={o.estado_pago}>{o.estado_pago === "pagado" ? "Pagado" : "Pendiente"}</span></td>
                   <td><EstadoRapido id={o.id} numero={o.numero} estado={o.estado} /></td>
-                  <td><BotonPdfOrden id={o.id} numero={o.numero} compacto /></td>
+                  <td>
+                    <div className="admFilaAcciones">
+                      <BotonPdfOrden id={o.id} numero={o.numero} compacto />
+                      <BotonEliminar id={o.id} accion={eliminarOrden} mensaje={`¿Eliminar la orden ${o.numero}? No se puede deshacer.`} />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -8,11 +8,12 @@ import { getContenido } from "@/lib/contenido";
 import ConfirmButton from "../../ConfirmButton";
 import { aprobarCotizacion, quitarItemCotizacion } from "../actions";
 import EditarDatos from "../../EditarDatos";
-import { editarDatosCotizacion } from "../actions";
+import { editarDatosCotizacion, eliminarCotizacion } from "../actions";
 import AgregarLinea, { type CanastaOpcion } from "./AgregarLinea";
 import BotonPdfCotizacion from "../BotonPdfCotizacion";
 import EditarLinea from "./EditarLinea";
 import GestionarCotizacion from "./GestionarCotizacion";
+import BotonEliminar from "../../BotonEliminar";
 import { distritosDelivery, opcionesDistrito } from "../distritos";
 import { DELIVERY_GRATIS_DESDE, deliveryCotizacion } from "@/lib/admin/delivery";
 
@@ -81,7 +82,10 @@ export default async function CotizacionPage({ params }: { params: Promise<{ id:
           <h1>{c.numero} <span className="admBadge" data-estado={c.estado}>{labelEstado(c.estado)}</span></h1>
           <p className="admMuted">{c.empresa} · creada el {fechaCorta(c.created_at)} · {labelCanal(c.canal)}</p>
         </div>
-        {orden && <Link className="admBtn" href={`/admin/ordenes/${orden.id}`}>Ver orden {orden.numero} →</Link>}
+        <div className="admHeadAcciones">
+          <BotonEliminar id={c.id} accion={eliminarCotizacion} volver variante="boton" mensaje={`¿Eliminar la cotización ${c.numero}?${orden ? ` La orden ${orden.numero} se conserva.` : ""} No se puede deshacer.`} />
+          {orden && <Link className="admBtn" href={`/admin/ordenes/${orden.id}`}>Ver orden {orden.numero} →</Link>}
+        </div>
       </header>
 
       <div className="admGrid2 admGridDetail">

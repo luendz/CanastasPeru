@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fechaCorta, numero } from "@/lib/admin/format";
+import BotonEliminar from "../BotonEliminar";
+import { eliminarCotizacion } from "./actions";
 import BotonPdfCotizacion from "./BotonPdfCotizacion";
 import { ESTADOS_COTIZACION, labelEstado, type Cotizacion } from "@/lib/admin/types";
 
@@ -39,7 +41,7 @@ export default async function CotizacionesPage({ searchParams }: { searchParams:
           <p className="admEmpty">No hay cotizaciones {estado ? "en este estado" : "todavía"}.</p>
         ) : (
           <table className="admTable">
-            <thead><tr><th>N.º cotización</th><th>Fecha de creación</th><th>Nombre del cliente</th><th>Contacto</th><th className="num">Cantidad</th><th>Presupuesto</th><th>Estado</th><th><span className="admSrOnly">PDF</span></th></tr></thead>
+            <thead><tr><th>N.º cotización</th><th>Fecha de creación</th><th>Nombre del cliente</th><th>Contacto</th><th className="num">Cantidad</th><th>Presupuesto</th><th>Estado</th><th><span className="admSrOnly">Acciones</span></th></tr></thead>
             <tbody>
               {cotizaciones.map((c) => (
                 <tr key={c.id}>
@@ -50,7 +52,12 @@ export default async function CotizacionesPage({ searchParams }: { searchParams:
                   <td className="num">{c.cantidad_estimada ? numero(c.cantidad_estimada) : "—"}</td>
                   <td>{c.presupuesto ?? "—"}</td>
                   <td><span className="admBadge" data-estado={c.estado}>{labelEstado(c.estado)}</span></td>
-                  <td><BotonPdfCotizacion id={c.id} numero={c.numero} compacto /></td>
+                  <td>
+                    <div className="admFilaAcciones">
+                      <BotonPdfCotizacion id={c.id} numero={c.numero} compacto />
+                      <BotonEliminar id={c.id} accion={eliminarCotizacion} mensaje={`¿Eliminar la cotización ${c.numero}? No se puede deshacer.`} />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
