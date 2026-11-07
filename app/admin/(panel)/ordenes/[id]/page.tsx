@@ -5,7 +5,8 @@ import { fecha, fechaCorta, soles } from "@/lib/admin/format";
 import { labelCanal, labelEstado, type Orden, type OrdenItem } from "@/lib/admin/types";
 import { etiquetaProducto, productosPorCanasta } from "@/lib/admin/recetas";
 import EditarDatos from "../../EditarDatos";
-import { editarDatosOrden } from "../actions";
+import BotonEliminar from "../../BotonEliminar";
+import { editarDatosOrden, eliminarOrden, restaurarOrden } from "../actions";
 import BotonPdfOrden from "../BotonPdfOrden";
 import GestionarOrden from "./GestionarOrden";
 
@@ -39,13 +40,18 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
       <header className="admHead">
         <div>
           <Link href="/admin/ordenes" className="admLinkMuted">← Órdenes</Link>
-          <h1>{o.numero} <span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span></h1>
+          <h1>{o.numero} <span className="admBadge" data-estado={o.estado}>{labelEstado(o.estado)}</span>{o.eliminado_at && <> <span className="admBadge" data-estado="anulada">Eliminada el {fechaCorta(o.eliminado_at)}</span></>}</h1>
           <p className="admMuted">
             Creada el {fechaCorta(o.created_at)} · {labelCanal(o.canal)}{o.origen === "cotizacion" ? " · desde una cotización" : ""}
             {o.cotizacion_id && <> · <Link href={`/admin/cotizaciones/${o.cotizacion_id}`}>ver cotización</Link></>}
           </p>
         </div>
         <div className="admHeadAcciones">
+          {o.eliminado_at ? (
+            <BotonEliminar id={o.id} accion={restaurarOrden} tipo="restaurar" variante="boton" mensaje={`¿Restaurar la orden ${o.numero}?`} />
+          ) : (
+            <BotonEliminar id={o.id} accion={eliminarOrden} volver variante="boton" mensaje={`¿Eliminar la orden ${o.numero}? Podrás restaurarla desde el filtro Eliminadas.`} />
+          )}
           <EditarDatos
             variante="boton"
             etiquetaBoton="Editar"

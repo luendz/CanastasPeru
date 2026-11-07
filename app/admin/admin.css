@@ -588,3 +588,5 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admBuscadorLista li[aria-selected="true"] { font-weight: 700; }
 .admBuscadorLista li small { color: var(--a-muted); font-size: 12px; white-space: nowrap; }
 .admBuscadorLista .admBuscadorVacio { color: var(--a-muted); cursor: default; }
+.admFormInline { display: inline-flex; margin: 0; }
+.admFilaAcciones { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { CANALES, ESTADOS_ORDEN, type Orden, type OrdenItem } from "@/lib/admin/types";
@@ -129,4 +130,28 @@ export async function editarDatosOrden(_prev: EstadoEdicion, fd: FormData): Prom
   revalidatePath("/admin/ordenes");
   revalidatePath("/admin");
   return { ok: true, en: Date.now() };
+}
+
+/**
+ * Elimina una orden de forma lógica: se oculta de listas, panel, reportes,
+ * inventario y seguimiento, pero se puede restaurar. Su número no se reutiliza.
+ */
+export async function eliminarOrden(fd: FormData) {
+  await marcarOrden(fd, new Date().toISOString());
+  if (fd.get("volver")) redirect("/admin/ordenes");
+}
+
+export async function restaurarOrden(fd: FormData) {
+  await marcarOrden(fd, null);
+}
+
+async function marcarOrden(fd: FormData, eliminado: string | null) {
+  const { supabase } = await requireAdmin();
+  const id = String(fd.get("id") ?? "");
+  const { error } = await supabase.from("ordenes").update({ eliminado_at: eliminado }).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/ordenes");
+  revalidatePath(`/admin/ordenes/${id}`);
+  revalidatePath("/admin/cotizaciones");
+  revalidatePath("/admin");
 }

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fecha, fechaCorta, soles } from "@/lib/admin/format";
 import { CANALES, ESTADOS_ORDEN, labelCanal, type Orden } from "@/lib/admin/types";
+import BotonEliminar from "../BotonEliminar";
+import { eliminarOrden, restaurarOrden } from "./actions";
 import BotonPdfOrden from "./BotonPdfOrden";
 import EstadoRapido from "./EstadoRapido";
 
@@ -14,7 +16,10 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
   const { estado = "", canal = "", q = "" } = await searchParams;
 
   let query = supabase.from("ordenes").select("*").order("created_at", { ascending: false }).limit(200);
-  if (estado) query = query.eq("estado", estado);
+  // "eliminadas" muestra solo lo eliminado; el resto, solo lo vigente.
+  const eliminadas = estado === "eliminadas";
+  query = eliminadas ? query.not("eliminado_at", "is", null) : query.is("eliminado_at", null);
+  if (estado && !eliminadas) query = query.eq("estado", estado);
   if (canal) query = query.eq("canal", canal);
   const texto = q.trim().replace(/[%,()]/g, "");
   if (texto) query = query.or(`numero.ilike.%${texto}%,cliente_nombre.ilike.%${texto}%,cliente_email.ilike.%${texto}%`);
@@ -35,6 +40,7 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
         <select className="admInput" name="estado" defaultValue={estado}>
           <option value="">Todos los estados</option>
           {ESTADOS_ORDEN.map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
+          <option value="eliminadas">Eliminadas</option>
         </select>
         <select className="admInput" name="canal" defaultValue={canal}>
           <option value="">Todos los orígenes</option>
@@ -52,7 +58,7 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
         ) : (
           <table className="admTable">
             <thead>
-              <tr><th>N.º</th><th>Creada</th><th>Cliente</th><th>Origen</th><th>Entrega</th><th className="num">Total</th><th>Pago</th><th>Estado</th><th><span className="admSrOnly">PDF</span></th></tr>
+              <tr><th>N.º</th><th>Creada</th><th>Cliente</th><th>Origen</th><th>Entrega</th><th className="num">Total</th><th>Pago</th><th>Estado</th><th><span className="admSrOnly">Acciones</span></th></tr>
             </thead>
             <tbody>
               {ordenes.map((o) => (
@@ -65,7 +71,16 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
                   <td className="num">{soles(o.total)}</td>
                   <td><span className="admBadge" data-pago={o.estado_pago}>{o.estado_pago === "pagado" ? "Pagado" : "Pendiente"}</span></td>
                   <td><EstadoRapido id={o.id} numero={o.numero} estado={o.estado} /></td>
-                  <td><BotonPdfOrden id={o.id} numero={o.numero} compacto /></td>
+                  <td>
+                    <div className="admFilaAcciones">
+                      <BotonPdfOrden id={o.id} numero={o.numero} compacto />
+                      {o.eliminado_at ? (
+                        <BotonEliminar id={o.id} accion={restaurarOrden} tipo="restaurar" mensaje={`¿Restaurar la orden ${o.numero}?`} />
+                      ) : (
+                        <BotonEliminar id={o.id} accion={eliminarOrden} mensaje={`¿Eliminar la orden ${o.numero}? Podrás restaurarla desde el filtro Eliminadas.`} />
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

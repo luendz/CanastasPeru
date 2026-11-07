@@ -10,7 +10,7 @@ export default async function ProduccionPage() {
   const { supabase } = await requireAdmin();
   const [{ data: inv }, { data: pendientes }] = await Promise.all([
     supabase.from("v_inventario").select("*").order("tipo").order("nombre"),
-    supabase.from("orden_items").select("canasta_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]),
+    supabase.from("orden_items").select("canasta_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]).is("ordenes.eliminado_at", null),
   ]);
   const inventario = (inv ?? []) as InventarioFila[];
 
