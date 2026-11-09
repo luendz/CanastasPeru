@@ -31,7 +31,7 @@ export function NuevoUsuario() {
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (estado.ok) form.current?.reset(); }, [estado]);
   return (
-    <form ref={form} action={accion} className="admForm">
+    <form ref={form} action={accion} className="admForm admUsuariosForm">
       <div className="admForm admFormGrid">
         <label>Nombre<input className="admInput" name="nombre" maxLength={120} placeholder="Ej. Ana Pérez" required /></label>
         <label>Correo<input className="admInput" name="email" type="email" autoComplete="off" placeholder="nombre@correo.com" required /></label>
@@ -70,7 +70,7 @@ export function MiClave() {
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { if (estado.ok) form.current?.reset(); }, [estado]);
   return (
-    <form ref={form} action={accion} className="admForm">
+    <form ref={form} action={accion} className="admForm admUsuariosForm">
       <div className="admForm admFormGrid">
         <CampoClave name="clave" etiqueta="Nueva contraseña" />
         <CampoClave name="repetir" etiqueta="Repite la contraseña" />

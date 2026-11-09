@@ -595,4 +595,5 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admClave { display: flex; align-items: center; gap: 10px; }
 .admClave .admInput { flex: 1; }
 .admClaveForm { min-width: 240px; }
+.admUsuariosForm { max-width: 720px; }
 .admFilaAcciones { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
