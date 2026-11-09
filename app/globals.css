@@ -1325,6 +1325,7 @@ del { color: #a99a8e; font-size: 13px; }
 .includesNombre { flex: 1; min-width: 0; font-weight: 700; color: var(--ink); }
 .includesCantidad { flex: none; padding: 1px 7px; border-radius: 99px; background: var(--pine); color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; }
 /* Portada con foto (Nosotros, Contacto, Seguimiento): texto a la izquierda, regalos a la derecha. */
-.heroPortada { min-height: 380px; display: grid; align-content: center; background: linear-gradient(90deg, rgba(251, 246, 238, .95) 0%, rgba(251, 246, 238, .85) 42%, rgba(251, 246, 238, 0) 66%), url(/imgs_general/portada-paginas.webp) right center / cover no-repeat, var(--cream); }
+/* Alto mínimo proporcional a la imagen (3:1) para que no se recorte en páginas con poco texto. */
+.heroPortada { min-height: clamp(380px, 33.33vw, 660px); display: grid; align-content: center; background: linear-gradient(90deg, rgba(251, 246, 238, .95) 0%, rgba(251, 246, 238, .85) 42%, rgba(251, 246, 238, 0) 66%), url(/imgs_general/portada-paginas.webp) right center / cover no-repeat, var(--cream); }
 .heroPortada > .catalogHeroInner { grid-template-columns: minmax(0, 520px); gap: 18px; align-items: start; }
 @media (max-width: 760px) { .heroPortada { min-height: 0; background: linear-gradient(rgba(251, 246, 238, .86), rgba(251, 246, 238, .86)), url(/imgs_general/portada-paginas.webp) 78% center / cover no-repeat, var(--cream); } }
