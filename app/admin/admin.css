@@ -50,7 +50,9 @@
 .admNav svg { flex: 0 0 18px; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .admSideFoot { display: grid; gap: 6px; margin-top: auto; padding: 14px 8px 0; border-top: 1px solid rgba(232, 201, 138, .18); font-size: 12.5px; }
 .admSideFoot .admLinkMuted { color: rgba(243, 232, 214, .7) !important; }
-.admUser { overflow: hidden; color: rgba(243, 232, 214, .5); text-overflow: ellipsis; white-space: nowrap; }
+.admUser { display: grid; overflow: hidden; color: rgba(243, 232, 214, .6); text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+.admUser:hover { color: #fff; }
+.admUser small { color: rgba(243, 232, 214, .45); font-size: 11.5px; }
 .admMain { min-width: 0; padding: 28px 32px 60px; display: grid; gap: 20px; align-content: start; }
 
 .admHead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
@@ -597,3 +599,22 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admClaveForm { min-width: 240px; }
 .admUsuariosForm { max-width: 720px; }
 .admFilaAcciones { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+
+/* Usuarios, roles y accesos */
+.admTabsSeccion { margin-bottom: 16px; }
+.admUsuarioAcciones { flex-wrap: wrap; row-gap: 4px; }
+.admUsuarioAcciones button:disabled { opacity: .5; }
+.admMatrizWrap { overflow-x: auto; }
+.admMatriz th, .admMatriz td { vertical-align: middle; }
+.admMatriz th:not(:first-child), .admMatrizCelda { text-align: center; min-width: 130px; }
+.admMatrizRol { color: var(--a-ink); font-size: 14px; }
+.admMatrizRolAcciones { display: flex; justify-content: center; gap: 10px; margin-top: 4px; font-size: 12px; font-weight: 600; }
+.admMatrizCelda { white-space: nowrap; }
+.admMatrizCheck { display: inline-flex; padding: 4px; cursor: pointer; }
+.admMatrizCheck input, .admMatrizCelda > input { width: 17px; height: 17px; accent-color: var(--a-wine); cursor: pointer; }
+.admMatrizCelda .admLinkMuted { display: block; margin: 2px auto 0; }
+.admPermisosLista { display: grid; gap: 8px; }
+.admPermisosLista .admCheck { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.admPermisosLista input { width: 17px; height: 17px; accent-color: var(--a-wine); }
+.admNuevoRol { display: flex; gap: 10px; max-width: 460px; }
+.admNuevoRol .admInput { flex: 1; }

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
+import { puede } from "@/lib/admin/permisos";
 import { fecha, fechaHora, soles } from "@/lib/admin/format";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import BotonEliminar from "../../BotonEliminar";
@@ -31,7 +33,8 @@ const ESTADO_MP: Record<string, string> = {
 
 /** Checkouts con tarjeta que no llegaron a pagarse: no son órdenes ni tienen número. */
 export default async function IntentosPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase, permisos } = await requireAdmin();
+  if (!puede(permisos, "ordenes.intentos")) redirect("/admin/ordenes");
   const { data, error } = await supabase
     .from("intentos_pago")
     .select("id,referencia,total,cliente_nombre,cliente_email,cliente_telefono,mp_estado,mp_estado_detalle,created_at,datos,calculo")

@@ -15,7 +15,11 @@ export async function iniciarSesion(_prev: LoginState, formData: FormData): Prom
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Correo o contraseña incorrectos." };
+  if (error) {
+    // Usuario dejado sin acceso desde Panel → Usuarios (ingreso bloqueado en Auth).
+    if (error.code === "user_banned" || /banned/i.test(error.message)) return { error: "Esta cuenta está sin acceso al panel. Pide a un administrador que la reactive." };
+    return { error: "Correo o contraseña incorrectos." };
+  }
 
   const { data: esAdmin } = await supabase.rpc("es_admin");
   if (!esAdmin) {
