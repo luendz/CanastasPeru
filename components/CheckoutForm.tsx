@@ -29,9 +29,16 @@ function Section({ n, title, hint, children }: { n: number; title: string; hint:
 /** pagoEnLinea: Mercado Pago está configurado en el servidor. */
 type Props = { products: Product[]; basketTypes: BasketType[]; deliveryZones: DeliveryZone[]; opciones: Contenido["checkout"]; fechas: string[]; pagoEnLinea: boolean };
 
+/** Icono del método de pago: tarjeta (en línea), QR (Yape / Plin) o camión (pago al recibir). */
+function IconoPago({ pasarela }: { pasarela: string }) {
+  if (pasarela === "mercadopago") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" /><path d="M2.5 10h19M6 15h4" /></svg>;
+  if (pasarela === "qr") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7" /><circle cx="6" cy="17.5" r="1.8" /><circle cx="16.5" cy="17.5" r="1.8" /></svg>;
+}
+
 export default function CheckoutForm({ products, basketTypes, deliveryZones, opciones, fechas, pagoEnLinea }: Props) {
   // Los métodos de pago se editan en Panel → Contenido → Checkout.
-  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota, enLinea: pagoEnLinea && m.pasarela === "mercadopago" }));
+  const payMethods = opciones.metodosPago.map((m, i) => ({ id: String(i), label: m.nombre, hint: m.detalle, note: m.nota, pasarela: m.pasarela, enLinea: pagoEnLinea && m.pasarela === "mercadopago" }));
   const [district, setDistrict] = useState("");
   const [otherReceiver, setOtherReceiver] = useState(false);
   const [doc, setDoc] = useState<"boleta" | "factura">("boleta");
@@ -147,7 +154,13 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
               </label>
             ))}
           </div>
-          {payNote && <p className="payNote">{payNote}</p>}
+          {metodo && (metodo.hint || payNote) && (
+            <div className="payNote">
+              <span className="payNoteMetodo"><IconoPago pasarela={metodo.pasarela} />{metodo.label}</span>
+              {metodo.hint && <strong className="payNoteTitulo">{metodo.hint}</strong>}
+              {payNote && <p>{payNote}</p>}
+            </div>
+          )}
         </Section>
       </form>
 
