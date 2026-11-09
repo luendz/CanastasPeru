@@ -103,13 +103,13 @@ export default function RegistroCompra({ productos, proveedores, inicial, editar
               </select>
             </label>
             <label>Serie y número
-              <input className="admInput" value={cab.comprobante} maxLength={60} placeholder="F001-2515" onChange={(e) => setCab({ ...cab, comprobante: e.target.value })} disabled={cab.tipo_documento === "sin_comprobante"} />
+              <input className="admInput" value={cab.comprobante} maxLength={60} placeholder="Ej. F001-000123" onChange={(e) => setCab({ ...cab, comprobante: e.target.value })} disabled={cab.tipo_documento === "sin_comprobante"} />
             </label>
             <label>Fecha de compra
               <input className="admInput" type="date" required value={cab.fecha} onChange={(e) => setCab({ ...cab, fecha: e.target.value })} />
             </label>
             <label className="admSpan2">Proveedor
-              <input className="admInput" value={cab.proveedor} maxLength={160} list="proveedores" placeholder="Ej. Corporación Lon" onChange={(e) => setCab({ ...cab, proveedor: e.target.value })} />
+              <input className="admInput" value={cab.proveedor} maxLength={160} list="proveedores" placeholder="Ej. Nombre del proveedor" onChange={(e) => setCab({ ...cab, proveedor: e.target.value })} />
               <datalist id="proveedores">{proveedores.map((p) => <option key={p} value={p} />)}</datalist>
             </label>
             <label>RUC (opcional)

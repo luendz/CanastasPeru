@@ -76,8 +76,8 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
         <input type="hidden" name="comprobante" value={doc} />
         <Section n={1} title="Datos de contacto" hint="Te enviaremos la confirmación y el seguimiento del pedido.">
           <div className="formGrid">
-            <label>Nombres<input className="input" name="nombres" autoComplete="given-name" placeholder="Luis" required maxLength={80} /></label>
-            <label>Apellidos<input className="input" name="apellidos" autoComplete="family-name" placeholder="Díaz" maxLength={80} /></label>
+            <label>Nombres<input className="input" name="nombres" autoComplete="given-name" placeholder="Ej. Ana María" required maxLength={80} /></label>
+            <label>Apellidos<input className="input" name="apellidos" autoComplete="family-name" placeholder="Ej. Pérez Gómez" maxLength={80} /></label>
             <label>Correo<input className="input" name="email" type="email" autoComplete="email" placeholder="correo@ejemplo.com" maxLength={160} /></label>
             <label>Celular<input className="input" name="telefono" type="tel" autoComplete="tel" placeholder="999 999 999" maxLength={40} /></label>
           </div>
@@ -106,7 +106,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           </label>
           {otherReceiver && (
             <div className="formGrid topSpace">
-              <label>Nombre de quien recibe<input className="input" name="recibe_nombre" placeholder="María Torres" maxLength={160} /></label>
+              <label>Nombre de quien recibe<input className="input" name="recibe_nombre" placeholder="Ej. Juan Pérez" maxLength={160} /></label>
               <label>Celular de quien recibe<input className="input" name="recibe_telefono" type="tel" placeholder="999 999 999" maxLength={40} /></label>
             </div>
           )}
@@ -131,7 +131,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
             </div>
           ) : (
             <div className="formGrid topSpace">
-              <label>RUC<input className="input" name="ruc" inputMode="numeric" maxLength={11} placeholder="20123456789" /></label>
+              <label>RUC<input className="input" name="ruc" inputMode="numeric" maxLength={11} placeholder="20XXXXXXXXX" /></label>
               <label>Razón social<input className="input" name="razon_social" placeholder="Empresa S.A.C." maxLength={200} /></label>
               <label className="wide">Dirección fiscal<input className="input" name="direccion_fiscal" placeholder="Dirección registrada en SUNAT" maxLength={300} /></label>
             </div>
