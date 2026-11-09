@@ -135,8 +135,8 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
       { tipo: "texto", clave: "derechos", etiqueta: "Derechos" },
       { tipo: "texto", clave: "suscribirTitulo", etiqueta: "Suscripción: título" },
       { tipo: "filas", clave: "faq", etiqueta: "Preguntas frecuentes", columnas: [{ clave: "titulo", etiqueta: "Pregunta" }, { clave: "texto", etiqueta: "Respuesta", largo: true }] },
-      { tipo: "texto", clave: "terminos", etiqueta: "Términos y condiciones", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
-      { tipo: "texto", clave: "privacidad", etiqueta: "Política de privacidad", largo: true, ayuda: "Deja una línea en blanco entre párrafos." },
+      { tipo: "texto", clave: "terminos", etiqueta: "Términos y condiciones", largo: true, ayuda: "Deja una línea en blanco entre párrafos. Empieza con «## » un subtítulo, con «### » un subtítulo menor y con «- » cada viñeta." },
+      { tipo: "texto", clave: "privacidad", etiqueta: "Política de privacidad", largo: true, ayuda: "Deja una línea en blanco entre párrafos. Empieza con «## » un subtítulo, con «### » un subtítulo menor y con «- » cada viñeta." },
     ],
   },
 ];
