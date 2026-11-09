@@ -5,23 +5,25 @@ import { redirect } from "next/navigation";
 import { crearPreferencia, mercadoPagoConfigurado } from "@/lib/mercadopago";
 
 /**
- * Vuelve a llevar al cliente a Mercado Pago con el pedido recién registrado
- * (cookie privada del checkout). Si el total de la cookie no coincidiera con
- * la orden, la base no la marca como pagada: compara contra su propio total.
+ * Vuelve a llevar al cliente a Mercado Pago con el pedido del checkout
+ * (cookie privada): el intento con tarjeta (IP-…) o una orden ya creada
+ * (OP-…). Si el total de la cookie no coincidiera, la base no lo da por
+ * pagado: compara contra su propio total.
  */
 export async function reintentarPago() {
-  let r: { numero?: string; total?: number; correo?: string; nombre?: string } | null = null;
+  let r: { numero?: string; referencia?: string; total?: number; correo?: string; nombre?: string } | null = null;
   try {
     r = JSON.parse((await cookies()).get("mka-pedido")?.value ?? "null");
   } catch {
     /* Cookie dañada: se trata como si no hubiera pedido. */
   }
-  if (!r?.numero || !r.total || !mercadoPagoConfigurado()) redirect("/confirmacion");
+  const referencia = r?.referencia || r?.numero;
+  if (!referencia || !r?.total || !mercadoPagoConfigurado()) redirect("/confirmacion");
 
-  const confirmacion = `/confirmacion?pedido=${encodeURIComponent(r.numero)}`;
+  const confirmacion = `/confirmacion?${referencia.startsWith("IP-") ? "ref" : "pedido"}=${encodeURIComponent(referencia)}`;
   let urlPago: string;
   try {
-    urlPago = await crearPreferencia({ numero: r.numero, total: r.total, email: r.correo, nombre: r.nombre });
+    urlPago = await crearPreferencia({ referencia, total: r.total, email: r.correo, nombre: r.nombre });
   } catch (e) {
     console.error(`No se pudo crear la preferencia de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);
     redirect(`${confirmacion}&status=error`);

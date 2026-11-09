@@ -17,8 +17,8 @@ export type CheckoutState = { error?: string };
 const campo = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 
 /**
- * Crea la orden de pedido desde el checkout. Los precios y el delivery los
- * recalcula la base (función crear_orden_web); aquí solo se envían los datos.
+ * Registra el pedido del checkout. Los precios y el delivery los recalcula
+ * la base (calcular_orden_web); aquí solo se envían los datos.
  */
 export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<CheckoutState> {
   const nombre = [campo(fd, "nombres"), campo(fd, "apellidos")].filter(Boolean).join(" ");
@@ -49,68 +49,82 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!supabaseConfigurado) redirect("/confirmacion");
 
   const factura = campo(fd, "comprobante") === "factura";
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("crear_orden_web", {
-    p: {
-      cliente: { nombre, email: campo(fd, "email"), telefono: campo(fd, "telefono") },
-      comprobante: {
-        tipo: factura ? "factura" : "boleta",
-        documento: campo(fd, factura ? "ruc" : "dni"),
-        nombre: campo(fd, factura ? "razon_social" : "nombre_comprobante"),
-        direccion_fiscal: factura ? campo(fd, "direccion_fiscal") : "",
-      },
-      entrega: {
-        distrito: campo(fd, "distrito"),
-        direccion: campo(fd, "direccion"),
-        referencia: campo(fd, "referencia"),
-        fecha: campo(fd, "fecha_entrega"),
-        recibe_nombre: campo(fd, "recibe_nombre"),
-        recibe_telefono: campo(fd, "recibe_telefono"),
-      },
-      tarjetas: { cantidad: Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0)), dedicatoria: campo(fd, "dedicatoria") },
-      metodo_pago: campo(fd, "metodo_pago"),
-      items: items.map((i) => ({ slug: i.slug, envase_id: i.envase_id ?? "", cantidad: i.cantidad })),
+  const datos = {
+    cliente: { nombre, email: campo(fd, "email"), telefono: campo(fd, "telefono") },
+    comprobante: {
+      tipo: factura ? "factura" : "boleta",
+      documento: campo(fd, factura ? "ruc" : "dni"),
+      nombre: campo(fd, factura ? "razon_social" : "nombre_comprobante"),
+      direccion_fiscal: factura ? campo(fd, "direccion_fiscal") : "",
     },
-  });
+    entrega: {
+      distrito: campo(fd, "distrito"),
+      direccion: campo(fd, "direccion"),
+      referencia: campo(fd, "referencia"),
+      fecha: campo(fd, "fecha_entrega"),
+      recibe_nombre: campo(fd, "recibe_nombre"),
+      recibe_telefono: campo(fd, "recibe_telefono"),
+    },
+    tarjetas: { cantidad: Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0)), dedicatoria: campo(fd, "dedicatoria") },
+    metodo_pago: campo(fd, "metodo_pago"),
+    items: items.map((i) => ({ slug: i.slug, envase_id: i.envase_id ?? "", cantidad: i.cantidad })),
+  };
+
+  // El método se busca en el contenido del servidor: el navegador solo envía su nombre.
+  const { checkout } = await getContenido();
+  const metodo = checkout.metodosPago.find((m) => m.nombre === campo(fd, "metodo_pago"));
+  const enLinea = metodo?.pasarela === PASARELA_MP && mercadoPagoConfigurado();
+
+  /*
+   * Con tarjeta (Mercado Pago) solo se guarda un intento: la orden, su número
+   * y los correos llegan cuando Mercado Pago aprueba el pago (lib/pagos-mp.ts).
+   * Así, cerrar la pasarela sin pagar no deja pedidos fantasma.
+   * Con pago manual (Yape, transferencia…) la orden se crea al momento.
+   */
+  const supabase = await createClient();
+  const { data, error } = enLinea
+    ? await supabase.rpc("crear_intento_pago", { p: datos })
+    : await supabase.rpc("crear_orden_web", { p: datos });
 
   if (error || !data) return { error: "No pudimos registrar tu pedido. Inténtalo de nuevo en unos minutos." };
 
-  const { numero, total } = data as { numero: string; total: number };
+  const { numero = "", referencia = "", total } = data as { numero?: string; referencia?: string; total: number };
 
   // Resumen para la página de confirmación (cookie privada de una hora; nada personal va en la URL).
-  const [{ products, basketTypes }, { checkout }] = await Promise.all([getCatalogo(), getContenido()]);
+  const { products, basketTypes } = catalogo;
   const lineas = items.flatMap((i) => {
     const p = products.find((x) => x.slug === i.slug);
     if (!p) return [];
     const tipo = envaseElegido(basketTypes, p, i.envase_id);
     return [{ nombre: p.name, detalle: tipo.label, cantidad: i.cantidad, precio: tipo.precio }];
   });
-  const tarjetas = Math.max(0, Math.round(Number(campo(fd, "tarjetas")) || 0));
+  const tarjetas = datos.tarjetas.cantidad;
   if (tarjetas) lineas.push({ nombre: "Tarjeta de dedicatoria", detalle: "", cantidad: tarjetas, precio: checkout.tarjetaPrecio });
-  // Correos (Brevo) después de responder: confirmación al cliente y aviso al negocio.
-  const subtotalLineas = lineas.reduce((s, l) => s + l.precio * l.cantidad, 0);
-  after(() =>
-    notificarPedidoRegistrado({
-      numero,
-      nombre,
-      email: campo(fd, "email") || null,
-      telefono: campo(fd, "telefono") || null,
-      total: Number(total),
-      delivery: Math.max(0, Math.round((Number(total) - subtotalLineas) * 100) / 100),
-      fechaEntrega: campo(fd, "fecha_entrega"),
-      distrito: campo(fd, "distrito"),
-      metodoPago: campo(fd, "metodo_pago"),
-      lineas: lineas.map((l) => ({ nombre: l.nombre, detalle: l.detalle, cantidad: l.cantidad, subtotal: l.precio * l.cantidad })),
-    }),
-  );
 
-  // El método se busca en el contenido del servidor: el navegador solo envía su nombre.
-  const metodo = checkout.metodosPago.find((m) => m.nombre === campo(fd, "metodo_pago"));
-  const enLinea = metodo?.pasarela === PASARELA_MP && mercadoPagoConfigurado();
+  // Correos (Brevo) después de responder, solo si la orden ya existe (pago manual).
+  if (numero) {
+    const subtotalLineas = lineas.reduce((s, l) => s + l.precio * l.cantidad, 0);
+    after(() =>
+      notificarPedidoRegistrado({
+        numero,
+        nombre,
+        email: campo(fd, "email") || null,
+        telefono: campo(fd, "telefono") || null,
+        total: Number(total),
+        delivery: Math.max(0, Math.round((Number(total) - subtotalLineas) * 100) / 100),
+        fechaEntrega: campo(fd, "fecha_entrega"),
+        distrito: campo(fd, "distrito"),
+        metodoPago: campo(fd, "metodo_pago"),
+        lineas: lineas.map((l) => ({ nombre: l.nombre, detalle: l.detalle, cantidad: l.cantidad, subtotal: l.precio * l.cantidad })),
+      }),
+    );
+  }
+
   (await cookies()).set(
     "mka-pedido",
     JSON.stringify({
       numero,
+      referencia,
       total: Number(total),
       lineas,
       distrito: campo(fd, "distrito"),
@@ -124,16 +138,15 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
     { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 3600, path: "/confirmacion" },
   );
 
-  const confirmacion = `/confirmacion?pedido=${encodeURIComponent(numero)}&total=${Number(total).toFixed(2)}`;
-  if (!enLinea) redirect(confirmacion);
+  if (!enLinea) redirect(`/confirmacion?pedido=${encodeURIComponent(numero)}&total=${Number(total).toFixed(2)}`);
 
-  // La orden ya existe: si Mercado Pago falla, la confirmación ofrece reintentar el pago.
+  // Si Mercado Pago falla, la confirmación ofrece reintentar el pago (el intento queda guardado).
   let urlPago: string;
   try {
-    urlPago = await crearPreferencia({ numero, total: Number(total), email: campo(fd, "email"), nombre });
+    urlPago = await crearPreferencia({ referencia, total: Number(total), email: campo(fd, "email"), nombre });
   } catch (e) {
     console.error(`No se pudo crear la preferencia de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);
-    redirect(`${confirmacion}&status=error`);
+    redirect(`/confirmacion?ref=${encodeURIComponent(referencia)}&status=error`);
   }
   redirect(urlPago);
 }

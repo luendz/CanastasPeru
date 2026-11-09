@@ -44,25 +44,27 @@ async function api<T>(ruta: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-type Preferencia = { numero: string; total: number; email?: string; nombre?: string };
+/** referencia: IP-… (intento con tarjeta, aún sin orden) u OP-… (orden ya creada). */
+type Preferencia = { referencia: string; total: number; email?: string; nombre?: string };
 
 /**
- * Crea la preferencia de pago de una orden y devuelve la URL de Mercado Pago
- * a la que se lleva al cliente. Se cobra el total que calculó la base, como
- * una sola línea, para que coincida siempre con la orden.
+ * Crea la preferencia de pago y devuelve la URL de Mercado Pago a la que se
+ * lleva al cliente. Se cobra el total que calculó la base, como una sola
+ * línea, para que coincida siempre con el pedido.
  */
-export async function crearPreferencia({ numero, total, email, nombre }: Preferencia): Promise<string> {
+export async function crearPreferencia({ referencia, total, email, nombre }: Preferencia): Promise<string> {
   const sitio = await urlSitio();
-  const vuelta = `${sitio}/confirmacion?pedido=${encodeURIComponent(numero)}`;
+  const intento = referencia.startsWith("IP-");
+  const vuelta = `${sitio}/confirmacion?${intento ? "ref" : "pedido"}=${encodeURIComponent(referencia)}`;
   const publica = !/^http:\/\/(localhost|127\.0\.0\.1)/.test(sitio);
   const pref = await api<{ init_point: string }>("/checkout/preferences", {
     method: "POST",
-    headers: { "X-Idempotency-Key": `${numero}-${Date.now()}` },
+    headers: { "X-Idempotency-Key": `${referencia}-${Date.now()}` },
     body: JSON.stringify({
-      items: [{ id: numero, title: `Pedido ${numero} · MKA Canastas`, quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: "PEN" }],
+      items: [{ id: referencia, title: intento ? "Pedido MKA Canastas" : `Pedido ${referencia} · MKA Canastas`, quantity: 1, unit_price: Math.round(total * 100) / 100, currency_id: "PEN" }],
       // Los datos del comprador ayudan al antifraude de Mercado Pago y le ahorran escribirlos.
       payer: { name: nombre || undefined, email: (!modoPrueba() && email) || undefined },
-      external_reference: numero,
+      external_reference: referencia,
       back_urls: { success: vuelta, pending: vuelta, failure: vuelta },
       // Mercado Pago solo acepta auto_return y notificaciones con URLs públicas.
       auto_return: publica ? "approved" : undefined,
