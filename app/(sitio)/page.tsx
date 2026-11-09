@@ -11,7 +11,10 @@ import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { LINEAS, productosDe } from "@/lib/lineas";
 import type { BasketType, Product } from "@/lib/mock-data";
+import { SITIO, absoluta, jsonLd } from "@/lib/seo";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
+
+export const metadata = { alternates: { canonical: "/" } };
 
 const i = (n: number) => ({ "--i": n }) as React.CSSProperties;
 
@@ -38,13 +41,32 @@ function Muestra({ producto, tipos }: { producto: Product; tipos: BasketType[] }
 }
 
 export default async function HomePage() {
-  const [{ products, basketTypes }, { portada: t, catalogo, contacto }] = await Promise.all([getCatalogo(), getContenido()]);
+  const [{ products, basketTypes }, { portada: t, catalogo, contacto, marca }] = await Promise.all([getCatalogo(), getContenido()]);
   const destacada = products.find((p) => p.slug === t.canastaDestacada) ?? products[0];
   const desde = products.length ? Math.min(...products.map((p) => p.price)) : 0;
   const fondos = [t.heroImagen, ...t.heroFondos.map((f) => f.imagen)].filter(Boolean);
 
+  // Datos del negocio para Google (nombre, logo, contacto, zona y redes).
+  const digitos = contacto.telefono.replace(/\D/g, "");
+  const negocio = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: `${marca.nombre} · ${marca.lema}`,
+    url: SITIO,
+    logo: marca.logo ? absoluta(marca.logo) : undefined,
+    image: absoluta("/imgs_general/portada-paginas.webp"),
+    description: "Canastas navideñas y regalos corporativos armados a mano en Lima.",
+    telephone: digitos ? `+51${digitos.slice(-9)}` : undefined,
+    email: contacto.correo || undefined,
+    address: { "@type": "PostalAddress", addressLocality: "Lima", addressCountry: "PE" },
+    areaServed: { "@type": "Country", name: "Perú" },
+    priceRange: desde ? `Desde S/ ${desde.toFixed(2)}` : undefined,
+    sameAs: [contacto.instagram, contacto.facebook, contacto.tiktok].filter((u) => /^https?:\/\//.test(u)),
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(negocio)} />
       {/* Banner principal */}
       <HeroBanner imagenes={fondos}>
         <div className="shell hbGrid">
