@@ -65,6 +65,9 @@ export type Orden = {
   mp_payment_id: string | null;
   mp_estado: string | null;
   mp_estado_detalle: string | null;
+  /** Captura del pago (Yape / Plin) que subió el cliente: ruta en el bucket privado "comprobantes". */
+  comprobante_pago: string | null;
+  comprobante_pago_at: string | null;
   subtotal: number;
   delivery: number;
   total: number;

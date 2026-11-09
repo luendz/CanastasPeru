@@ -120,6 +120,20 @@ export async function notificarCambioPedido(p: PedidoCorreo, cambio: CambioPedid
   });
 }
 
+/** Aviso al negocio: el cliente subió la captura de su pago (Yape / Plin) para verificarla. */
+export async function notificarComprobante(p: { numero: string; nombre: string; total: number }) {
+  if (!correoNegocio()) return;
+  await enviarCorreo({
+    para: correoNegocio(),
+    asunto: `Comprobante de pago ${p.numero} · ${formatPrice(p.total)}`,
+    html: plantilla(
+      `Comprobante recibido · ${esc(p.numero)}`,
+      parrafo(`<b>${esc(p.nombre)}</b> envió la captura del pago de su pedido <b>${esc(p.numero)}</b> por <b>${esc(formatPrice(p.total))}</b>. Revísala y, si el pago llegó, marca la orden como pagada.`),
+      { texto: "Ver en el panel", url: `${sitio()}/admin/ordenes` },
+    ),
+  });
+}
+
 /** Qué cambios de una orden merecen correo al cliente. */
 export function cambiosNotificables(antes: { estado: string; estado_pago: string }, despues: { estado: string; estado_pago: string }): CambioPedido[] {
   const cambios: CambioPedido[] = [];

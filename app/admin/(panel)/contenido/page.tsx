@@ -85,7 +85,9 @@ const SECCIONES: { id: SeccionContenido; titulo: string; donde: string; ver: str
   {
     id: "checkout", titulo: "Pago y entrega", donde: "Métodos de pago y tarjeta navideña del checkout.", ver: "/checkout",
     campos: [
-      { tipo: "filas", clave: "metodosPago", etiqueta: "Métodos de pago", columnas: [{ clave: "nombre", etiqueta: "Nombre" }, { clave: "detalle", etiqueta: "Detalle" }, { clave: "nota", etiqueta: "Nota al elegirlo", largo: true }, { clave: "pasarela", etiqueta: "Cobro", opciones: [{ valor: "", etiqueta: "Manual" }, { valor: "mercadopago", etiqueta: "Mercado Pago" }] }], ayuda: "Con «Mercado Pago», el cliente paga en línea al terminar el checkout y la orden se marca como pagada sola." },
+      { tipo: "filas", clave: "metodosPago", etiqueta: "Métodos de pago", columnas: [{ clave: "nombre", etiqueta: "Nombre" }, { clave: "detalle", etiqueta: "Detalle" }, { clave: "nota", etiqueta: "Nota al elegirlo", largo: true }, { clave: "pasarela", etiqueta: "Cobro", opciones: [{ valor: "", etiqueta: "Manual" }, { valor: "qr", etiqueta: "Manual con QR" }, { valor: "mercadopago", etiqueta: "Mercado Pago" }] }], ayuda: "Con «Mercado Pago», el cliente paga en línea al terminar el checkout y la orden se marca como pagada sola. Con «Manual con QR» (Yape / Plin), al terminar ve el QR con el monto y puede subir la captura de su pago." },
+      { tipo: "imagen", clave: "qrImagen", etiqueta: "QR de pago (Yape / Plin)", ayuda: "Se muestra con el monto a pagar en los métodos «Manual con QR»." },
+      { tipo: "texto", clave: "qrNota", etiqueta: "Nota importante del pago con QR", largo: true, ayuda: "Aparece junto al QR, como «Importante»." },
       { tipo: "texto", clave: "notaImpuestos", etiqueta: "Nota de impuestos", ayuda: "Aparece bajo los totales del carrito y el checkout." },
       { tipo: "numero", clave: "tarjetaPrecio", etiqueta: "Tarjeta navideña: precio (S/)", ayuda: "Se suma al pedido por cada tarjeta." },
       { tipo: "texto", clave: "tarjetaTitulo", etiqueta: "Tarjeta navideña: título" },
