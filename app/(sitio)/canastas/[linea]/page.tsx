@@ -6,7 +6,12 @@ import { LINEAS } from "@/lib/lineas";
 
 export async function generateMetadata({ params }: { params: Promise<{ linea: string }> }) {
   const { linea } = await params;
-  return { title: LINEAS.find((l) => l.id === linea)?.titulo ?? "Canastas" };
+  const l = LINEAS.find((x) => x.id === linea);
+  return {
+    title: l?.titulo ?? "Canastas",
+    description: l ? `${l.titulo} de MKA: armadas a mano en Lima, para regalar en Navidad o para empresas. Delivery en Lima y envíos a provincias.` : undefined,
+    alternates: l ? { canonical: `/canastas/${l.id}` } : undefined,
+  };
 }
 
 export default async function LineaPage({ params }: { params: Promise<{ linea: string }> }) {
