@@ -232,7 +232,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     metodosPago: [
       { nombre: "Tarjeta", detalle: "Visa, Mastercard, Amex", nota: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta.", pasarela: "mercadopago" },
       { nombre: "Yape / Plin", detalle: "Pago con QR", nota: "Te mostraremos el QR y el monto exacto en el siguiente paso.", pasarela: "qr" },
-      { nombre: "Transferencia", detalle: "BCP, Interbank, BBVA", nota: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono.", pasarela: "" },
+      { nombre: "Pago contraentrega", detalle: "Paga al recibir tu pedido", nota: "Puedes realizar tu compra ahora y pagar cuando recibas tus productos.", pasarela: "" },
     ],
     notaImpuestos: "Precios incluyen IGV.",
     qrImagen: "/pagos/yape-qr.png",
