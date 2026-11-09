@@ -25,14 +25,16 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
   if (texto) query = query.or(`numero.ilike.%${texto}%,cliente_nombre.ilike.%${texto}%,cliente_email.ilike.%${texto}%`);
   const { data, error } = await query;
   const ordenes = (data ?? []) as Orden[];
+  const { count: intentosPendientes } = await supabase.from("intentos_pago").select("id", { count: "exact", head: true }).eq("estado", "pendiente");
 
   return (
     <>
       <header className="admHead">
         <div>
           <h1>Órdenes de pedido</h1>
-          <p className="admMuted">Se crean solas con cada compra de la web y al aprobar una cotización.</p>
+          <p className="admMuted">Se crean solas con cada compra de la web y al aprobar una cotización. Con tarjeta, solo cuando el pago se aprueba.</p>
         </div>
+        <Link className="admBtn" href="/admin/ordenes/intentos">Pagos no completados{intentosPendientes ? ` (${intentosPendientes})` : ""}</Link>
       </header>
 
       <form className="admFilters" method="get">

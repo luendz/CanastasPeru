@@ -1,6 +1,5 @@
-import { after } from "next/server";
 import { firmaValida, obtenerPago } from "@/lib/mercadopago";
-import { notificarCambioPedido, pedidoDesdeOrden } from "@/lib/notificaciones";
+import { procesarPagoMP } from "@/lib/pagos-mp";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /*
@@ -11,6 +10,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * En ambos casos el aviso no se toma como cierto: se consulta el pago en la API
  * con el access token y la base solo lo marca como pagado si está aprobado y
  * cubre el total. Un aviso falso, a lo sumo, vuelve a leer datos verdaderos.
+ *
+ * El pago se registra en la orden (OP-…) o, si es un intento con tarjeta
+ * (IP-…), la orden se crea recién con el pago aprobado (lib/pagos-mp.ts).
  *
  * Responder 200 confirma el aviso; con 5xx Mercado Pago lo reintenta más tarde.
  */
@@ -43,27 +45,7 @@ export async function POST(request: Request) {
       return new Response(null, { status: 200 });
     }
 
-    const { data: antes } = await supabase.from("ordenes").select("id,estado_pago").eq("numero", pago.external_reference).maybeSingle();
-    const { data, error } = await supabase.rpc("registrar_pago_mp", {
-      p: {
-        numero: pago.external_reference,
-        payment_id: String(pago.id),
-        estado: pago.status,
-        estado_detalle: pago.status_detail,
-        monto: pago.transaction_amount,
-      },
-    });
-    if (error) throw new Error(error.message);
-    if (data === "orden_no_encontrada") console.error(`Pago ${pago.id} con referencia ${pago.external_reference}: la orden no existe.`);
-
-    // Si este aviso dejó la orden pagada, se avisa al cliente por correo.
-    if (antes && antes.estado_pago !== "pagado") {
-      const { data: ahora } = await supabase.from("ordenes").select("estado_pago").eq("id", antes.id).maybeSingle();
-      if (ahora?.estado_pago === "pagado") {
-        const pedido = await pedidoDesdeOrden(supabase, antes.id);
-        if (pedido) after(() => notificarCambioPedido(pedido, "pagado"));
-      }
-    }
+    await procesarPagoMP(supabase, pago);
     return new Response(null, { status: 200 });
   } catch (e) {
     console.error(`No se pudo registrar el aviso de Mercado Pago: ${e instanceof Error ? e.message : String(e)}`);

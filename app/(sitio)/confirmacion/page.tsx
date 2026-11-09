@@ -5,14 +5,19 @@ import VaciarCarrito from "@/components/VaciarCarrito";
 import SplitWords from "@/components/motion/SplitWords";
 import { getContenido } from "@/lib/contenido";
 import { formatPrice } from "@/lib/mock-data";
-import { mercadoPagoConfigurado } from "@/lib/mercadopago";
+import { mercadoPagoConfigurado, obtenerPago } from "@/lib/mercadopago";
+import { esIntento, procesarPagoMP } from "@/lib/pagos-mp";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import { reintentarPago } from "./actions";
 
-export const metadata = { title: "Pedido registrado" };
+export const metadata = { title: "Confirmación de pedido" };
 
 type Resumen = {
+  /** Vacío mientras el pago con tarjeta no se aprueba. */
   numero: string;
+  /** Intento con tarjeta (IP-…): aún no es orden. */
+  referencia?: string;
   total: number;
   lineas: { nombre: string; detalle: string; cantidad: number; precio: number }[];
   distrito: string;
@@ -47,6 +52,27 @@ const fechaLarga = (iso: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00`).toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : "";
 
 /*
+ * Número de la orden de un intento con tarjeta, si ya existe. Si Mercado Pago
+ * devolvió al cliente con un pago (?payment_id=…), se consulta en su API y se
+ * registra aquí mismo (no hay que esperar al webhook); si no, se lee el intento.
+ */
+async function numeroDeIntento(ref: string, paymentId: string | undefined): Promise<string | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    if (paymentId && /^\d+$/.test(paymentId) && mercadoPagoConfigurado()) {
+      const pago = await obtenerPago(paymentId);
+      if (pago.external_reference === ref && pago.currency_id === "PEN") return (await procesarPagoMP(supabase, pago)).numero;
+    }
+    const { data } = await supabase.from("intentos_pago").select("orden_numero").eq("referencia", ref).maybeSingle();
+    return data?.orden_numero ?? null;
+  } catch (e) {
+    console.error(`No se pudo revisar el pago del intento ${ref}: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
+}
+
+/*
  * Resultado con el que Mercado Pago devuelve al cliente (?status=…). Solo sirve
  * para el mensaje: la orden se marca como pagada con el aviso del webhook.
  */
@@ -59,11 +85,17 @@ function resultadoPago(status: string | undefined): ResultadoPago {
   return "fallido";
 }
 
-export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; total?: string; status?: string; collection_status?: string }> }) {
-  const [{ pedido, total: totalUrl, status, collection_status }, jar, { contacto }] = await Promise.all([searchParams, cookies(), getContenido()]);
-  const pago = resultadoPago(status ?? collection_status);
+export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; ref?: string; total?: string; status?: string; collection_status?: string; payment_id?: string }> }) {
+  const [{ pedido, ref: refUrl, total: totalUrl, status, collection_status, payment_id }, jar, { contacto }] = await Promise.all([searchParams, cookies(), getContenido()]);
+  let pago = resultadoPago(status ?? collection_status);
   const r = leerResumen(jar.get("mka-pedido")?.value);
-  const numero = r?.numero ?? (pedido && /^OP-\d+$/.test(pedido) ? pedido : null);
+  // Pago con tarjeta: el pedido solo existe (con número) cuando el pago se aprobó.
+  const ref = esIntento(refUrl) ? refUrl : !pedido && esIntento(r?.referencia) ? r.referencia : null;
+  const numeroIntento = ref ? await numeroDeIntento(ref, payment_id) : null;
+  const sinOrden = Boolean(ref) && !numeroIntento;
+  if (sinOrden && pago !== "proceso") pago = pago === "aprobado" ? "proceso" : "fallido";
+  if (numeroIntento) pago = "aprobado";
+  const numero = numeroIntento ?? (r?.numero || (pedido && /^OP-\d+$/.test(pedido) ? pedido : null));
   const total = r?.total ?? (totalUrl && Number.isFinite(Number(totalUrl)) ? Number(totalUrl) : null);
   const subtotal = r ? r.lineas.reduce((s, l) => s + l.precio * l.cantidad, 0) : 0;
   const delivery = r && total != null ? Math.max(0, total - subtotal) : 0;
@@ -77,7 +109,9 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
   } as const;
 
   const pasos = [
-    { label: "Pedido registrado", hint: numero ? `N.º ${numero}` : "", state: "done" },
+    sinOrden
+      ? { label: "Pedido por registrar", hint: "Se registra cuando se confirma el pago", state: "todo" }
+      : { label: "Pedido registrado", hint: numero ? `N.º ${numero}` : "", state: "done" },
     pago ? pasoPago[pago] : { label: "Confirmación del pago", hint: r?.pago ? `Método elegido: ${r.pago}` : "Te indicaremos cómo pagar", state: "current" },
     { label: "Preparamos tus canastas", hint: "Las armamos a mano", state: pago === "aprobado" ? "current" : "todo" },
     { label: "Entrega", hint: entrega || "En la fecha acordada", state: "todo" },
@@ -89,19 +123,25 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
       <CheckoutSteps current={3} />
 
       <div className="successHero">
-        <div className="confetti" aria-hidden="true">
+        {!sinOrden && <div className="confetti" aria-hidden="true">
           {confetti.map((c, i) => (
             <i key={i} style={{ "--x": `${c.x}%`, "--d": `${c.delay}ms`, "--dx": `${c.drift}px`, "--r": `${c.spin}deg`, "--c": c.color, "--w": `${c.w}px` } as React.CSSProperties} />
           ))}
-        </div>
-        <div className="successSeal" aria-hidden="true">
+        </div>}
+        {!sinOrden && <div className="successSeal" aria-hidden="true">
           <svg viewBox="0 0 52 52"><path d="m15 27 7.5 7.5L38 18.5" /></svg>
-        </div>
+        </div>}
         <div>
-          <span className="pill">{pago === "aprobado" ? "Pago aprobado" : pago === "fallido" ? "Pago pendiente" : "Pedido registrado"}</span>
-          <h1><SplitWords text={pago === "fallido" ? "Tu pedido está *registrado*" : "¡Gracias por tu *compra*!"} immediate offset={3} /></h1>
+          <span className="pill">{pago === "aprobado" ? "Pago aprobado" : sinOrden ? (pago === "proceso" ? "Pago en proceso" : "Pago no completado") : pago === "fallido" ? "Pago pendiente" : "Pedido registrado"}</span>
+          <h1><SplitWords text={sinOrden ? (pago === "proceso" ? "Estamos confirmando tu *pago*" : "Tu pago no se *completó*") : pago === "fallido" ? "Tu pedido está *registrado*" : "¡Gracias por tu *compra*!"} immediate offset={3} /></h1>
           <p>
-            {pago === "aprobado" ? (
+            {sinOrden ? (
+              pago === "proceso"
+                ? <>Registraremos tu pedido apenas Mercado Pago confirme el pago{r?.correo ? <> y te avisaremos a <strong>{r.correo}</strong></> : ""}.</>
+                : status === "error"
+                  ? "No pudimos abrir Mercado Pago. No se hizo ningún cobro y tu pedido aún no se registró: inténtalo de nuevo en un momento."
+                  : "No se hizo ningún cobro y tu pedido aún no se registró. Tu carrito sigue guardado: puedes intentarlo de nuevo o elegir otro método de pago."
+            ) : pago === "aprobado" ? (
               <>Recibimos tu pago. {r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para coordinar la entrega.</>
             ) : pago === "fallido" ? (
               status === "error" ? "No pudimos abrir Mercado Pago. Tu pedido quedó guardado: inténtalo de nuevo en un momento." : "El pago no se completó, pero tu pedido quedó guardado. Puedes intentarlo de nuevo."
@@ -140,9 +180,12 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
           <div className="heroActions">
             {reintentar ? (
               <form action={reintentarPago}><button className="btn btnPrimary" type="submit">Reintentar pago</button></form>
+            ) : sinOrden ? (
+              <Link className="btn btnPrimary" href="/carrito">Volver al carrito</Link>
             ) : (
               <Link className="btn btnPrimary" href="/canastas">Seguir comprando</Link>
             )}
+            {reintentar && sinOrden && <Link className="btn btnGhost" href="/checkout">Elegir otro método de pago</Link>}
             {numero && <Link className="btn btnGhost" href={`/seguimiento?pedido=${encodeURIComponent(numero)}`}>Seguir mi pedido</Link>}
             {contacto.telefono && numero && (
               <a className="btn btnGhost" href={enlaceWhatsApp(contacto.telefono, `Hola, acabo de registrar el pedido ${numero}.`)} target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>

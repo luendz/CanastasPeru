@@ -155,3 +155,11 @@ async function marcarOrden(fd: FormData, eliminado: string | null) {
   revalidatePath("/admin/cotizaciones");
   revalidatePath("/admin");
 }
+
+/** Borra un pago con tarjeta que nunca se completó (no es una orden). */
+export async function eliminarIntento(fd: FormData) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("intentos_pago").delete().eq("id", String(fd.get("id") ?? "")).eq("estado", "pendiente");
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/ordenes/intentos");
+}
