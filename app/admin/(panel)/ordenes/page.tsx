@@ -71,7 +71,7 @@ export default async function OrdenesPage({ searchParams }: { searchParams: Prom
                   <td>{labelCanal(o.canal)}{o.origen === "cotizacion" && <small className="admMuted admBlock">Cotización</small>}</td>
                   <td>{fecha(o.fecha_entrega)}<small className="admMuted admBlock">{o.distrito ?? ""}</small></td>
                   <td className="num">{soles(o.total)}</td>
-                  <td><span className="admBadge" data-pago={o.estado_pago}>{o.estado_pago === "pagado" ? "Pagado" : "Pendiente"}</span></td>
+                  <td><span className="admBadge" data-pago={o.estado_pago}>{o.estado_pago === "pagado" ? "Pagado" : "Pendiente"}</span>{o.comprobante_pago && o.estado_pago !== "pagado" && <small className="admMuted admBlock">Comprobante por revisar</small>}</td>
                   <td><EstadoRapido id={o.id} numero={o.numero} estado={o.estado} /></td>
                   <td>
                     <div className="admFilaAcciones">

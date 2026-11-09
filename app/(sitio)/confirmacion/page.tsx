@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import CheckoutSteps from "@/components/CheckoutSteps";
+import PagoQR from "@/components/PagoQR";
 import VaciarCarrito from "@/components/VaciarCarrito";
 import SplitWords from "@/components/motion/SplitWords";
 import { getContenido } from "@/lib/contenido";
@@ -72,6 +73,14 @@ async function numeroDeIntento(ref: string, paymentId: string | undefined): Prom
   }
 }
 
+/** Si el cliente ya subió la captura del pago de esta orden. */
+async function comprobanteEnviado(numero: string): Promise<boolean> {
+  const supabase = createAdminClient();
+  if (!supabase) return false;
+  const { data } = await supabase.from("ordenes").select("comprobante_pago_at").eq("numero", numero).maybeSingle();
+  return Boolean(data?.comprobante_pago_at);
+}
+
 /*
  * Resultado con el que Mercado Pago devuelve al cliente (?status=…). Solo sirve
  * para el mensaje: la orden se marca como pagada con el aviso del webhook.
@@ -86,7 +95,7 @@ function resultadoPago(status: string | undefined): ResultadoPago {
 }
 
 export default async function ConfirmacionPage({ searchParams }: { searchParams: Promise<{ pedido?: string; ref?: string; total?: string; status?: string; collection_status?: string; payment_id?: string }> }) {
-  const [{ pedido, ref: refUrl, total: totalUrl, status, collection_status, payment_id }, jar, { contacto }] = await Promise.all([searchParams, cookies(), getContenido()]);
+  const [{ pedido, ref: refUrl, total: totalUrl, status, collection_status, payment_id }, jar, { contacto, checkout }] = await Promise.all([searchParams, cookies(), getContenido()]);
   let pago = resultadoPago(status ?? collection_status);
   const r = leerResumen(jar.get("mka-pedido")?.value);
   // Pago con tarjeta: el pedido solo existe (con número) cuando el pago se aprobó.
@@ -101,6 +110,11 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
   const delivery = r && total != null ? Math.max(0, total - subtotal) : 0;
   const entrega = r ? fechaLarga(r.fecha) : "";
 
+  // Pago manual con QR (Yape / Plin): QR con el monto y subida del comprobante.
+  const metodo = checkout.metodosPago.find((m) => m.nombre === r?.pago);
+  const pagoQR = !ref && Boolean(numero) && r?.numero === numero && metodo?.pasarela === "qr" && total != null && Boolean(checkout.qrImagen);
+  const yaEnviado = pagoQR && numero ? await comprobanteEnviado(numero) : false;
+
   const reintentar = pago === "fallido" && Boolean(r?.enLinea) && mercadoPagoConfigurado();
   const pasoPago = {
     aprobado: { label: "Pago aprobado", hint: "Mercado Pago confirmó tu pago", state: "done" },
@@ -112,7 +126,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
     sinOrden
       ? { label: "Pedido por registrar", hint: "Se registra cuando se confirma el pago", state: "todo" }
       : { label: "Pedido registrado", hint: numero ? `N.º ${numero}` : "", state: "done" },
-    pago ? pasoPago[pago] : { label: "Confirmación del pago", hint: r?.pago ? `Método elegido: ${r.pago}` : "Te indicaremos cómo pagar", state: "current" },
+    pago ? pasoPago[pago] : { label: "Confirmación del pago", hint: pagoQR ? "Escanea el QR y envíanos tu comprobante" : r?.pago ? `Método elegido: ${r.pago}` : "Te indicaremos cómo pagar", state: "current" },
     { label: "Preparamos tus canastas", hint: "Las armamos a mano", state: pago === "aprobado" ? "current" : "todo" },
     { label: "Entrega", hint: entrega || "En la fecha acordada", state: "todo" },
   ] as const;
@@ -146,7 +160,9 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
             ) : pago === "fallido" ? (
               status === "error" ? "No pudimos abrir Mercado Pago. Tu pedido quedó guardado: inténtalo de nuevo en un momento." : "El pago no se completó, pero tu pedido quedó guardado. Puedes intentarlo de nuevo."
             ) : (
-              <>{r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para confirmar el pago y coordinar la entrega.</>
+              pagoQR
+                ? <>Para completarlo, paga con {metodo?.nombre ?? "Yape / Plin"} escaneando el QR y adjunta la captura de tu pago aquí abajo.</>
+                : <>{r?.correo ? <>Te escribiremos a <strong>{r.correo}</strong></> : "Te escribiremos"} para confirmar el pago y coordinar la entrega.</>
             )}
           </p>
         </div>
@@ -160,6 +176,7 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
 
       <div className="confirmGrid">
         <div className="confirmMain">
+          {pagoQR && total != null && <PagoQR total={total} qr={checkout.qrImagen} nota={checkout.qrNota} metodo={metodo?.nombre ?? "Yape / Plin"} enviado={yaEnviado} />}
           <section className="formCard">
             <h3 className="confirmTitle">Estado del pedido</h3>
             <ol className="timeline">

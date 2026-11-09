@@ -320,6 +320,37 @@ del { color: #a99a8e; font-size: 13px; }
 .confirmMain { display: grid; gap: 20px; }
 .confirmMain .heroActions { margin-top: 4px; }
 .confirmTitle { margin: 0 0 20px; font-size: 24px; }
+
+/* Pago con QR (Yape / Plin) en la confirmación */
+.pagoQR { display: grid; gap: 18px; }
+.pagoQRHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.pagoQRHead .confirmTitle { margin: 0; }
+.pagoQREstado { padding: 5px 12px; border-radius: 99px; background: #fbe3dc; color: var(--red); font-size: 12.5px; font-weight: 800; }
+.pagoQREstado[data-ok] { background: #dcebe2; color: var(--pine); }
+.pagoQRMonto { display: grid; justify-items: center; gap: 6px; padding: 24px 18px; border-radius: 16px; background: var(--paper); text-align: center; }
+.pagoQRMonto > strong { font-family: var(--font-display-stack); font-size: clamp(34px, 5vw, 44px); line-height: 1; color: var(--wine); }
+.pagoQRMonto > small { color: var(--muted); font-size: 13px; }
+.pagoQRImagen { width: min(240px, 70vw); height: auto; margin: 10px 0 4px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.pagoQRMonto > b { font-size: 15.5px; }
+.pagoQRGuardar { color: var(--wine); font-size: 13.5px; font-weight: 700; }
+.pagoQRNota { padding: 14px 16px; border-left: 4px solid var(--gold); border-radius: 10px; background: #fdf4e3; }
+.pagoQRNota strong { display: block; margin-bottom: 4px; color: var(--gold-deep); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.pagoQRNota p { margin: 0; line-height: 1.55; }
+.pagoQRDespues { margin: 4px 0 -6px; font-weight: 800; }
+.pagoQRSubir { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; }
+.pagoQRSubirTitulo { color: var(--wine); }
+.pagoQRZona { position: relative; display: grid; justify-items: center; gap: 4px; padding: 26px 16px; border: 1.5px dashed var(--cream-2); border-radius: 12px; background: var(--paper); color: var(--ink); text-align: center; cursor: pointer; }
+.pagoQRZona:hover, .pagoQRZona:focus-within { border-color: var(--gold); }
+.pagoQRZona input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pagoQRZona svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pagoQRZona small { color: var(--muted); }
+.pagoQRZona[data-vista] { padding: 10px; }
+.pagoQRZona img { max-height: 320px; max-width: 100%; border-radius: 8px; }
+.pagoQRCambiar { justify-self: start; padding: 0; border: 0; background: none; color: var(--wine); font-weight: 700; cursor: pointer; }
+.pagoQRError { margin: 0; color: var(--red); font-size: 14px; }
+.pagoQRSubir .btn:disabled { opacity: .55; cursor: not-allowed; }
+.pagoQRListo { padding: 16px 18px; border-radius: 12px; background: #e8f2ec; color: var(--pine); }
+.pagoQRListo p { margin: 4px 0 0; color: var(--ink); }
 .timeline { margin: 0; padding: 0; list-style: none; display: grid; }
 .timeline li { position: relative; display: flex; gap: 16px; padding-bottom: 22px; }
 .timeline li:last-child { padding-bottom: 0; }

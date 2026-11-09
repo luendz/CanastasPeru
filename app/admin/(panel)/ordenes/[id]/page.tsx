@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fecha, fechaCorta, soles } from "@/lib/admin/format";
+import { fecha, fechaCorta, fechaHora, soles } from "@/lib/admin/format";
 import { labelCanal, labelEstado, type Orden, type OrdenItem } from "@/lib/admin/types";
 import { etiquetaProducto, productosPorCanasta } from "@/lib/admin/recetas";
 import EditarDatos from "../../EditarDatos";
@@ -25,6 +25,8 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
   if (!orden) notFound();
   const o = orden as Orden;
   const lineas = (items ?? []) as OrdenItem[];
+  // Captura del pago que subió el cliente (bucket privado): enlace firmado por una hora.
+  const captura = o.comprobante_pago ? (await supabase.storage.from("comprobantes").createSignedUrl(o.comprobante_pago, 3600)).data?.signedUrl : null;
   const envase = new Map((tipos ?? []).map((t: { id: string; nombre: string }) => [t.id, t.nombre]));
 
   const ESTADOS_MP: Record<string, string> = {
@@ -94,6 +96,25 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
               {o.mp_payment_id && dato("Mercado Pago", `${ESTADOS_MP[o.mp_estado ?? ""] ?? o.mp_estado} · pago ${o.mp_payment_id}`)}
             </dl>
           </section>
+
+          {o.comprobante_pago && (
+            <section className="admCard">
+              <h2>Comprobante de pago</h2>
+              <p className="admMuted">
+                Enviado por el cliente el {fechaHora(o.comprobante_pago_at)}.{" "}
+                {o.estado_pago === "pagado" ? "La orden ya está marcada como pagada." : "Verifica que el pago llegó y marca la orden como pagada en Gestionar."}
+              </p>
+              {captura ? (
+                <a href={captura} target="_blank" rel="noopener noreferrer" className="admComprobante">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={captura} alt={`Comprobante de pago de ${o.numero}`} />
+                  <span>Abrir en tamaño completo</span>
+                </a>
+              ) : (
+                <p className="admError">No se pudo cargar la imagen del comprobante.</p>
+              )}
+            </section>
+          )}
 
           <section className="admCard">
             <h2>Detalles de entrega</h2>

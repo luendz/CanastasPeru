@@ -13,6 +13,7 @@ export type Paso = { titulo: string; texto: string };
 export type Cifra = { valor: string; texto: string };
 export type Horario = { nombre: string; rango: string };
 /** pasarela: "mercadopago" lleva al cliente a pagar en línea; vacío es un pago manual. */
+/** pasarela: "" manual, "qr" manual con QR (Yape / Plin), "mercadopago" en línea. */
 export type MetodoPago = { nombre: string; detalle: string; nota: string; pasarela: string };
 export type Presupuesto = { etiqueta: string; min: number; max: number };
 export type Marca = { nombre: string; imagen: string };
@@ -75,6 +76,9 @@ export type Contenido = {
     horarios: Horario[];
     metodosPago: MetodoPago[];
     notaImpuestos: string;
+    /** Pago con QR (métodos con Cobro «Manual con QR»): imagen del QR y nota importante. */
+    qrImagen: string;
+    qrNota: string;
     /** Tarjeta navideña que se ofrece en el carrito. */
     tarjetaPrecio: number;
     tarjetaTitulo: string;
@@ -227,10 +231,12 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
     ],
     metodosPago: [
       { nombre: "Tarjeta", detalle: "Visa, Mastercard, Amex", nota: "Al pagar te llevaremos a la pasarela segura. Aquí no se ingresan datos de tarjeta.", pasarela: "mercadopago" },
-      { nombre: "Yape / Plin", detalle: "Pago con QR", nota: "Te mostraremos el QR y el monto exacto en el siguiente paso.", pasarela: "" },
+      { nombre: "Yape / Plin", detalle: "Pago con QR", nota: "Te mostraremos el QR y el monto exacto en el siguiente paso.", pasarela: "qr" },
       { nombre: "Transferencia", detalle: "BCP, Interbank, BBVA", nota: "Recibirás los datos bancarios por correo. El pedido se confirma al validar el abono.", pasarela: "" },
     ],
     notaImpuestos: "Precios incluyen IGV.",
+    qrImagen: "/pagos/yape-qr.png",
+    qrNota: "Tu pedido quedará pendiente de pago hasta que envíes tu comprobante y este sea verificado.",
     tarjetaPrecio: 2,
     tarjetaTitulo: "Tarjeta navideña de dedicatoria",
     tarjetaTexto: "Agrega una tarjeta con una dedicatoria personalizada para tu regalo.",
