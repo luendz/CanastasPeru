@@ -2,8 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "./config";
 
 /*
- * Cliente de Supabase con la secret key, solo para el servidor. Se usa
- * únicamente en el webhook de Mercado Pago para llamar a registrar_pago_mp.
+ * Cliente de Supabase con la secret key, solo para el servidor: pagos de
+ * Mercado Pago, comprobantes de pago y la gestión de usuarios del panel.
  * La clave es un secreto del Worker (SUPABASE_SECRET_KEY): nunca NEXT_PUBLIC_*.
  */
 export function createAdminClient() {

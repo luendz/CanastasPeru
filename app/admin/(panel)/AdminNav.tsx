@@ -15,6 +15,7 @@ const items = [
   { href: "/admin/costeo", label: "Costeo por canasta", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { href: "/admin/produccion", label: "Producción e inventario", icon: "M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8" },
   { href: "/admin/reportes", label: "Reportes Excel", icon: "M5 3h10l4 4v14H5zM9 17l2-3-2-3M15 17h-3" },
+  { href: "/admin/usuarios", label: "Usuarios", icon: "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M22 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8" },
 ];
 
 export default function AdminNav() {
