@@ -618,3 +618,19 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admPermisosLista input { width: 17px; height: 17px; accent-color: var(--a-wine); }
 .admNuevoRol { display: flex; gap: 10px; max-width: 460px; }
 .admNuevoRol .admInput { flex: 1; }
+
+/* Boxes navideños */
+.admBoxGrid { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 24px; align-items: start; }
+.admBoxFoto .admPickerThumb { width: 100%; height: auto; aspect-ratio: 4 / 3; }
+.admBoxFoto .admPickerThumb img { width: 100%; height: 100%; object-fit: cover; }
+.admBoxIncluye { margin: 8px 0 0; padding: 14px 16px; border: 1px solid var(--a-line); border-radius: 12px; display: grid; gap: 10px; }
+.admBoxIncluye legend { padding: 0 6px; font-weight: 800; }
+.admBoxIncluye ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.admBoxIncluye li { display: grid; grid-template-columns: 26px 1fr auto auto auto; gap: 8px; align-items: center; }
+.admBoxNum { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--a-wine); color: #fff; font-size: 12px; font-weight: 800; }
+.admBoxIncluye > .admLinkMuted { justify-self: start; }
+.admBoxNombre { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.admBoxNombre img, .admBoxSinFoto { width: 56px; height: 42px; flex: none; border-radius: 8px; object-fit: cover; background: var(--a-surface); display: grid; place-items: center; border: 1px solid var(--a-line); }
+.admBoxOrden, .admBoxAcciones { display: inline-flex; gap: 8px; align-items: center; }
+.admBoxOrden form { display: inline; }
+@media (max-width: 720px) { .admBoxGrid { grid-template-columns: 1fr; } }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import BoxDetail from "@/components/BoxDetail";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
@@ -18,7 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = products.find((item) => item.slug === slug);
   if (!product) return { title: "Canasta no encontrada", robots: { index: false } };
   const descripcion = (product.description || `${product.name}: canasta navideña armada a mano en Lima.`).slice(0, 300);
-  const imagen = product.baseImage ? [{ url: product.baseImage, alt: product.name }] : undefined;
+  const foto = product.foto ?? product.baseImage;
+  const imagen = foto ? [{ url: foto, alt: product.name }] : undefined;
   return {
     title: product.name,
     description: descripcion,
@@ -39,10 +41,11 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
   }
 
   // Primero las canastas de la misma línea (Premium con Premium…), las de precio más cercano;
-  // si no alcanzan para 3, se completa con las de otras líneas (sin Boxes, que está oculto).
+  // si no alcanzan para 3, se completa con las de otras líneas. Un box solo sugiere otros boxes.
   const linea = lineaDe(product)?.id;
+  const esBox = linea === "boxes";
   const cercania = (item: typeof product) => Math.abs(item.price - product.price);
-  const otras = products.filter((item) => item.slug !== product.slug && lineaDe(item)?.id !== "boxes");
+  const otras = products.filter((item) => item.slug !== product.slug && (esBox ? lineaDe(item)?.id === "boxes" : lineaDe(item)?.id !== "boxes"));
   const related = [
     ...otras.filter((item) => lineaDe(item)?.id === linea).sort((a, b) => cercania(a) - cercania(b)),
     ...otras.filter((item) => lineaDe(item)?.id !== linea).sort((a, b) => cercania(a) - cercania(b)),
@@ -56,7 +59,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
     "@type": "Product",
     name: product.name,
     description: product.description || undefined,
-    image: product.baseImage ? [absoluta(product.baseImage)] : undefined,
+    image: product.foto ?? product.baseImage ? [absoluta((product.foto ?? product.baseImage)!)] : undefined,
     category: product.category,
     brand: { "@type": "Brand", name: "MKA Canastas Navideñas & Regalos" },
     url,
@@ -69,7 +72,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Inicio", item: SITIO },
-      { "@type": "ListItem", position: 2, name: "Canastas", item: `${SITIO}/canastas` },
+      esBox ? { "@type": "ListItem", position: 2, name: "Boxes", item: `${SITIO}/boxes` } : { "@type": "ListItem", position: 2, name: "Canastas", item: `${SITIO}/canastas` },
       { "@type": "ListItem", position: 3, name: product.name, item: url },
     ],
   };
@@ -80,19 +83,25 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ruta)} />
       <nav className="shell breadcrumb" aria-label="Ruta">
         <Link href="/">Inicio</Link><span aria-hidden="true">/</span>
-        <Link href="/canastas">Canastas</Link><span aria-hidden="true">/</span>
+        {esBox ? <Link href="/boxes">Boxes</Link> : <Link href="/canastas">Canastas</Link>}<span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
       </nav>
 
-      <section className="shell productDetail">
-        <ProductDetail product={product} basketTypes={basketTypes} />
-      </section>
+      {esBox ? (
+        <section className="shell">
+          <BoxDetail product={product} basketTypes={basketTypes} />
+        </section>
+      ) : (
+        <section className="shell productDetail">
+          <ProductDetail product={product} basketTypes={basketTypes} />
+        </section>
+      )}
 
-      <section className="relatedSection">
+      {related.length > 0 && <section className="relatedSection">
         <div className="shell">
           <Reveal className="sectionHead">
             <div><span className="eyebrow" data-reveal-item style={{ "--i": 0 } as React.CSSProperties}>Sigue explorando</span><h2><SplitWords text="También te puede *gustar*" /></h2></div>
-            <Link className="textLink" data-reveal-item style={{ "--i": 4 } as React.CSSProperties} href={linea && linea !== "boxes" ? `/canastas/${linea}` : "/canastas"}>Ver catálogo →</Link>
+            <Link className="textLink" data-reveal-item style={{ "--i": 4 } as React.CSSProperties} href={esBox ? "/boxes" : linea ? `/canastas/${linea}` : "/canastas"}>{esBox ? "Ver boxes →" : "Ver catálogo →"}</Link>
           </Reveal>
           <Reveal className="productGrid relatedGrid" threshold={0.1}>
             {related.map((item, n) => (
@@ -102,7 +111,7 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
             ))}
           </Reveal>
         </div>
-      </section>
+      </section>}
     </>
   );
 }

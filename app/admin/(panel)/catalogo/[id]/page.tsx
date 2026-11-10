@@ -25,7 +25,7 @@ export default async function EditarCanastaPage({ params, searchParams }: { para
 
   const [{ data: producto }, { data: tipos }, { data: todos }, { data: envases }] = await Promise.all([
     supabase.from("canastas").select("*").eq("id", id).maybeSingle(),
-    supabase.from("envases").select("*").order("orden"),
+    supabase.from("envases").select("*").neq("id", "box").order("orden"),
     supabase.from("canastas").select("categoria,insignia"),
     supabase.from("canasta_envases").select("envase_id").eq("canasta_id", id).order("orden").order("envase_id"),
   ]);

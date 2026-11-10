@@ -202,3 +202,15 @@
 @media (prefers-reduced-motion: reduce) {
   .detail .baseImage { animation: none; }
 }
+
+/* Boxes: foto completa, recortada al recuadro. */
+.conFoto {
+  overflow: hidden;
+}
+
+.fotoCompleta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

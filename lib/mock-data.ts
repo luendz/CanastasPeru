@@ -35,6 +35,10 @@ export type Product = {
   /** Foto, emoji y unidades de cada producto del contenido (lista "Incluye"), por nombre. */
   itemFotos?: Record<string, { image?: string; emoji?: string; cantidad?: number }>;
   visualItems: ProductVisualItem[];
+  /** Foto completa propia (boxes): se muestra tal cual, sin envase ni composición. */
+  foto?: string;
+  /** Contenido en texto y en orden (boxes): "01 Vino Intipalka 375 ml". */
+  incluye?: string[];
 };
 
 // Catálogo de demostración: se usa solo si Supabase no está configurado (ver lib/catalogo.ts).

@@ -45,6 +45,13 @@ export const SECCIONES: Seccion[] = [
     ],
   },
   {
+    id: "boxes", nombre: "Boxes navideños", href: "/admin/boxes",
+    acciones: [
+      { id: "editar", nombre: "Crear, editar y eliminar boxes" },
+      { id: "visibilidad", nombre: "Activar y desactivar en la web" },
+    ],
+  },
+  {
     id: "contenido", nombre: "Contenido web", href: "/admin/contenido",
     acciones: [
       { id: "editar", nombre: "Editar textos e imágenes" },
