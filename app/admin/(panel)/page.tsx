@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSeccion } from "@/lib/admin/auth";
 import { fecha, fechaCorta, inicioMesLima, numero, soles } from "@/lib/admin/format";
 import { ESTADOS_ORDEN, labelEstado, TIPOS_COSTO, type Compra, type InventarioFila, type Orden, type OrdenItem } from "@/lib/admin/types";
 
 export const metadata = { title: "Inicio" };
 
 export default async function DashboardPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSeccion("inicio");
   const desde = inicioMesLima();
 
   const [ordenesMes, compras, abiertas, items, cotPend, inventario, entregas] = await Promise.all([
