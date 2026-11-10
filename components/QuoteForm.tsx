@@ -15,7 +15,7 @@ type Props = {
   opciones: Pick<Contenido["cotizacion"], "cantidades" | "presupuestos" | "personalizacion" | "notaEntrega">;
   lineas: Contenido["catalogo"]["lineas"];
   distritos: string[];
-  /** Días de reparto disponibles (martes, jueves y sábados, desde hoy). */
+  /** Días de reparto disponibles (martes, jueves y sábados, desde mañana). */
   fechas: string[];
 };
 
