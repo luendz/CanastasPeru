@@ -165,5 +165,6 @@ export async function eliminarCompra(formData: FormData) {
   const { error } = await supabase.from("compras").delete().eq("id", String(formData.get("id") ?? ""));
   if (error) throw new Error(error.message);
   refrescar();
-  redirect("/admin/compras");
+  // Desde el detalle vuelve a la lista; desde la tabla se queda en el mes filtrado.
+  if (formData.get("volver")) redirect("/admin/compras");
 }

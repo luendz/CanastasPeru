@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fechaCorta, hoyLima, numero, soles } from "@/lib/admin/format";
+import BotonEliminar from "../BotonEliminar";
+import { eliminarCompra } from "./actions";
 import { labelDocumento, labelTipoCosto, TIPOS_COSTO, type Compra } from "@/lib/admin/types";
 
 export const metadata = { title: "Costos totales" };
@@ -81,7 +83,7 @@ export default async function CostosTotalesPage({ searchParams }: { searchParams
         ) : (
           <table className="admTable admTablaCostos">
             <thead>
-              <tr><th>Editar</th><th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th>Descripción</th><th className="num">Cantidad</th><th className="num">C. unit.</th><th className="num">Total</th><th>Tipo</th></tr>
+              <tr><th>Editar</th><th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th>Descripción</th><th className="num">Cantidad</th><th className="num">C. unit.</th><th className="num">Total</th><th>Tipo</th><th><span className="admSrOnly">Eliminar</span></th></tr>
             </thead>
             <tbody>
               {lista.map((c) => (
@@ -100,11 +102,12 @@ export default async function CostosTotalesPage({ searchParams }: { searchParams
                   <td className="num">{soles(c.costo_unitario)}</td>
                   <td className="num"><strong>{soles(c.total)}</strong></td>
                   <td><span className="admBadge" data-tipo={c.categoria}>{labelTipoCosto(c.categoria)}</span></td>
+                  <td><BotonEliminar id={c.id} accion={eliminarCompra} mensaje={`¿Eliminar «${c.descripcion ?? "este registro"}»? Se descuenta del inventario y de los costos, y no se puede deshacer.`} /></td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="admTotalRow"><td colSpan={7}>Total {tipo ? labelTipoCosto(tipo).toLowerCase() : "del mes"}</td><td className="num">{soles(lista.reduce((s, c) => s + Number(c.total), 0))}</td><td /></tr>
+              <tr className="admTotalRow"><td colSpan={7}>Total {tipo ? labelTipoCosto(tipo).toLowerCase() : "del mes"}</td><td className="num">{soles(lista.reduce((s, c) => s + Number(c.total), 0))}</td><td /><td /></tr>
             </tfoot>
           </table>
         )}

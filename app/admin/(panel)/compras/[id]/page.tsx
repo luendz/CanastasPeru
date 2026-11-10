@@ -29,6 +29,7 @@ export default async function EditarCompraPage({ params }: { params: Promise<{ i
         </div>
         <form action={eliminarCompra}>
           <input type="hidden" name="id" value={c.id} />
+          <input type="hidden" name="volver" value="1" />
           <ConfirmButton className="admBtn admBtnDanger" message="¿Borrar este registro? Se descuenta del inventario y de los costos.">Borrar</ConfirmButton>
         </form>
       </header>
