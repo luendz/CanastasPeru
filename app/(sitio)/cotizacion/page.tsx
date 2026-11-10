@@ -4,7 +4,7 @@ import QuoteForm from "@/components/QuoteForm";
 import SplitWords from "@/components/motion/SplitWords";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
-import { fechaMinima, fechasReparto } from "@/lib/entrega";
+import { fechasReparto } from "@/lib/entrega";
 
 export const metadata = { title: "Cotización para empresas" };
 
@@ -63,7 +63,7 @@ export default async function CotizacionPage() {
               ))}
             </ol>
           </header>
-          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} fechas={fechasReparto(40)} desde={fechaMinima()} />
+          <QuoteForm opciones={t} lineas={catalogo.lineas} distritos={deliveryZones.map((z) => z.district)} fechas={fechasReparto(40)} />
         </div>
       </div>
     </section>

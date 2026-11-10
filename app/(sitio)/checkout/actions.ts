@@ -25,7 +25,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!nombre) return { error: "Escribe tu nombre para continuar." };
   if (!campo(fd, "email") && !campo(fd, "telefono")) return { error: "Déjanos un correo o un celular para confirmarte el pedido." };
   if (!campo(fd, "distrito")) return { error: "Elige el distrito de entrega." };
-  if (!esFechaReparto(campo(fd, "fecha_entrega"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado, con al menos 5 días de anticipación." };
+  if (!esFechaReparto(campo(fd, "fecha_entrega"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado." };
   if (!fd.get("terminos")) return { error: "Acepta los términos para continuar." };
 
   let items: { slug: string; envase_id?: string; cantidad: number }[] = [];

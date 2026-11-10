@@ -11,7 +11,7 @@ const aIso = (d: Date) => d.toISOString().slice(0, 10);
 
 /**
  * Calendario de fecha de entrega: solo se pueden elegir las fechas de reparto
- * (martes, jueves y sábados con anticipación) que llegan desde el servidor.
+ * (martes, jueves y sábados desde hoy) que llegan desde el servidor.
  */
 type Props = {
   name: string;

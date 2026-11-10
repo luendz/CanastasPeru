@@ -11,7 +11,7 @@ import type { Contenido } from "@/lib/contenido";
 import { lineasCarrito } from "@/components/CartView";
 import { useBorrador } from "@/lib/borrador";
 import { useCarrito } from "@/lib/carrito";
-import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
+import { DIAS_REPARTO_TEXTO, UNIDADES_DELIVERY_GRATIS, deliveryGratis } from "@/lib/entrega";
 import { faltaMinimo, formatPrice, type BasketType, type Product } from "@/lib/mock-data";
 
 /** Clave del borrador del checkout en el navegador; la confirmación del pedido lo borra. */
@@ -90,7 +90,7 @@ export default function CheckoutForm({ products, basketTypes, deliveryZones, opc
           </div>
         </Section>
 
-        <Section n={2} title="Entrega" hint={`Repartimos ${DIAS_REPARTO_TEXTO}, con ${DIAS_ANTICIPACION} días de anticipación para preparar tu pedido.`}>
+        <Section n={2} title="Entrega" hint={`Repartimos ${DIAS_REPARTO_TEXTO}.`}>
           <div className="formGrid">
             <label>Distrito
               <select className="select" name="distrito" data-borrador="no" value={district} onChange={(e) => setDistrict(e.target.value)} required>

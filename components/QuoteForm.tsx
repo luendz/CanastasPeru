@@ -5,7 +5,7 @@ import { solicitarCotizacion, type CotizacionState } from "@/app/(sitio)/cotizac
 import CalendarioEntrega from "@/components/CalendarioEntrega";
 import Icono, { type NombreIcono } from "@/components/Icono";
 import type { Contenido } from "@/lib/contenido";
-import { DIAS_ANTICIPACION, DIAS_REPARTO_TEXTO } from "@/lib/entrega";
+import { DIAS_REPARTO_TEXTO } from "@/lib/entrega";
 import { borrarBorrador, useBorrador } from "@/lib/borrador";
 import { LINEAS } from "@/lib/lineas";
 
@@ -15,10 +15,8 @@ type Props = {
   opciones: Pick<Contenido["cotizacion"], "cantidades" | "presupuestos" | "personalizacion" | "notaEntrega">;
   lineas: Contenido["catalogo"]["lineas"];
   distritos: string[];
-  /** Días de reparto disponibles (martes, jueves y sábados, desde hoy + 5 días). */
+  /** Días de reparto disponibles (martes, jueves y sábados, desde hoy). */
   fechas: string[];
-  /** Hoy + 5 días: el calendario se muestra desde esa fecha. */
-  desde: string;
 };
 
 const ICONOS_PERSONALIZACION: NombreIcono[] = ["logo", "lazo", "tarjeta", "caja"];
@@ -36,7 +34,7 @@ function Seccion({ n, titulo, nota, children }: { n: number; titulo: string; not
   );
 }
 
-export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }: Props) {
+export default function QuoteForm({ opciones, lineas, distritos, fechas }: Props) {
   const cantidades = opciones.cantidades;
   const [tipos, setTipos] = useState<string[]>([]);
   const [cantidad, setCantidad] = useState<number | "">("");
@@ -143,7 +141,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }
       <Seccion n={3} titulo="¿Dónde y cuándo debemos entregar?">
         <div className="cotGrid">
           <div className="campoFecha">Fecha requerida *
-            <CalendarioEntrega name="fecha_requerida" fechas={fechas} desde={desde} valor={fecha} onValor={setFecha} />
+            <CalendarioEntrega name="fecha_requerida" fechas={fechas} valor={fecha} onValor={setFecha} />
           </div>
           <label>Dirección de entrega *<input className="input" name="direccion" autoComplete="street-address" placeholder="Av. / Calle / Jr. / Número" required maxLength={220} /></label>
           <label>Distrito *
@@ -156,7 +154,7 @@ export default function QuoteForm({ opciones, lineas, distritos, fechas, desde }
           <label>Referencia de entrega (opcional)<input className="input" name="referencia" placeholder="Ej. recepción, piso, oficina, etc." maxLength={160} /></label>
         </div>
         {opciones.notaEntrega && <p className="cotNota"><Icono nombre="camion" /> {opciones.notaEntrega}</p>}
-        <p className="cotAyuda">Repartimos {DIAS_REPARTO_TEXTO}, con {DIAS_ANTICIPACION} días de anticipación como mínimo.</p>
+        <p className="cotAyuda">Repartimos {DIAS_REPARTO_TEXTO}.</p>
       </Seccion>
 
       <Seccion n={4} titulo="Personalización">
