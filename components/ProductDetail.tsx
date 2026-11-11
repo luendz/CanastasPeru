@@ -16,6 +16,8 @@ function deltaLabel(delta: number) {
 export default function ProductDetail({ product, basketTypes }: { product: Product; basketTypes: BasketType[] }) {
   const envases = envasesDe(basketTypes, product);
   const ownBasket = envaseElegido(basketTypes, product);
+  // Un box (o una canasta con un solo envase) no tiene nada que elegir: se oculta ese paso.
+  const eligeEnvase = envases.length > 1;
   const [selected, setSelected] = useState<EnvaseProducto>(ownBasket);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -54,7 +56,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
               <ProductComposition baseImage={selected.image} envaseId={selected.id} product={product} variant="detail" />
             </div>
           </ViewTransition>
-          <span className="detailHint">Pasa el cursor sobre cada producto</span>
+          {!product.foto && <span className="detailHint">Pasa el cursor sobre cada producto</span>}
         </div>
         {selected.mostrarCondicion && selected.condicion && <p className="detailCondicion">{selected.condicion}</p>}
         {product.fullDescription && <p className="detailDescripcion">{product.fullDescription}</p>}
@@ -92,7 +94,7 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
           </ul>
         </div>
 
-        <fieldset className="basketPicker" style={{ "--i": 5 } as React.CSSProperties}>
+        {eligeEnvase && <fieldset className="basketPicker" style={{ "--i": 5 } as React.CSSProperties}>
           <legend><span className="stepNum">1</span> Elige el envase</legend>
           <div className="basketGrid">
             {envases.map((type) => (
@@ -105,12 +107,12 @@ export default function ProductDetail({ product, basketTypes }: { product: Produ
               </label>
             ))}
           </div>
-        </fieldset>
+        </fieldset>}
 
         <div className="buyBox" style={{ "--i": 6 } as React.CSSProperties}>
           <div className="buyRow">
             <div>
-              <span className="buyLabel"><span className="stepNum">2</span> Cantidad</span>
+              <span className="buyLabel">{eligeEnvase && <span className="stepNum">2</span>} Cantidad</span>
               <div className="stepper">
                 <button type="button" aria-label="Quitar una" disabled={qty <= 1} onClick={() => { setQty((q) => Math.max(1, q - 1)); setAviso(null); }}>−</button>
                 <input aria-label="Cantidad" inputMode="numeric" value={qty} onChange={(e) => { setQty(Math.max(1, Number(e.target.value.replace(/\D/g, "")) || 1)); setAviso(null); }} />

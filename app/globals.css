@@ -1330,33 +1330,6 @@ del { color: #a99a8e; font-size: 13px; }
 .heroPortada > .catalogHeroInner { grid-template-columns: minmax(0, 520px); gap: 18px; align-items: start; }
 @media (max-width: 760px) { .heroPortada { min-height: 0; background: linear-gradient(rgba(251, 246, 238, .86), rgba(251, 246, 238, .86)), url(/imgs_general/portada-paginas.webp) 78% center / cover no-repeat, var(--cream); } }
 
-/* Ficha de box navideño: todo a la vista en la primera pantalla. */
-.boxDetail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; padding-bottom: 48px; }
-.boxFoto { position: relative; aspect-ratio: 4 / 3; max-height: calc(100svh - 220px); width: 100%; border-radius: 24px; overflow: hidden; border: 1px solid var(--line); background: var(--cream); display: grid; place-items: center; }
-.boxFoto img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.boxFoto .badges { position: absolute; top: 16px; left: 16px; z-index: 1; }
-.boxFotoVacia { font-size: 88px; }
-.boxInfo h1 { margin: 6px 0 8px; font-size: clamp(30px, 3vw, 44px); line-height: 1.08; }
-.boxPrecio { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
-.boxPrecio strong { font-size: clamp(26px, 2.4vw, 34px); color: var(--wine); line-height: 1; }
-.boxLead { margin: 10px 0 0; color: var(--muted); font-size: 15px; line-height: 1.55; max-width: 520px; }
-.boxIncluye { margin-top: 18px; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--cream); }
-.boxIncluye h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 18px; color: var(--wine); }
-.boxIncluye h2 small { font-size: 14px; font-weight: 600; color: var(--muted); }
-.boxIncluye ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.boxIncluye li { display: flex; align-items: center; gap: 10px; font-size: 15px; }
-.boxCheck { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--wine); color: #fff; font-size: 11px; font-weight: 800; }
-.boxCompra { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 18px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
-.boxCompra .buyLabel { margin-bottom: 6px; }
-.boxTotal strong { display: block; font-size: 24px; line-height: 44px; color: var(--wine); }
-.boxAgregar { justify-self: stretch; min-height: 50px; }
-@media (max-width: 860px) {
-  .boxDetail { grid-template-columns: 1fr; gap: 20px; }
-  .boxFoto { max-height: none; }
-  .boxCompra { grid-template-columns: auto 1fr; }
-  .boxAgregar { grid-column: 1 / -1; }
-}
-
 /* Página 404 */
 .noEncontrada { min-height: min(62vh, 560px); padding: 72px 0 88px; display: grid; justify-items: center; align-content: center; gap: 14px; text-align: center; }
 .noEncontradaAdorno { width: min(220px, 60vw); height: auto; margin-bottom: 4px; }

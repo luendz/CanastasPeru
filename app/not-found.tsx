@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import NoEncontrada from "@/components/NoEncontrada";
+import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
+import { productosDe } from "@/lib/lineas";
 
 export const metadata: Metadata = { title: "Página no encontrada", robots: { index: false } };
 
@@ -11,10 +13,10 @@ export const metadata: Metadata = { title: "Página no encontrada", robots: { in
  * que se agregan el header y el footer para no dejar al cliente sin salida.
  */
 export default async function NoEncontradaGlobal() {
-  const { marca, contacto, pie, anuncios } = await getContenido();
+  const [{ marca, contacto, pie, anuncios }, { products }] = await Promise.all([getContenido(), getCatalogo()]);
   return (
     <>
-      <Header marca={marca} contacto={contacto} franja={anuncios.franja} />
+      <Header marca={marca} contacto={contacto} franja={anuncios.franja} hayBoxes={productosDe(products, "boxes").length > 0} />
       <main><NoEncontrada /></main>
       <Footer marca={marca} contacto={contacto} pie={pie} />
     </>

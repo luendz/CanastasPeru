@@ -9,7 +9,7 @@ import type { Contenido } from "@/lib/contenido";
 import { LINEAS } from "@/lib/lineas";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
-const links = [
+const LINKS: { href: string; label: string; sub?: typeof LINEAS }[] = [
   { href: "/", label: "Inicio" },
   { href: "/canastas", label: "Canastas", sub: LINEAS.filter((l) => l.id !== "boxes") },
   { href: "/cotizacion", label: "Cotizar" },
@@ -24,8 +24,10 @@ function numeroVisible(tel: string) {
   return d.length === 9 ? `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` : tel;
 }
 
-export default function Header({ marca, contacto, franja }: { marca: Contenido["marca"]; contacto: Contenido["contacto"]; franja: string }) {
+/** `hayBoxes`: con al menos un box activo, «Boxes» aparece junto a Canastas. */
+export default function Header({ marca, contacto, franja, hayBoxes = false }: { marca: Contenido["marca"]; contacto: Contenido["contacto"]; franja: string; hayBoxes?: boolean }) {
   const pathname = usePathname();
+  const links = hayBoxes ? [...LINKS.slice(0, 2), { href: "/boxes", label: "Boxes" }, ...LINKS.slice(2)] : LINKS;
   const c = useCarrito();
   const count = unidades(c);
   const [scrolled, setScrolled] = useState(false);
