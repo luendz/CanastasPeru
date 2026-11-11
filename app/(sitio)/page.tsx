@@ -77,7 +77,7 @@ export default async function HomePage() {
             <div className="hmBotones">
               <Link className="btn btnPrimary hmBtnMayus" href="/canastas">{t.heroBoton1} <Icono nombre="flecha" /></Link>
               {/* Solo si hay al menos un box activo (Panel → Boxes). */}
-              {hayBoxes && t.heroBoton2 && <Link className="btn btnGhost hmBtnMayus" href="/boxes">{t.heroBoton2} <Icono nombre="flecha" /></Link>}
+              {hayBoxes && t.heroBoton2 && <Link className="btn hmBtnMayus hbBtnBoxes" href="/boxes">{t.heroBoton2} <Icono nombre="flecha" /></Link>}
             </div>
             <ul className="hmPuntos">
               {t.heroPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_HERO[n % ICONOS_HERO.length]} />{p}</li>)}
