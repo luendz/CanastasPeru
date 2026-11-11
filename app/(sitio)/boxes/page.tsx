@@ -9,7 +9,7 @@ export default async function BoxesPage() {
   // Sin boxes activos (Panel → Boxes navideños) la página muestra un aviso de «muy pronto».
   return (
     <CatalogoLineas
-      products={products.filter((p) => !p.category.toLowerCase().startsWith("box"))}
+      products={products}
       textos={catalogo}
       lineas={["boxes"]}
       actual="boxes"
