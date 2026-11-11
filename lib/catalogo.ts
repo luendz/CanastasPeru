@@ -82,7 +82,8 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       envases: (p.envases ?? []).map((e) => ({ id: e.id, precio: Number(e.precio) })),
       description: p.descripcion,
       fullDescription: p.descripcion_completa || undefined,
-      items: p.contenido,
+      // Los boxes no tienen receta: su contenido es la lista en texto.
+      items: p.contenido?.length ? p.contenido : (p.incluye ?? []),
       itemFotos: Object.fromEntries((p.contenido_fotos ?? []).map((f) => [f.nombre, { ...(f.imagen ? { image: f.imagen } : {}), ...(f.emoji ? { emoji: f.emoji } : {}), ...(f.cantidad != null ? { cantidad: Number(f.cantidad) } : {}) }])),
       visualItems: p.composicion ?? [],
       ...(p.imagen ? { foto: p.imagen } : {}),
