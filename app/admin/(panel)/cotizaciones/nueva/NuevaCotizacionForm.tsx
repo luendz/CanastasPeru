@@ -1,14 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { CANALES } from "@/lib/admin/types";
 import { crearCotizacion, type EstadoForm } from "../actions";
 import SelectorBuscable from "../../SelectorBuscable";
 import { opcionesDistrito, type DistritoDelivery } from "../distritos";
+import NotaProvincia from "../NotaProvincia";
 
 /** Cotización registrada desde el panel; después se arma la propuesta en su detalle. */
 export default function NuevaCotizacionForm({ distritos }: { distritos: DistritoDelivery[] }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(crearCotizacion, {});
+  const [distrito, setDistrito] = useState("");
   return (
     <form action={accion} className="admForm admFormGrid">
       <label>Origen del pedido
@@ -49,7 +51,8 @@ export default function NuevaCotizacionForm({ distritos }: { distritos: Distrito
         <input className="admInput" name="lugar_entrega" maxLength={300} placeholder="Av., calle y número" />
       </label>
       <label>Distrito de entrega *
-        <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} placeholder="Busca el distrito" requerido />
+        <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} onValor={setDistrito} placeholder="Busca el distrito" requerido />
+        <NotaProvincia distrito={distrito} />
       </label>
       <label className="admSpan2">Requerimientos
         <textarea className="admInput" name="requerimientos" rows={3} maxLength={2000} placeholder="Productos, marcas, restricciones, tarjeta con logo…" />

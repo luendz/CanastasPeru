@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
+import { PROVINCIA, esProvincia } from "@/lib/admin/delivery";
 import type { DatosPdfCotizacion } from "@/lib/admin/pdf";
 import { productosPersonalizados, productosPorCanasta } from "@/lib/admin/recetas";
 import { CANALES, type ContenidoLinea, type Cotizacion, type CotizacionItem } from "@/lib/admin/types";
@@ -21,10 +22,11 @@ const canalValido = (c: string) => CANALES.some((x) => x.id === c);
 
 type Cliente = Awaited<ReturnType<typeof requireAdmin>>["supabase"];
 
-/** El distrito es obligatorio y debe ser uno de "Delivery por distrito" (Catálogo) con cobertura. */
+/** El distrito es obligatorio: uno de "Delivery por distrito" (Catálogo) con cobertura, o «Provincia». */
 async function distritoValido(supabase: Cliente, fd: FormData) {
   const distrito = txt(fd, "distrito", 120);
   if (!distrito) return { error: "Elige el distrito de entrega." };
+  if (esProvincia(distrito)) return { distrito: PROVINCIA };
   const { data } = await supabase.from("zonas_delivery").select("distrito").eq("distrito", distrito).eq("activo", true).maybeSingle();
   return data ? { distrito } : { error: "Ese distrito no está en la lista de delivery. Elígelo del desplegable." };
 }

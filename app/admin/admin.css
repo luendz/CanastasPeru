@@ -634,3 +634,6 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 .admBoxOrden, .admBoxAcciones { display: inline-flex; gap: 8px; align-items: center; }
 .admBoxOrden form { display: inline; }
 @media (max-width: 720px) { .admBoxGrid { grid-template-columns: 1fr; } }
+
+/* Cotización a provincia: observación del flete a cargo del cliente. */
+.admNotaProvincia { margin: 6px 0 0; padding: 10px 12px; border: 1px solid #e8d3a6; border-left: 3px solid var(--a-gold); border-radius: 8px; background: #fbf5e8; color: #5b4630; font-size: 12.5px; font-weight: 500; line-height: 1.5; }
