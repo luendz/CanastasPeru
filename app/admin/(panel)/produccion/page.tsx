@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { numero } from "@/lib/admin/format";
+import { hoyLima, numero } from "@/lib/admin/format";
 import type { InventarioFila, OrdenItem } from "@/lib/admin/types";
 import { actualizarInsumo } from "./actions";
+import BotonExcelInventario from "./BotonExcelInventario";
+import type { DatosInventario } from "./excel";
 
 export const metadata = { title: "Producción e inventario" };
 
@@ -27,6 +29,18 @@ export default async function ProduccionPage() {
     return { ...i, stock, requerido, faltante, despues, estado };
   });
   const aComprar = filas.filter((f) => f.faltante > 0);
+  const tipoTexto = (t: string) => (t === "producto" ? "Producto" : t === "envase" ? "Envase" : "Otro");
+
+  // Lo mismo que se ve en la página, para el Excel.
+  const excel: DatosInventario = {
+    fecha: hoyLima(),
+    porArmar: [...porCanasta.entries()].sort((a, b) => b[1] - a[1]).map(([canasta, cantidad]) => ({ canasta, cantidad })),
+    aComprar: aComprar.map((f) => ({ nombre: f.nombre, unidad: f.unidad, falta: f.faltante })),
+    inventario: filas.map((f) => ({
+      nombre: f.nombre, tipo: tipoTexto(f.tipo), unidad: f.unidad, stockInicial: Number(f.stock_inicial), stock: f.stock,
+      requerido: f.requerido, queda: f.despues, minimo: Number(f.stock_minimo), estado: f.estado as "ok" | "bajo" | "falta",
+    })),
+  };
 
   return (
     <>
@@ -38,6 +52,7 @@ export default async function ProduccionPage() {
             Lo “requerido” sale de los pedidos nuevos y pendientes.
           </p>
         </div>
+        <BotonExcelInventario datos={excel} />
       </header>
 
       <div className="admGrid2">
@@ -80,7 +95,7 @@ export default async function ProduccionPage() {
             {filas.map((f) => (
               <tr key={f.articulo_id}>
                 <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.articulo_id}`}>{f.nombre}</Link></td>
-                <td>{f.tipo === "producto" ? "Producto" : f.tipo === "envase" ? "Envase" : "Otro"}</td>
+                <td>{tipoTexto(f.tipo)}</td>
                 <td className="num">{numero(f.stock)}</td>
                 <td className="num">{numero(f.requerido)}</td>
                 <td className="num" data-tone={f.despues < 0 ? "bad" : undefined}>{numero(f.despues)}</td>
