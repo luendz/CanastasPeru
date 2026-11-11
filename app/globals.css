@@ -723,7 +723,7 @@ del { color: #a99a8e; font-size: 13px; }
 .hmIconoCirculo { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #f7ebe3; color: var(--wine); }
 .hmIconoCirculo .icono { width: 30px; height: 30px; }
 
-.hmTipos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.hmTipos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .hmTipo { display: grid; grid-template-rows: auto 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--white); box-shadow: 0 10px 30px rgba(74, 15, 25, .06); transition: transform .25s ease, box-shadow .25s ease; }
 .hmTipo:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .hmTipoImg { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: grid; place-items: center; background: linear-gradient(180deg, #f6ead3, #fbf6ee); }
@@ -1340,3 +1340,11 @@ del { color: #a99a8e; font-size: 13px; }
 /* Banner: botón Ver boxes en dorado, junto al vino de Ver canastas. */
 .hbBtnBoxes { background: var(--gold); border-color: var(--gold); color: #fff; text-shadow: 0 1px 1px rgba(74, 15, 25, .25); }
 .hbBtnBoxes:hover { background: var(--gold-deep); border-color: var(--gold-deep); color: #fff; }
+
+/* Boxes sin ninguno activo: aviso de «muy pronto». */
+.boxesPronto { display: grid; justify-items: center; gap: 14px; padding: clamp(36px, 6vw, 64px) 24px; border: 1px dashed #d6c3a6; border-radius: 18px; background: var(--white); text-align: center; }
+.boxesProntoIcono { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(184, 140, 60, .14); color: var(--gold-deep); }
+.boxesProntoIcono svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.boxesPronto h2 { margin: 0; max-width: 620px; color: var(--wine); font-size: clamp(28px, 3.6vw, 42px); line-height: 1.1; }
+.boxesPronto p { margin: 0; max-width: 520px; color: var(--muted); font-size: 16px; line-height: 1.6; }
+.boxesProntoBotones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; }

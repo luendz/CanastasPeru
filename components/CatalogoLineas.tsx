@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Enfasis from "@/components/Enfasis";
+import Icono from "@/components/Icono";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/motion/Reveal";
 import type { Contenido } from "@/lib/contenido";
@@ -58,6 +59,16 @@ export default function CatalogoLineas({ products, textos, lineas, actual, cabec
                   </div>
                 ))}
               </Reveal>
+            ) : esBoxes ? (
+              <div className="boxesPronto">
+                <span className="boxesProntoIcono" aria-hidden="true"><Icono nombre="regalo" /></span>
+                <h2>Nuestros boxes navideños llegan <em>muy pronto</em></h2>
+                <p>Estamos preparando boxes listos para regalar. Mientras tanto, descubre nuestras canastas o pídenos un regalo a tu medida.</p>
+                <div className="boxesProntoBotones">
+                  <Link className="btn btnPrimary" href="/canastas">Ver canastas <Icono nombre="flecha" /></Link>
+                  <Link className="btn btnGhost" href="/cotizacion">Pedir cotización</Link>
+                </div>
+              </div>
             ) : (
               <p className="lineaVacia">Muy pronto tendremos {linea.titulo.toLowerCase()} disponibles. <Link href="/cotizacion">Consúltanos por una a medida →</Link></p>
             )}
