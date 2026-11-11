@@ -1365,5 +1365,5 @@ del { color: #a99a8e; font-size: 13px; }
 .noEncontradaBotones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 12px; }
 
 /* Banner: botón Ver boxes en dorado, junto al vino de Ver canastas. */
-.hbBtnBoxes { background: var(--gold); border-color: var(--gold); color: var(--wine-dark); }
-.hbBtnBoxes:hover { background: var(--gold-soft); border-color: var(--gold-soft); color: var(--wine-dark); }
+.hbBtnBoxes { background: var(--gold); border-color: var(--gold); color: #fff; text-shadow: 0 1px 1px rgba(74, 15, 25, .25); }
+.hbBtnBoxes:hover { background: var(--gold-deep); border-color: var(--gold-deep); color: #fff; }
