@@ -1,18 +1,23 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { numero } from "@/lib/admin/format";
+import { hoyLima, numero } from "@/lib/admin/format";
 import type { InventarioFila, OrdenItem } from "@/lib/admin/types";
 import { actualizarInsumo } from "./actions";
+import BotonExcelInventario from "./BotonExcelInventario";
+import type { DatosInventario } from "./excel";
 
 export const metadata = { title: "Producción e inventario" };
 
 export default async function ProduccionPage() {
   const { supabase } = await requireAdmin();
-  const [{ data: inv }, { data: pendientes }] = await Promise.all([
+  const [{ data: inv }, { data: pendientes }, { data: iniciales }] = await Promise.all([
     supabase.from("v_inventario").select("*").order("tipo").order("nombre"),
     supabase.from("orden_items").select("canasta_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]).is("ordenes.eliminado_at", null),
+    // La vista no trae el stock inicial: se lee de cada artículo.
+    supabase.from("articulos").select("id,stock_inicial"),
   ]);
-  const inventario = (inv ?? []) as InventarioFila[];
+  const inicialDe = new Map(((iniciales ?? []) as { id: string; stock_inicial: number | null }[]).map((a) => [a.id, Number(a.stock_inicial ?? 0) || 0]));
+  const inventario = ((inv ?? []) as InventarioFila[]).map((i) => ({ ...i, stock_inicial: inicialDe.get(i.articulo_id) ?? 0 }));
 
   const porCanasta = new Map<string, number>();
   ((pendientes ?? []) as unknown as OrdenItem[]).forEach((it) => porCanasta.set(it.canasta_nombre, (porCanasta.get(it.canasta_nombre) ?? 0) + it.cantidad));
@@ -27,6 +32,18 @@ export default async function ProduccionPage() {
     return { ...i, stock, requerido, faltante, despues, estado };
   });
   const aComprar = filas.filter((f) => f.faltante > 0);
+  const tipoTexto = (t: string) => (t === "producto" ? "Producto" : t === "envase" ? "Envase" : "Otro");
+
+  // Lo mismo que se ve en la página, para el Excel.
+  const excel: DatosInventario = {
+    fecha: hoyLima(),
+    porArmar: [...porCanasta.entries()].sort((a, b) => b[1] - a[1]).map(([canasta, cantidad]) => ({ canasta, cantidad })),
+    aComprar: aComprar.map((f) => ({ nombre: f.nombre, unidad: f.unidad, falta: f.faltante })),
+    inventario: filas.map((f) => ({
+      nombre: f.nombre, tipo: tipoTexto(f.tipo), unidad: f.unidad, stockInicial: Number(f.stock_inicial), stock: f.stock,
+      requerido: f.requerido, queda: f.despues, minimo: Number(f.stock_minimo), estado: f.estado as "ok" | "bajo" | "falta",
+    })),
+  };
 
   return (
     <>
@@ -38,6 +55,7 @@ export default async function ProduccionPage() {
             Lo “requerido” sale de los pedidos nuevos y pendientes.
           </p>
         </div>
+        <BotonExcelInventario datos={excel} />
       </header>
 
       <div className="admGrid2">
@@ -80,7 +98,7 @@ export default async function ProduccionPage() {
             {filas.map((f) => (
               <tr key={f.articulo_id}>
                 <td className="admCeldaLarga"><Link className="admLinkPlano" href={`/admin/productos/${f.articulo_id}`}>{f.nombre}</Link></td>
-                <td>{f.tipo === "producto" ? "Producto" : f.tipo === "envase" ? "Envase" : "Otro"}</td>
+                <td>{tipoTexto(f.tipo)}</td>
                 <td className="num">{numero(f.stock)}</td>
                 <td className="num">{numero(f.requerido)}</td>
                 <td className="num" data-tone={f.despues < 0 ? "bad" : undefined}>{numero(f.despues)}</td>
