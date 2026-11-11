@@ -7,9 +7,12 @@
  */
 import type { jsPDF } from "jspdf";
 import { deliveryCotizacion } from "@/lib/admin/delivery";
-import { fechaCorta, soles } from "@/lib/admin/format";
+import { fechaCorta, soles as solesTexto } from "@/lib/admin/format";
 import type { ProductoCanasta } from "@/lib/admin/recetas";
 import { type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
+
+/** Monto con espacio no separable: "S/" nunca queda en otra línea que la cifra. */
+const soles = (n: number | string | null | undefined) => solesTexto(n).replace(/ /g, "\u00A0");
 
 type Marca = { nombre: string; lema: string; logo: string };
 type Contacto = { telefono: string; correo: string; ciudad: string };
@@ -228,7 +231,7 @@ async function documentoComercial(d: Documento) {
       headStyles: { fillColor: PINO, textColor: 255, fontStyle: "bold", halign: "center" },
       head: [[d.items.length > 1 ? `${i + 1}. TIPO DE CANASTA / BOX` : "TIPO DE CANASTA / BOX", "TIPO DE ENVASE", "CANTIDAD", "PRECIO UNIT.", "TOTAL"]],
       body: [[it.canasta_nombre, it.envase, String(it.cantidad), soles(it.precio_unitario), soles(it.subtotal)]],
-      columnStyles: { 0: { cellWidth: 54, fontStyle: "bold" }, 1: { cellWidth: 40 }, 2: { halign: "center" }, 3: { halign: "right" }, 4: { halign: "right", fontStyle: "bold" } },
+      columnStyles: { 0: { cellWidth: 54, fontStyle: "bold" }, 1: { cellWidth: 40 }, 2: { halign: "center" }, 3: { halign: "right", minCellWidth: 30 }, 4: { halign: "right", fontStyle: "bold", minCellWidth: 30 } },
     });
     y = finY();
     if (it.productos?.length) {
@@ -257,7 +260,7 @@ async function documentoComercial(d: Documento) {
     theme: "grid",
     styles: { ...base, fontSize: 10 },
     body: filasTotal,
-    columnStyles: { 0: { fontStyle: "bold", fillColor: CREMA }, 1: { halign: "right" } },
+    columnStyles: { 0: { fontStyle: "bold", fillColor: CREMA }, 1: { halign: "right", cellWidth: 38 } },
     didParseCell: (c) => {
       if (c.row.index === filasTotal.length - 1) {
         c.cell.styles.fillColor = VINO;
