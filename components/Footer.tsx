@@ -24,7 +24,7 @@ export default function Footer({ marca, contacto, pie }: FooterProps) {
         </Link>
         <nav aria-label="Categorías">
           <h4>Categorías</h4>
-          {LINEAS.filter((l) => l.id !== "boxes").map((l) => <Link key={l.id} href={`/canastas/${l.id}`}>{l.titulo.charAt(0).toUpperCase() + l.titulo.slice(1).replace(/ (\p{Ll})/gu, (_, c: string) => ` ${c.toUpperCase()}`)}</Link>)}
+          {LINEAS.map((l) => <Link key={l.id} href={l.id === "boxes" ? "/boxes" : `/canastas/${l.id}`}>{l.titulo.charAt(0).toUpperCase() + l.titulo.slice(1).replace(/ (\p{Ll})/gu, (_, c: string) => ` ${c.toUpperCase()}`)}</Link>)}
         </nav>
         <nav aria-label="Información">
           <h4>Información</h4>

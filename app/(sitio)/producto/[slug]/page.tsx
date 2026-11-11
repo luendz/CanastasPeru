@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import BoxDetail from "@/components/BoxDetail";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/motion/Reveal";
@@ -87,15 +86,9 @@ export default async function ProductoPage({ params }: { params: Promise<{ slug:
         <span aria-current="page">{product.name}</span>
       </nav>
 
-      {esBox ? (
-        <section className="shell">
-          <BoxDetail product={product} basketTypes={basketTypes} />
-        </section>
-      ) : (
-        <section className="shell productDetail">
-          <ProductDetail product={product} basketTypes={basketTypes} />
-        </section>
-      )}
+      <section className="shell productDetail">
+        <ProductDetail product={product} basketTypes={basketTypes} />
+      </section>
 
       {related.length > 0 && <section className="relatedSection">
         <div className="shell">

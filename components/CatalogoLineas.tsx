@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Enfasis from "@/components/Enfasis";
+import Icono from "@/components/Icono";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/motion/Reveal";
-import SplitWords from "@/components/motion/SplitWords";
 import type { Contenido } from "@/lib/contenido";
 import { LINEAS, lineaDe, productosDe, type Linea } from "@/lib/lineas";
 import type { Product } from "@/lib/mock-data";
@@ -30,22 +30,10 @@ export default function CatalogoLineas({ products, textos, lineas, actual, cabec
 
   return (
     <>
-      {/* En Canastas se va directo a las canastas; la cabecera grande queda solo en Boxes. */}
-      {esBoxes ? (
-        <section className="catalogHero">
-          <div className="shell catalogHeroInner">
-            <div>
-              <span className="eyebrow">{cabecera.etiqueta}</span>
-              <h1><SplitWords text={cabecera.titulo} immediate /></h1>
-            </div>
-            <p>{cabecera.texto}</p>
-          </div>
-        </section>
-      ) : (
-        <h1 className="srOnly">{cabecera.titulo.replace(/\*/g, "")}</h1>
-      )}
+      {/* Igual en Canastas y Boxes: se va directo a los productos. */}
+      <h1 className="srOnly">{cabecera.titulo.replace(/\*/g, "")}</h1>
 
-      <section className={esBoxes ? "shell catalogBody" : "shell catalogBody catalogBodyDirecto"}>
+      <section className="shell catalogBody catalogBodyDirecto">
         {!esBoxes && (
           <nav className="chipRow lineasTabs" aria-label="Líneas de canastas">
             <Link className="chip" href="/canastas" aria-current={!actual ? "page" : undefined}>Todas</Link>
@@ -57,7 +45,7 @@ export default function CatalogoLineas({ products, textos, lineas, actual, cabec
 
         {secciones.map(({ linea, texto, productos }) => (
           <section key={linea.id} className="lineaSeccion" id={linea.id}>
-            {(!actual || lineas.length > 1) && (
+            {(!actual || lineas.length > 1 || esBoxes) && (
               <div className="lineaHead">
                 <h2>{texto?.titulo ?? linea.titulo}</h2>
                 {texto?.texto && <p>{texto.texto}</p>}
@@ -71,6 +59,16 @@ export default function CatalogoLineas({ products, textos, lineas, actual, cabec
                   </div>
                 ))}
               </Reveal>
+            ) : esBoxes ? (
+              <div className="boxesPronto">
+                <span className="boxesProntoIcono" aria-hidden="true"><Icono nombre="regalo" /></span>
+                <h2>Nuestros boxes navideños llegan <em>muy pronto</em></h2>
+                <p>Estamos preparando boxes listos para regalar. Mientras tanto, descubre nuestras canastas o pídenos un regalo a tu medida.</p>
+                <div className="boxesProntoBotones">
+                  <Link className="btn btnPrimary" href="/canastas">Ver canastas <Icono nombre="flecha" /></Link>
+                  <Link className="btn btnGhost" href="/cotizacion">Pedir cotización</Link>
+                </div>
+              </div>
             ) : (
               <p className="lineaVacia">Muy pronto tendremos {linea.titulo.toLowerCase()} disponibles. <Link href="/cotizacion">Consúltanos por una a medida →</Link></p>
             )}

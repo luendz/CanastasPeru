@@ -9,9 +9,10 @@ import type { Contenido } from "@/lib/contenido";
 import { LINEAS } from "@/lib/lineas";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
-const links = [
+const links: { href: string; label: string; sub?: typeof LINEAS }[] = [
   { href: "/", label: "Inicio" },
   { href: "/canastas", label: "Canastas", sub: LINEAS.filter((l) => l.id !== "boxes") },
+  { href: "/boxes", label: "Boxes" },
   { href: "/cotizacion", label: "Cotizar" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/contacto", label: "Contacto" },
