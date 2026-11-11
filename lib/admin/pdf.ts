@@ -6,7 +6,7 @@
  * Se importa de forma dinámica para no cargar la librería hasta que se use.
  */
 import type { jsPDF } from "jspdf";
-import { deliveryCotizacion } from "@/lib/admin/delivery";
+import { NOTA_PROVINCIA, NOTA_PROVINCIA_ORDEN, deliveryCotizacion, esProvincia } from "@/lib/admin/delivery";
 import { fechaCorta, soles as solesTexto } from "@/lib/admin/format";
 import type { ProductoCanasta } from "@/lib/admin/recetas";
 import { type Cotizacion, type Orden, type OrdenItem } from "@/lib/admin/types";
@@ -374,7 +374,7 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     items,
     totales: [
       ["Canastas", canastas],
-      ...(c.distrito || delivery > 0
+      ...((c.distrito && !esProvincia(c.distrito)) || delivery > 0
         ? ([[delivery > 0 ? `Delivery · ${c.distrito ?? ""}` : `Delivery · ${c.distrito} (gratis)`, delivery]] as [string, number][])
         : []),
       ["SUBTOTAL (sin IGV)", valor],
@@ -382,7 +382,7 @@ export async function pdfCotizacion({ cotizacion: c, items, marca, contacto, tex
     ],
     total,
     etiquetaTotal: `TOTAL${unidades ? ` · ${unidades} canastas` : ""}`,
-    notas: [],
+    notas: esProvincia(c.distrito) ? [`* ${NOTA_PROVINCIA}`] : [],
     condiciones: textos.condiciones,
     autorizado: c.asesor || marca.nombre,
     firmas: ["Firma del cliente", `Firma del proveedor · ${marca.nombre}`],
@@ -436,6 +436,7 @@ export async function pdfOrden({ orden: o, items, marca, contacto, cotizacion, t
     notas: [
       `* Se emitirá ${factura ? "factura" : "boleta"} con los datos colocados en esta orden de pedido.`,
       `* La ${factura ? "factura" : "boleta"} se le enviará por WhatsApp o correo electrónico.`,
+      ...(esProvincia(o.distrito || cotizacion?.distrito) ? [`* ${NOTA_PROVINCIA_ORDEN}`] : []),
       ...(o.dedicatoria ? [`Dedicatoria para la tarjeta: “${o.dedicatoria}”`] : []),
     ],
     condiciones: textos.condiciones,

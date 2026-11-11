@@ -7,6 +7,7 @@ import { CANALES, type Canal } from "@/lib/admin/types";
 import { actualizarCotizacion, datosPdfCotizacion, type EstadoForm } from "../actions";
 import SelectorBuscable from "../../SelectorBuscable";
 import { opcionesDistrito, type DistritoDelivery } from "../distritos";
+import NotaProvincia from "../NotaProvincia";
 
 type Props = {
   id: string;
@@ -125,6 +126,7 @@ export default function GestionarCotizacion({ id, numero, estado, canal, validaH
         </label>
         <label>Ciudad / Distrito
           <SelectorBuscable name="distrito" opciones={opcionesDistrito(distritos)} valor={valores.distrito} onValor={(distrito) => setValores({ ...valores, distrito })} placeholder="Busca el distrito" requerido />
+          <NotaProvincia distrito={valores.distrito} />
         </label>
         <label>Forma de pago
           <input className="admInput" name="forma_pago" maxLength={200} value={valores.forma_pago} onChange={(e) => setValores({ ...valores, forma_pago: e.target.value })} placeholder={porDefecto.formaPago} />

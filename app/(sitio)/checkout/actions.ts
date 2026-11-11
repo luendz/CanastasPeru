@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { esProvincia } from "@/lib/admin/delivery";
 import { getCatalogo } from "@/lib/catalogo";
 import { getContenido } from "@/lib/contenido";
 import { esFechaReparto } from "@/lib/entrega";
@@ -25,6 +26,7 @@ export async function crearPedido(_prev: CheckoutState, fd: FormData): Promise<C
   if (!nombre) return { error: "Escribe tu nombre para continuar." };
   if (!campo(fd, "email") && !campo(fd, "telefono")) return { error: "Déjanos un correo o un celular para confirmarte el pedido." };
   if (!campo(fd, "distrito")) return { error: "Elige el distrito de entrega." };
+  if (esProvincia(campo(fd, "distrito"))) return { error: "Los envíos a provincia se atienden por cotización. Solicítala en la sección Cotizar." };
   if (!esFechaReparto(campo(fd, "fecha_entrega"))) return { error: "Elige una fecha de reparto: martes, jueves o sábado." };
   if (!fd.get("terminos")) return { error: "Acepta los términos para continuar." };
 

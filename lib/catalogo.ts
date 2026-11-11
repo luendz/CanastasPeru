@@ -10,6 +10,7 @@ import {
   type Product,
   type ProductVisualItem,
 } from "@/lib/mock-data";
+import { esProvincia } from "@/lib/admin/delivery";
 import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigurado } from "@/lib/supabase/config";
 
 export type DeliveryZone = { district: string; fee: number };
@@ -99,6 +100,7 @@ export const getCatalogo = cache(async (): Promise<Catalogo> => {
       ...(t.mostrar_condicion ? { mostrarCondicion: true } : {}),
       ...(t.minimo_unidades ? { minimo: Number(t.minimo_unidades) } : {}),
     })),
-    deliveryZones: c.zonas.map((z) => ({ district: z.distrito, fee: Number(z.tarifa) })),
+    // «Provincia» es solo para cotizaciones: nunca se ofrece en la compra web.
+    deliveryZones: c.zonas.filter((z) => !esProvincia(z.distrito)).map((z) => ({ district: z.distrito, fee: Number(z.tarifa) })),
   };
 });
