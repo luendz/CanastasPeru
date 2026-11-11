@@ -9,7 +9,7 @@ export default async function SeccionEnvases({ productoId }: { productoId: strin
   const { supabase } = await requireAdmin();
   const [{ data: envases }, { data: tipos }, { data: empaques }, { data: canastas }, { data: usos }, { data: costos }, { data: armado }] = await Promise.all([
     supabase.from("v_envases_canasta").select("*").eq("canasta_id", productoId).order("orden").order("envase_id"),
-    supabase.from("envases").select("id,nombre,descripcion,imagen,articulo_id,condicion,mostrar_condicion,minimo_unidades").order("orden"),
+    supabase.from("envases").select("id,nombre,descripcion,imagen,articulo_id,condicion,mostrar_condicion,minimo_unidades").neq("id", "box").order("orden"),
     supabase.from("articulos").select("id,nombre,imagen,costo_referencia").eq("tipo", "envase").order("nombre"),
     supabase.from("canastas").select("id,nombre,precio").neq("id", productoId).order("orden").order("precio"),
     supabase.from("canasta_envases").select("canasta_id,envase_id"),

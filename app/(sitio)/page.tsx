@@ -42,6 +42,7 @@ function Muestra({ producto, tipos }: { producto: Product; tipos: BasketType[] }
 
 export default async function HomePage() {
   const [{ products, basketTypes }, { portada: t, catalogo, contacto, marca }] = await Promise.all([getCatalogo(), getContenido()]);
+  const hayBoxes = productosDe(products, "boxes").length > 0;
   const destacada = products.find((p) => p.slug === t.canastaDestacada) ?? products[0];
   const desde = products.length ? Math.min(...products.map((p) => p.price)) : 0;
   const fondos = [t.heroImagen, ...t.heroFondos.map((f) => f.imagen)].filter(Boolean);
@@ -75,6 +76,8 @@ export default async function HomePage() {
             <p>{t.heroTexto}</p>
             <div className="hmBotones">
               <Link className="btn btnPrimary hmBtnMayus" href="/canastas">{t.heroBoton1} <Icono nombre="flecha" /></Link>
+              {/* Solo si hay al menos un box activo (Panel → Boxes). */}
+              {hayBoxes && t.heroBoton2 && <Link className="btn btnGhost hmBtnMayus" href="/boxes">{t.heroBoton2} <Icono nombre="flecha" /></Link>}
             </div>
             <ul className="hmPuntos">
               {t.heroPuntos.map((p, n) => <li key={n}><Icono nombre={ICONOS_HERO[n % ICONOS_HERO.length]} />{p}</li>)}

@@ -29,12 +29,13 @@ async function usosDe(url: string) {
     supabase.from("articulos").select("nombre").eq("imagen", url),
     supabase.from("envases").select("nombre").eq("imagen", url),
     supabase.from("contenido").select("clave, valor"),
-    supabase.from("canastas").select("nombre, composicion"),
+    supabase.from("canastas").select("nombre, composicion, imagen"),
   ]);
   const usos = [
     ...(insumos ?? []).map((i) => `insumo ${i.nombre}`),
     ...(tipos ?? []).map((t) => `tipo de canasta ${t.nombre}`),
     ...(productos ?? []).filter((p) => JSON.stringify(p.composicion).includes(url)).map((p) => `composición de ${p.nombre}`),
+    ...(productos ?? []).filter((p) => p.imagen === url).map((p) => `foto de ${p.nombre}`),
     ...(contenido ?? []).filter((c) => JSON.stringify(c.valor).includes(url)).map((c) => `contenido: ${c.clave}`),
   ];
   return usos;

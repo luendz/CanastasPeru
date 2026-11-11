@@ -119,6 +119,7 @@ export { anchoProducto };
 export default function ProductComposition({ product, variant = "card", baseImage, envaseId, assemble = false, proporcion = 1, encuadrar = true, resaltado, quieta = false }: ProductCompositionProps) {
   const isDetail = variant === "detail";
   const base = baseImage ?? product.baseImage;
+  const esFoto = Boolean(product.foto);
   // El ajuste va por envase y no por foto: dos envases pueden compartir la misma foto.
   const ajuste = product.ajustesEnvase?.[envaseId ?? product.baseType ?? ""] ?? AJUSTE_NEUTRO;
 
@@ -143,6 +144,15 @@ export default function ProductComposition({ product, variant = "card", baseImag
   const activeItem = !editor && active !== null ? product.visualItems[active] : undefined;
   // Orden de caída: primero lo que va al fondo, al final lo que queda delante.
   const dropOrder = [...stacking].reverse().map(({ index }) => index);
+
+  // Boxes: foto completa del producto, sin envase ni productos encima.
+  if (esFoto) {
+    return (
+      <div className={`${styles.composition} ${styles.conFoto} ${isDetail ? styles.detail : styles.card}`} style={encuadrar ? { aspectRatio: `1 / ${proporcion}` } : undefined}>
+        <img className={styles.fotoCompleta} src={product.foto} alt={product.name} />
+      </div>
+    );
+  }
 
   return (
     <div

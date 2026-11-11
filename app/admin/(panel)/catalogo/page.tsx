@@ -20,8 +20,8 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
   const { supabase } = await requireAdmin();
   const { linea } = await searchParams;
   const [{ data: productos }, { data: tipos }, { data: zonas }, { data: costeo }] = await Promise.all([
-    supabase.from("canastas").select("*").order("orden").order("precio"),
-    supabase.from("envases").select("*").order("orden").order("recargo"),
+    supabase.from("canastas").select("*").neq("envase_base_id", "box").order("orden").order("precio"),
+    supabase.from("envases").select("*").neq("id", "box").order("orden").order("recargo"),
     supabase.from("zonas_delivery").select("*").order("orden").order("distrito"),
     supabase.from("v_costeo_canastas").select("canasta_id,costo,margen_pct"),
   ]);
@@ -34,7 +34,8 @@ export default async function CatalogoAdminPage({ searchParams }: { searchParams
   // Las líneas se muestran siempre, aunque no tengan canastas; las de categoría desconocida van en "Otras" para no perderlas.
   const sinLinea = lista.filter((p) => !lineaDe({ category: p.categoria }));
   const categorias = [
-    ...LINEAS.map((l) => ({ id: l.id as string, titulo: l.titulo, categoria: l.categoria, canastas: lista.filter((p) => lineaDe({ category: p.categoria })?.id === l.id) })),
+    // Los boxes se gestionan en su propia sección (Panel → Boxes navideños).
+    ...LINEAS.filter((l) => l.id !== "boxes").map((l) => ({ id: l.id as string, titulo: l.titulo, categoria: l.categoria, canastas: lista.filter((p) => lineaDe({ category: p.categoria })?.id === l.id) })),
     ...(sinLinea.length ? [{ id: "otras", titulo: "Otras canastas", categoria: "", canastas: sinLinea }] : []),
   ];
   const actual = categorias.find((c) => c.id === linea) ?? categorias[0];

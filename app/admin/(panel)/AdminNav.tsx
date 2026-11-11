@@ -8,6 +8,7 @@ const items = [
   { seccion: "ordenes", href: "/admin/ordenes", label: "Órdenes", icon: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" },
   { seccion: "cotizaciones", href: "/admin/cotizaciones", label: "Cotizaciones", icon: "M5 4h10l4 4v12H5zM14 4v5h5M8 13h8M8 17h5" },
   { seccion: "catalogo", href: "/admin/catalogo", label: "Catálogo", icon: "M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z" },
+  { seccion: "boxes", href: "/admin/boxes", label: "Boxes navideños", icon: "M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7c-1.5-3-5-3.5-5-1.3C7 7 9.5 7 12 7Zm0 0c1.5-3 5-3.5 5-1.3C17 7 14.5 7 12 7Z" },
   { seccion: "contenido", href: "/admin/contenido", label: "Contenido web", icon: "M4 5h16M4 10h16M4 15h10M4 20h7" },
   { seccion: "suscriptores", href: "/admin/suscriptores", label: "Suscriptores", icon: "M3 6h18v12H3zM3 7l9 6 9-6" },
   { seccion: "articulos", href: "/admin/productos", label: "Artículos", icon: "M3 12V4h8l10 10-8 8zM7.5 7.5h.01" },

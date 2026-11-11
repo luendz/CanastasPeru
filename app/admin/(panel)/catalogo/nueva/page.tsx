@@ -10,7 +10,7 @@ export const metadata = { title: "Nueva canasta" };
 export default async function NuevaCanastaPage() {
   const { supabase } = await requireAdmin();
   const [{ data: tipos }, { data: todos }] = await Promise.all([
-    supabase.from("envases").select("*").order("orden"),
+    supabase.from("envases").select("*").neq("id", "box").order("orden"),
     supabase.from("canastas").select("categoria,orden,insignia"),
   ]);
   const filas = (todos ?? []) as { categoria: string; orden: number; insignia: string | null }[];
@@ -41,7 +41,7 @@ export default async function NuevaCanastaPage() {
             activo: false,
           }}
           tipos={listaTipos}
-          categorias={[...new Set([...LINEAS.map((l) => l.categoria), ...filas.map((f) => f.categoria)])]}
+          categorias={[...new Set([...LINEAS.filter((l) => l.id !== "boxes").map((l) => l.categoria), ...filas.map((f) => f.categoria).filter((c) => !/^box/i.test(c))])]}
           insignias={[...new Set(filas.flatMap((f) => separarInsignias(f.insignia)))]}
         />
       </section>
