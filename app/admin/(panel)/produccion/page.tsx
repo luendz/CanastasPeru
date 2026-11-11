@@ -10,11 +10,14 @@ export const metadata = { title: "Producción e inventario" };
 
 export default async function ProduccionPage() {
   const { supabase } = await requireAdmin();
-  const [{ data: inv }, { data: pendientes }] = await Promise.all([
+  const [{ data: inv }, { data: pendientes }, { data: iniciales }] = await Promise.all([
     supabase.from("v_inventario").select("*").order("tipo").order("nombre"),
     supabase.from("orden_items").select("canasta_nombre,cantidad,ordenes!inner(estado)").in("ordenes.estado", ["nueva", "pendiente", "preparacion"]).is("ordenes.eliminado_at", null),
+    // La vista no trae el stock inicial: se lee de cada artículo.
+    supabase.from("articulos").select("id,stock_inicial"),
   ]);
-  const inventario = (inv ?? []) as InventarioFila[];
+  const inicialDe = new Map(((iniciales ?? []) as { id: string; stock_inicial: number | null }[]).map((a) => [a.id, Number(a.stock_inicial ?? 0) || 0]));
+  const inventario = ((inv ?? []) as InventarioFila[]).map((i) => ({ ...i, stock_inicial: inicialDe.get(i.articulo_id) ?? 0 }));
 
   const porCanasta = new Map<string, number>();
   ((pendientes ?? []) as unknown as OrdenItem[]).forEach((it) => porCanasta.set(it.canasta_nombre, (porCanasta.get(it.canasta_nombre) ?? 0) + it.cantidad));

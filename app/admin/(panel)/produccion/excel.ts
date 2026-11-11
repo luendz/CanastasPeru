@@ -26,7 +26,9 @@ const ESTADOS = {
   bajo: { texto: "Bajo mínimo", fondo: "FFFBF0D5", tinta: "FF8A5A00" },
   falta: { texto: "Falta", fondo: "FFF8DEDE", tinta: "FF9B1C1C" },
 };
-const NUM = "#,##0.##";
+/** Enteros sin decimales y fracciones con dos; nunca NaN (Excel lo rechaza). */
+const num = (n: number) => (Number.isFinite(n) ? n : 0);
+const formato = (n: number) => (Number.isInteger(n) ? "#,##0" : "#,##0.00");
 
 /** Título, subtítulo y encabezado con los colores de la marca. Devuelve la fila del encabezado. */
 function encabezado(ws: Worksheet, titulo: string, subtitulo: string, columnas: { header: string; width: number; num?: boolean }[]) {
@@ -42,7 +44,6 @@ function encabezado(ws: Worksheet, titulo: string, subtitulo: string, columnas: 
   columnas.forEach((c, i) => {
     const col = ws.getColumn(i + 1);
     col.width = c.width;
-    if (c.num) col.numFmt = NUM;
   });
   ws.views = [{ state: "frozen", ySplit: 4 }];
   return header.number;
@@ -80,8 +81,10 @@ export async function descargarInventario(d: DatosInventario) {
   ]);
   d.inventario.forEach((f) => {
     const e = ESTADOS[f.estado];
-    const row = inv.addRow([f.nombre, f.tipo, f.unidad, f.stockInicial, f.stock, f.requerido, f.queda, f.minimo, e.texto]);
-    if (f.queda < 0) row.getCell(7).font = { bold: true, color: { argb: ESTADOS.falta.tinta } };
+    const valores = [f.stockInicial, f.stock, f.requerido, f.queda, f.minimo].map(num);
+    const row = inv.addRow([f.nombre, f.tipo, f.unidad, ...valores, e.texto]);
+    valores.forEach((v, k) => (row.getCell(4 + k).numFmt = formato(v)));
+    if (num(f.queda) < 0) row.getCell(7).font = { bold: true, color: { argb: ESTADOS.falta.tinta } };
     const estado = row.getCell(9);
     estado.font = { bold: true, color: { argb: e.tinta } };
     estado.fill = { type: "pattern", pattern: "solid", fgColor: { argb: e.fondo } };
@@ -97,7 +100,7 @@ export async function descargarInventario(d: DatosInventario) {
   ]);
   if (d.porArmar.length === 0) armar.addRow(["No hay pedidos pendientes de armar."]).font = { italic: true };
   else {
-    d.porArmar.forEach((c) => armar.addRow([c.canasta, c.cantidad]));
+    d.porArmar.forEach((c) => (armar.addRow([c.canasta, num(c.cantidad)]).getCell(2).numFmt = "#,##0"));
     filaTotal(armar, ["Total", { formula: `SUM(B${ha + 1}:B${ha + d.porArmar.length})` }]);
   }
 
@@ -109,7 +112,7 @@ export async function descargarInventario(d: DatosInventario) {
     { header: "Unidad", width: 12 },
   ]);
   if (d.aComprar.length === 0) compras.addRow(["El stock cubre todos los pedidos pendientes."]).font = { italic: true };
-  else d.aComprar.forEach((c) => compras.addRow([c.nombre, c.falta, c.unidad]));
+  else d.aComprar.forEach((c) => (compras.addRow([c.nombre, num(c.falta), c.unidad]).getCell(2).numFmt = formato(num(c.falta))));
 
   const buffer = await wb.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
