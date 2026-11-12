@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requirePermiso } from "@/lib/admin/auth";
 import { puede } from "@/lib/admin/permisos";
 import { urlPublicaMedio } from "@/lib/medios";
+import { FOTO_DESPLAZA, FOTO_ESCALA_MAX, FOTO_ESCALA_MIN } from "./foto";
 
 /*
  * Boxes navideños: se guardan en la tabla de canastas con la categoría
@@ -39,6 +40,12 @@ function leer(fd: FormData) {
   }
   // Una línea por producto, en el orden en que se escribieron.
   const incluye = fd.getAll("incluye").map((v) => String(v).trim().slice(0, 160)).filter(Boolean).slice(0, 40);
+  // Tamaño y posición de la foto dentro del recuadro (la tarjeta y la ficha usan el mismo).
+  const rango = (k: string, min: number, max: number, def: number) => {
+    const n = Number(txt(fd, k, 10));
+    return Number.isFinite(n) && txt(fd, k, 10) !== "" ? Math.min(max, Math.max(min, Math.round(n))) : def;
+  };
+  const ajuste = { x: rango("foto_x", -FOTO_DESPLAZA, FOTO_DESPLAZA, 0), y: rango("foto_y", -FOTO_DESPLAZA, FOTO_DESPLAZA, 0), escala: rango("foto_escala", FOTO_ESCALA_MIN, FOTO_ESCALA_MAX, 100), giro: 0 };
   return {
     datos: {
       nombre,
@@ -46,6 +53,7 @@ function leer(fd: FormData) {
       imagen: imagen || null,
       descripcion: txt(fd, "descripcion", 300),
       incluye,
+      ajuste_envase: { [ENVASE_BOX]: ajuste },
       activo: fd.get("activo") === "on",
     },
   } as const;

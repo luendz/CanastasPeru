@@ -637,3 +637,18 @@ button.admMediaThumb:hover { outline: 2px solid var(--a-gold); }
 
 /* Cotización a provincia: observación del flete a cargo del cliente. */
 .admNotaProvincia { margin: 6px 0 0; padding: 10px 12px; border: 1px solid #e8d3a6; border-left: 3px solid var(--a-gold); border-radius: 8px; background: #fbf5e8; color: #5b4630; font-size: 12.5px; font-weight: 500; line-height: 1.5; }
+
+/* Boxes: vista previa de la tarjeta del catálogo con ajuste de la foto. */
+.admBoxAjuste { border: 1px solid var(--adm-line, #e6dccf); border-radius: 12px; padding: 14px 16px 18px; margin: 0; }
+.admBoxAjuste legend { font-weight: 700; padding: 0 6px; }
+.admBoxAjuste legend small { display: block; font-weight: 400; }
+.admBoxAjusteGrid { display: grid; grid-template-columns: 290px 1fr; gap: 28px; align-items: start; margin-top: 8px; }
+.admBoxPreview { width: 290px; max-width: 100%; touch-action: none; user-select: none; }
+.admBoxPreview .productCard:hover { transform: none; box-shadow: none; }
+.admBoxPreviewMovible .productVisual { cursor: grab; }
+.admBoxPreviewMovible .productVisual:active { cursor: grabbing; }
+.admBoxPreview img { -webkit-user-drag: none; pointer-events: none; }
+.admRango { display: grid; gap: 6px; }
+.admRango span { display: flex; justify-content: space-between; }
+.admRango input[type="range"] { width: 100%; accent-color: #7b1e2c; }
+@media (max-width: 720px) { .admBoxAjusteGrid { grid-template-columns: 1fr; } .admBoxPreview { margin: 0 auto; } }
