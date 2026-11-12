@@ -149,7 +149,8 @@ export default function ProductComposition({ product, variant = "card", baseImag
   if (esFoto) {
     return (
       <div className={`${styles.composition} ${styles.conFoto} ${isDetail ? styles.detail : styles.card}`} style={encuadrar ? { aspectRatio: `1 / ${proporcion}` } : undefined}>
-        <img className={styles.fotoCompleta} src={product.foto} alt={product.name} />
+        {/* Tamaño y posición elegidos en el panel (Boxes): mismo ajuste en la tarjeta y en la ficha. */}
+        <img className={styles.fotoCompleta} src={product.foto} alt={product.name} style={ajuste === AJUSTE_NEUTRO ? undefined : { transform: `translate(${ajuste.x}%, ${ajuste.y}%) scale(${ajuste.escala / 100})` }} />
       </div>
     );
   }

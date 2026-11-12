@@ -5,6 +5,7 @@ import { puede } from "@/lib/admin/permisos";
 import BotonEliminar from "../../BotonEliminar";
 import { eliminarBox } from "../actions";
 import BoxForm from "../BoxForm";
+import { ajusteFoto } from "../foto";
 
 export const metadata = { title: "Editar box" };
 
@@ -13,7 +14,7 @@ export default async function EditarBoxPage({ params }: { params: Promise<{ id: 
   const { supabase, permisos } = await requireSeccion("boxes");
   const { data: b } = await supabase
     .from("canastas")
-    .select("id,slug,nombre,precio,imagen,descripcion,incluye,activo")
+    .select("id,slug,nombre,precio,imagen,descripcion,incluye,activo,ajuste_envase")
     .eq("id", id)
     .eq("envase_base_id", "box")
     .maybeSingle();
@@ -35,7 +36,7 @@ export default async function EditarBoxPage({ params }: { params: Promise<{ id: 
       <section className="admCard">
         {editar ? (
           <BoxForm
-            box={{ id: b.id, nombre: b.nombre, precio: Number(b.precio), imagen: b.imagen, descripcion: b.descripcion ?? "", incluye: (b.incluye ?? []) as string[], activo: b.activo }}
+            box={{ id: b.id, nombre: b.nombre, precio: Number(b.precio), imagen: b.imagen, descripcion: b.descripcion ?? "", incluye: (b.incluye ?? []) as string[], activo: b.activo, ajuste: ajusteFoto(b.ajuste_envase) }}
             puedeActivar={puede(permisos, "boxes.visibilidad")}
           />
         ) : (
