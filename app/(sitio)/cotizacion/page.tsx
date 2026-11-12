@@ -21,7 +21,7 @@ function iconoLado(texto: string, n: number): NombreIcono {
   if (t.includes("calidad") || t.includes("producto")) return "regalo";
   return ICONOS_LADO[n % ICONOS_LADO.length];
 }
-const ICONOS_PASO: NombreIcono[] = ["documento", "documento", "camion"];
+const ICONOS_PASO: NombreIcono[] = ["chat", "documento", "camion"];
 
 export default async function CotizacionPage() {
   const [{ deliveryZones }, { cotizacion: t, catalogo, marca }] = await Promise.all([getCatalogo(), getContenido()]);
