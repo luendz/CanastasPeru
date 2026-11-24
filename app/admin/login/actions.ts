@@ -18,6 +18,9 @@ export async function iniciarSesion(_prev: LoginState, formData: FormData): Prom
   if (error) {
     // Usuario dejado sin acceso desde Panel → Usuarios (ingreso bloqueado en Auth).
     if (error.code === "user_banned" || /banned/i.test(error.message)) return { error: "Esta cuenta está sin acceso al panel. Pide a un administrador que la reactive." };
+    // 402: Supabase restringió el proyecto por pasar la cuota del plan (Dashboard → Usage).
+    if (error.status === 402) return { error: "Supabase tiene el proyecto restringido por superar la cuota del plan. Revisa Usage y Billing en el dashboard de Supabase." };
+    if (!error.status || error.status >= 500) return { error: "No se pudo conectar con Supabase. Inténtalo de nuevo en unos minutos." };
     return { error: "Correo o contraseña incorrectos." };
   }
 

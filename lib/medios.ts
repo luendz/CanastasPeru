@@ -3,7 +3,10 @@ import { SUPABASE_URL } from "@/lib/supabase/config";
 /** Bucket público de Supabase Storage con las imágenes subidas desde el panel. */
 export const BUCKET_MEDIOS = "media";
 export const TIPOS_IMAGEN = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+/** Límite del bucket para el archivo ya comprimido. */
 export const MAX_BYTES_IMAGEN = 5 * 1024 * 1024;
+/** Límite del archivo original elegido: se comprime antes de subir, así que puede ser mayor. */
+export const MAX_BYTES_ORIGINAL = 25 * 1024 * 1024;
 
 export type Medio = {
   url: string;
@@ -62,7 +65,58 @@ export const MEDIOS_DE_LA_WEB: Medio[] = [
   "/productos/fideos.png",
 ].map((url) => ({ url, nombre: url.split("/").pop() ?? url, origen: "web" as const }));
 
-export const urlPublicaMedio = (ruta: string) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_MEDIOS}/${ruta}`;
+/**
+ * Dirección con la que la web muestra una imagen subida: pasa por la ruta /media
+ * del propio sitio, que la guarda en la caché de Cloudflare. Así Supabase entrega
+ * cada archivo una sola vez y no gasta su cuota de transferencia (egress) en cada visita.
+ */
+export const urlPublicaMedio = (ruta: string) => `/media/${ruta}`;
+
+/** Dirección directa del archivo en Supabase Storage (solo para la ruta /media y datos antiguos). */
+export const urlStorageMedio = (ruta: string) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_MEDIOS}/${ruta}`;
+
+/** Ruta dentro del bucket si la dirección es de una imagen subida, en su forma nueva (/media/…) o antigua (directa a Supabase). */
+export function rutaDeMedio(url: string): string | null {
+  for (const prefijo of [urlPublicaMedio(""), urlStorageMedio("")]) {
+    if (url.startsWith(prefijo) && url.length > prefijo.length) return url.slice(prefijo.length);
+  }
+  return null;
+}
+
+/** Lado mayor y calidad con que se guardan las imágenes subidas desde el panel. */
+export const LADO_MAXIMO_IMAGEN = 1600;
+const CALIDAD_WEBP = 0.85;
+
+/**
+ * Reduce una imagen en el navegador antes de subirla: la convierte a WebP (mantiene
+ * la transparencia) con un lado mayor de LADO_MAXIMO_IMAGEN. Una foto de 1–3 MB queda
+ * en unos 100–200 KB. Los GIF (pueden ser animados) y los casos en que no se gana
+ * nada se suben tal cual.
+ */
+export async function comprimirImagen(archivo: File): Promise<File> {
+  if (archivo.type === "image/gif" || typeof createImageBitmap !== "function") return archivo;
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(archivo);
+  } catch {
+    return archivo;
+  }
+  const escala = Math.min(1, LADO_MAXIMO_IMAGEN / Math.max(bitmap.width, bitmap.height));
+  const ancho = Math.max(1, Math.round(bitmap.width * escala));
+  const alto = Math.max(1, Math.round(bitmap.height * escala));
+  const canvas = document.createElement("canvas");
+  canvas.width = ancho;
+  canvas.height = alto;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return archivo;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, ancho, alto);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, "image/webp", CALIDAD_WEBP));
+  // Navegadores sin WebP devuelven PNG: en ese caso, o si no pesa menos, se sube el original.
+  if (!blob || blob.type !== "image/webp" || blob.size >= archivo.size) return archivo;
+  return new File([blob], archivo.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+}
 
 /** Nombre de archivo seguro y único para subir al bucket. */
 export function rutaParaSubir(nombreOriginal: string, tipo: string) {

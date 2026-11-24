@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { moverProducto } from "@/lib/admin/recetas";
-import { urlPublicaMedio } from "@/lib/medios";
+import { urlStorageMedio } from "@/lib/medios";
 
 export type FormState = { ok?: boolean; error?: string };
 
@@ -21,7 +21,7 @@ const entero = (fd: FormData, k: string) => Math.round(Number(fd.get(k) ?? 0)) |
 const imagen = (fd: FormData, k: string) => {
   const v = txt(fd, k, 400);
   if (!v) return null;
-  if ((v.startsWith("/") && !v.startsWith("//")) || v.startsWith(urlPublicaMedio(""))) return v;
+  if ((v.startsWith("/") && !v.startsWith("//")) || v.startsWith(urlStorageMedio(""))) return v;
   throw new Error("La imagen debe elegirse de la biblioteca");
 };
 

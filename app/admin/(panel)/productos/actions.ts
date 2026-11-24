@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
-import { urlPublicaMedio } from "@/lib/medios";
+import { urlStorageMedio } from "@/lib/medios";
 import { PRESENTACIONES } from "@/lib/admin/types";
 
 export type ProductoState = { error?: string };
@@ -14,7 +14,7 @@ const txt = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").tr
 function imagen(fd: FormData) {
   const v = txt(fd, "imagen", 400);
   if (!v) return null;
-  if ((v.startsWith("/") && !v.startsWith("//")) || v.startsWith(urlPublicaMedio(""))) return v;
+  if ((v.startsWith("/") && !v.startsWith("//")) || v.startsWith(urlStorageMedio(""))) return v;
   return undefined;
 }
 

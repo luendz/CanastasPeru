@@ -368,16 +368,21 @@ export function sanearSeccion<S extends SeccionContenido>(seccion: S, valor: unk
   return limpiar(CONTENIDO_POR_DEFECTO[seccion], valor) as Contenido[S];
 }
 
-/** Contenido de la web leído de Supabase en cada visita (con valores por defecto de respaldo). */
-export const getContenido = cache(async (): Promise<Contenido> => {
+const leerContenido = cache(async (): Promise<{ contenido: Contenido; caida: boolean }> => {
   await connection();
-  if (!supabaseConfigurado) return CONTENIDO_POR_DEFECTO;
+  if (!supabaseConfigurado) return { contenido: CONTENIDO_POR_DEFECTO, caida: false };
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await supabase.from("contenido").select("clave, valor");
   if (error || !data) {
     console.error("No se pudo leer el contenido de Supabase; se usan los textos por defecto.", error?.message);
-    return CONTENIDO_POR_DEFECTO;
+    return { contenido: CONTENIDO_POR_DEFECTO, caida: true };
   }
-  return combinarContenido(Object.fromEntries(data.map((r) => [r.clave, r.valor])));
+  return { contenido: combinarContenido(Object.fromEntries(data.map((r) => [r.clave, r.valor]))), caida: false };
 });
+
+/** Contenido de la web leído de Supabase en cada visita (con valores por defecto de respaldo). */
+export const getContenido = cache(async (): Promise<Contenido> => (await leerContenido()).contenido);
+
+/** true si Supabase no respondió en esta visita: la web muestra textos y catálogo de respaldo. */
+export const baseCaida = cache(async (): Promise<boolean> => (await leerContenido()).caida);

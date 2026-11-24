@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
-import { BUCKET_MEDIOS, MEDIOS_DE_LA_WEB, urlPublicaMedio, type Medio } from "@/lib/medios";
+import { BUCKET_MEDIOS, MEDIOS_DE_LA_WEB, urlPublicaMedio, urlStorageMedio, type Medio } from "@/lib/medios";
 
 /** Biblioteca completa: imágenes de la web + subidas al bucket. */
 export async function listarMedios(): Promise<Medio[]> {
@@ -22,21 +22,23 @@ export async function listarMedios(): Promise<Medio[]> {
   return [...subidas, ...MEDIOS_DE_LA_WEB];
 }
 
-/** Dónde se usa una imagen (para no borrar una que la web muestra). */
-async function usosDe(url: string) {
+/** Dónde se usa una imagen (para no borrar una que la web muestra), con su dirección nueva (/media/…) o antigua (directa a Supabase). */
+async function usosDe(ruta: string) {
   const { supabase } = await requireAdmin();
+  const urls = [urlPublicaMedio(ruta), urlStorageMedio(ruta)];
+  const usa = (v: unknown) => urls.some((u) => JSON.stringify(v ?? null).includes(u));
   const [{ data: insumos }, { data: tipos }, { data: contenido }, { data: productos }] = await Promise.all([
-    supabase.from("articulos").select("nombre").eq("imagen", url),
-    supabase.from("envases").select("nombre").eq("imagen", url),
+    supabase.from("articulos").select("nombre").in("imagen", urls),
+    supabase.from("envases").select("nombre").in("imagen", urls),
     supabase.from("contenido").select("clave, valor"),
     supabase.from("canastas").select("nombre, composicion, imagen"),
   ]);
   const usos = [
     ...(insumos ?? []).map((i) => `insumo ${i.nombre}`),
     ...(tipos ?? []).map((t) => `tipo de canasta ${t.nombre}`),
-    ...(productos ?? []).filter((p) => JSON.stringify(p.composicion).includes(url)).map((p) => `composición de ${p.nombre}`),
-    ...(productos ?? []).filter((p) => p.imagen === url).map((p) => `foto de ${p.nombre}`),
-    ...(contenido ?? []).filter((c) => JSON.stringify(c.valor).includes(url)).map((c) => `contenido: ${c.clave}`),
+    ...(productos ?? []).filter((p) => usa(p.composicion)).map((p) => `composición de ${p.nombre}`),
+    ...(productos ?? []).filter((p) => urls.includes(p.imagen)).map((p) => `foto de ${p.nombre}`),
+    ...(contenido ?? []).filter((c) => usa(c.valor)).map((c) => `contenido: ${c.clave}`),
   ];
   return usos;
 }
@@ -45,7 +47,7 @@ export async function eliminarMedio(ruta: string): Promise<{ ok?: boolean; error
   const { supabase } = await requireAdmin();
   if (!ruta || ruta.includes("/")) return { error: "Archivo inválido." };
 
-  const usos = await usosDe(urlPublicaMedio(ruta));
+  const usos = await usosDe(ruta);
   if (usos.length) return { error: `No se puede borrar: se usa en ${usos.join(", ")}.` };
 
   const { error } = await supabase.storage.from(BUCKET_MEDIOS).remove([ruta]);
