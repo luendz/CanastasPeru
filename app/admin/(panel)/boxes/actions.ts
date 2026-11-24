@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePermiso } from "@/lib/admin/auth";
 import { puede } from "@/lib/admin/permisos";
-import { urlPublicaMedio } from "@/lib/medios";
+import { urlStorageMedio } from "@/lib/medios";
 import { FOTO_DESPLAZA, FOTO_ESCALA_MAX, FOTO_ESCALA_MIN } from "./foto";
 
 /*
@@ -35,7 +35,7 @@ function leer(fd: FormData) {
   const precio = Number(txt(fd, "precio", 20).replace(",", "."));
   if (!Number.isFinite(precio) || precio <= 0) return { error: "Escribe un precio válido." } as const;
   const imagen = txt(fd, "imagen", 400);
-  if (imagen && !((imagen.startsWith("/") && !imagen.startsWith("//")) || imagen.startsWith(urlPublicaMedio("")))) {
+  if (imagen && !((imagen.startsWith("/") && !imagen.startsWith("//")) || imagen.startsWith(urlStorageMedio("")))) {
     return { error: "La imagen debe elegirse de la biblioteca." } as const;
   }
   // Una línea por producto, en el orden en que se escribieron.

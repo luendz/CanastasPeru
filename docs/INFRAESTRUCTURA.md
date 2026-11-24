@@ -131,3 +131,13 @@ Dónde vive cada parte de la web, cómo se publica y qué reglas seguir para no 
 ## Otras ramas
 
 - **`rediseno-animado`:** rediseño alternativo del sitio, con otra identidad visual. No está mergeado.
+
+## Imágenes y cuota de Supabase (egress)
+
+El plan Free de Supabase incluye 5 GB/mes de *cached egress* (Storage). En noviembre de 2026 se superó (14.45 GB) y Supabase restringió el proyecto: la web y el panel dejaron de cargar datos (respuestas 402).
+
+- Las imágenes subidas se muestran con `/media/<archivo>` (ruta `app/media/[...ruta]/route.ts`), no con la URL directa de Supabase. El Worker las guarda en la caché de Cloudflare y el navegador por un año: Supabase entrega cada archivo una vez por centro de datos.
+- Panel → Medios comprime en el navegador antes de subir (WebP, lado mayor 1600 px).
+- `scripts/recomprimir-medios.mjs` recomprime las imágenes ya subidas desde el backup local (`backup-media/`, fuera de git) y genera el SQL que cambia las direcciones en la base.
+- Si Supabase no responde, la franja superior de la web avisa y deriva a WhatsApp; el login del panel indica si es una restricción por cuota.
+- Consumo: supabase.com/dashboard → organización → Usage.

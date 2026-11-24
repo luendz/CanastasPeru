@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BUCKET_MEDIOS, MAX_BYTES_IMAGEN, TIPOS_IMAGEN, rutaParaSubir, urlPublicaMedio, type Medio } from "@/lib/medios";
+import { BUCKET_MEDIOS, MAX_BYTES_IMAGEN, MAX_BYTES_ORIGINAL, TIPOS_IMAGEN, comprimirImagen, rutaParaSubir, urlPublicaMedio, type Medio } from "@/lib/medios";
 import { createClient } from "@/lib/supabase/client";
 import { eliminarMedio, listarMedios } from "./actions";
 
@@ -39,9 +39,9 @@ export default function Biblioteca({ onElegir, seleccionada }: Props) {
 
   async function subir(archivos: FileList | File[]) {
     const lista = [...archivos];
-    const invalidos = lista.filter((f) => !TIPOS_IMAGEN.includes(f.type) || f.size > MAX_BYTES_IMAGEN);
+    const invalidos = lista.filter((f) => !TIPOS_IMAGEN.includes(f.type) || f.size > MAX_BYTES_ORIGINAL);
     if (invalidos.length) {
-      setAviso({ tipo: "error", texto: `Solo PNG, JPG, WebP o GIF de hasta 5 MB. No se subió: ${invalidos.map((f) => f.name).join(", ")}.` });
+      setAviso({ tipo: "error", texto: `Solo PNG, JPG, WebP o GIF de hasta 25 MB. No se subió: ${invalidos.map((f) => f.name).join(", ")}.` });
     }
     const validos = lista.filter((f) => !invalidos.includes(f));
     if (!validos.length) return;
@@ -49,7 +49,14 @@ export default function Biblioteca({ onElegir, seleccionada }: Props) {
     const supabase = createClient();
     setSubiendo(validos.length);
     let ultima = "";
-    for (const archivo of validos) {
+    for (const original of validos) {
+      // Se sube una versión liviana (WebP, máx. 1600 px): es lo que más reduce el consumo de Supabase.
+      const archivo = await comprimirImagen(original);
+      if (archivo.size > MAX_BYTES_IMAGEN) {
+        setAviso({ tipo: "error", texto: `${original.name} sigue pesando más de 5 MB después de comprimirla. Prueba con una imagen más pequeña.` });
+        setSubiendo((n) => n - 1);
+        continue;
+      }
       const ruta = rutaParaSubir(archivo.name, archivo.type);
       const { error } = await supabase.storage.from(BUCKET_MEDIOS).upload(ruta, archivo, { contentType: archivo.type, cacheControl: "31536000", upsert: false });
       if (error) {
@@ -98,7 +105,7 @@ export default function Biblioteca({ onElegir, seleccionada }: Props) {
         <button type="button" className="admBtn" onClick={() => input.current?.click()} disabled={subiendo > 0}>
           {subiendo > 0 ? `Subiendo ${subiendo}…` : "Elegir archivos"}
         </button>
-        <small>PNG, JPG, WebP o GIF · hasta 5 MB · PNG o WebP con fondo transparente para productos</small>
+        <small>PNG, JPG, WebP o GIF · se guardan como WebP livianas (máx. 1600 px) · PNG o WebP con fondo transparente para productos</small>
         <input ref={input} type="file" accept={TIPOS_IMAGEN.join(",")} multiple hidden onChange={(e) => { if (e.target.files) subir(e.target.files); e.target.value = ""; }} />
       </div>
 
